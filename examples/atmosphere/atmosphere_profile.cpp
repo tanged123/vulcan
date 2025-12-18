@@ -1,11 +1,12 @@
 // Atmosphere Profile Example
 // Demonstrates US Standard Atmosphere 1976 with Janus optimization
 #include <iostream>
+#include <janus/optimization/Opti.hpp>
 #include <vulcan/vulcan.hpp>
 
 // Templated model function - works in both modes
 template <typename Scalar> Scalar air_density(const Scalar &altitude) {
-    return vulcan::standard_atmosphere::density(altitude);
+    return vulcan::ussa1976::density(altitude);
 }
 
 int main() {
@@ -14,22 +15,25 @@ int main() {
     std::cout << "========================================" << std::endl;
 
     // ========================================
-    // 1. Numeric Mode: Atmosphere profile
+    // 1. Numeric Mode: Atmosphere profile using state() struct
     // ========================================
     std::cout << "\n=== Atmosphere Profile ===" << std::endl;
-    std::cout << "Alt (km)  T (K)    P (Pa)      rho (kg/m^3)  a (m/s)"
-              << std::endl;
-    std::cout << "--------------------------------------------------------"
-              << std::endl;
+    std::cout
+        << "Alt (km)  T (K)    P (Pa)      rho (kg/m^3)  a (m/s)   g (m/s^2)"
+        << std::endl;
+    std::cout
+        << "----------------------------------------------------------------"
+        << std::endl;
 
     for (int h_km = 0; h_km <= 25; h_km += 5) {
         double h = h_km * 1000.0; // Convert to meters
-        double T = vulcan::standard_atmosphere::temperature(h);
-        double P = vulcan::standard_atmosphere::pressure(h);
-        double rho = vulcan::standard_atmosphere::density(h);
-        double a = vulcan::standard_atmosphere::speed_of_sound(h);
 
-        printf("%5d    %6.2f   %10.2f  %11.6f   %6.2f\n", h_km, T, P, rho, a);
+        // Use state() to get all properties in one call
+        auto atm = vulcan::ussa1976::state(h);
+
+        printf("%5d    %6.2f   %10.2f  %11.6f   %6.2f   %6.4f\n", h_km,
+               atm.temperature, atm.pressure, atm.density, atm.speed_of_sound,
+               atm.gravity);
     }
 
     // ========================================
@@ -45,15 +49,16 @@ int main() {
     // Example: Find altitude with specific density target
     // We'll minimize (rho - target)^2
     double target_rho = 0.5; // kg/m^3
-    auto objective = janus::pow(rho_sym - target_rho, 2.0);
+    auto objective = (rho_sym - target_rho) * (rho_sym - target_rho);
 
     opti.minimize(objective);
-    opti.subject_to_bounds(h, 0.0, 50000.0);
+    opti.subject_to(h >= 0.0);
+    opti.subject_to(h <= 50000.0);
 
     auto sol = opti.solve();
 
-    double h_opt = sol.value(h);
-    double rho_at_opt = vulcan::standard_atmosphere::density(h_opt);
+    double h_opt = static_cast<double>(sol.value(h));
+    double rho_at_opt = vulcan::ussa1976::density(h_opt);
 
     std::cout << "  Target density: " << target_rho << " kg/m^3" << std::endl;
     std::cout << "  Optimal altitude: " << h_opt / 1000.0 << " km" << std::endl;

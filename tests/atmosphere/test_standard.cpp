@@ -1,163 +1,138 @@
+// Tests for US Standard Atmosphere 1976 (USSA1976)
 #include <gtest/gtest.h>
 #include <janus/janus.hpp>
-#include <vulcan/atmosphere/StandardAtmosphere.hpp>
-#include <vulcan/atmosphere/US76Atmosphere.hpp>
+#include <vulcan/atmosphere/USSA1976.hpp>
 
 // ============================================
-// Legacy Analytical Model Tests
-// ============================================
-TEST(StandardAtmosphere, SeaLevelTemperature) {
-    double T = vulcan::standard_atmosphere::temperature(0.0);
-    EXPECT_NEAR(T, 288.15, 1e-3);
-}
-
-TEST(StandardAtmosphere, SeaLevelDensity) {
-    double rho = vulcan::standard_atmosphere::density(0.0);
-    EXPECT_NEAR(rho, 1.225, 1e-3);
-}
-
-TEST(StandardAtmosphere, SeaLevelPressure) {
-    double P = vulcan::standard_atmosphere::pressure(0.0);
-    EXPECT_NEAR(P, 101325.0, 1.0);
-}
-
-TEST(StandardAtmosphere, TropopauseDensity) {
-    double rho = vulcan::standard_atmosphere::density(11000.0);
-    EXPECT_NEAR(rho, 0.3639, 1e-2);
-}
-
-TEST(StandardAtmosphere, SpeedOfSound) {
-    double a = vulcan::standard_atmosphere::speed_of_sound(0.0);
-    EXPECT_NEAR(a, 340.3, 0.5); // ~340 m/s at sea level
-}
-
-// ============================================
-// Symbolic Tests (Graph Generation)
-// ============================================
-TEST(StandardAtmosphere, SymbolicEvaluation) {
-    auto alt = janus::sym("altitude");
-    auto rho = vulcan::standard_atmosphere::density(alt);
-
-    // Verify symbolic expression was created
-    EXPECT_FALSE(rho.is_constant());
-
-    // Create a CasADi function to evaluate the symbolic expression
-    janus::Function f("rho", {alt}, {rho});
-    auto result = f({0.0});
-    // result[0] is a matrix, extract scalar with (0,0)
-    EXPECT_NEAR(result[0](0, 0), 1.225, 1e-3);
-}
-
-TEST(StandardAtmosphere, SymbolicGradient) {
-    auto alt = janus::sym("altitude");
-    auto rho = vulcan::standard_atmosphere::density(alt);
-
-    // Verify derivatives exist
-    auto drho_dalt = janus::jacobian(rho, alt);
-
-    // Create function for gradient evaluation
-    janus::Function f("drho_dalt", {alt}, {drho_dalt});
-    auto result = f({5000.0});
-
-    // Density should decrease with altitude (negative gradient)
-    EXPECT_LT(result[0](0, 0), 0.0);
-}
-
-TEST(StandardAtmosphere, SymbolicTemperature) {
-    auto alt = janus::sym("altitude");
-    auto T = vulcan::standard_atmosphere::temperature(alt);
-
-    // Create function for temperature evaluation
-    janus::Function f("T", {alt}, {T});
-    auto result = f({5000.0});
-    double T_5km = result[0](0, 0);
-
-    // Troposphere: T should decrease
-    EXPECT_LT(T_5km, 288.15);
-    EXPECT_GT(T_5km, 220.0);
-}
-
-// ============================================
-// US76 Table-Based Model Tests
+// USSA1976 Table-Based Model Tests
 // ============================================
 
-TEST(US76Atmosphere, SeaLevelValues) {
+TEST(USSA1976, SeaLevelValues) {
     // Reference: US Standard Atmosphere 1976 at z=0
     // T = 288.15 K, P = 101325 Pa, rho = 1.225 kg/m³, a = 340.3 m/s
-    EXPECT_NEAR(vulcan::us76::temperature(0.0), 288.1, 0.5);
-    EXPECT_NEAR(vulcan::us76::pressure(0.0), 101325, 10);
-    EXPECT_NEAR(vulcan::us76::density(0.0), 1.225, 0.001);
-    EXPECT_NEAR(vulcan::us76::speed_of_sound(0.0), 340.3, 0.5);
-    EXPECT_NEAR(vulcan::us76::gravity(0.0), 9.807, 0.001);
+    EXPECT_NEAR(vulcan::ussa1976::temperature(0.0), 288.1, 0.5);
+    EXPECT_NEAR(vulcan::ussa1976::pressure(0.0), 101325, 10);
+    EXPECT_NEAR(vulcan::ussa1976::density(0.0), 1.225, 0.001);
+    EXPECT_NEAR(vulcan::ussa1976::speed_of_sound(0.0), 340.3, 0.5);
+    EXPECT_NEAR(vulcan::ussa1976::gravity(0.0), 9.807, 0.001);
 }
 
-TEST(US76Atmosphere, At10km) {
+TEST(USSA1976, At10km) {
     // Reference: US Standard Atmosphere 1976 at z=10 km
-    double alt = 10000.0; // 10 km in meters
-    EXPECT_NEAR(vulcan::us76::temperature(alt), 223.3, 0.5);
-    EXPECT_NEAR(vulcan::us76::pressure(alt), 26499, 50);
-    EXPECT_NEAR(vulcan::us76::density(alt), 0.414, 0.01);
-    EXPECT_NEAR(vulcan::us76::speed_of_sound(alt), 299.5, 0.5);
+    double alt = 10000.0;
+    EXPECT_NEAR(vulcan::ussa1976::temperature(alt), 223.3, 0.5);
+    EXPECT_NEAR(vulcan::ussa1976::pressure(alt), 26499, 50);
+    EXPECT_NEAR(vulcan::ussa1976::density(alt), 0.414, 0.01);
+    EXPECT_NEAR(vulcan::ussa1976::speed_of_sound(alt), 299.5, 0.5);
 }
 
-TEST(US76Atmosphere, At50km) {
+TEST(USSA1976, At50km) {
     // Reference: US Standard Atmosphere 1976 at z=50 km (stratopause)
-    double alt = 50000.0; // 50 km in meters
-    EXPECT_NEAR(vulcan::us76::temperature(alt), 270.65, 1.0);
-    EXPECT_NEAR(vulcan::us76::pressure(alt), 79.8, 5);
-    EXPECT_NEAR(vulcan::us76::density(alt), 1.03e-3, 1e-4);
+    double alt = 50000.0;
+    EXPECT_NEAR(vulcan::ussa1976::temperature(alt), 270.65, 1.0);
+    EXPECT_NEAR(vulcan::ussa1976::pressure(alt), 79.8, 5);
+    EXPECT_NEAR(vulcan::ussa1976::density(alt), 1.03e-3, 1e-4);
 }
 
-TEST(US76Atmosphere, Interpolation) {
+TEST(USSA1976, Interpolation) {
     // Test that interpolation works for non-grid points
     double alt = 7500.0; // 7.5 km = grid point
-    double T_grid = vulcan::us76::temperature(alt);
-    EXPECT_NEAR(T_grid, 239.5, 0.1); // Exact grid value
+    double T_grid = vulcan::ussa1976::temperature(alt);
+    EXPECT_NEAR(T_grid, 239.5, 0.1);
 
     // 7.25 km - between 7.0 and 7.5 km
     double alt_interp = 7250.0;
-    double T_interp = vulcan::us76::temperature(alt_interp);
+    double T_interp = vulcan::ussa1976::temperature(alt_interp);
     EXPECT_GT(T_interp, 239.5); // Higher than 7.5 km
     EXPECT_LT(T_interp, 242.7); // Lower than 7.0 km
 }
 
-TEST(US76Atmosphere, SymbolicEvaluation) {
-    auto alt = janus::sym("altitude");
-    auto T = vulcan::us76::temperature(alt);
+// ============================================
+// State Struct Tests
+// ============================================
 
-    // Verify symbolic expression was created
+TEST(USSA1976, StateStructSeaLevel) {
+    auto state = vulcan::ussa1976::state(0.0);
+
+    EXPECT_NEAR(state.temperature, 288.1, 0.5);
+    EXPECT_NEAR(state.pressure, 101325, 10);
+    EXPECT_NEAR(state.density, 1.225, 0.001);
+    EXPECT_NEAR(state.speed_of_sound, 340.3, 0.5);
+    EXPECT_NEAR(state.gravity, 9.807, 0.001);
+    // Reference: 17.89 μPa·s = 1.789e-5 Pa·s
+    EXPECT_NEAR(state.dynamic_viscosity, 1.789e-5, 1e-7);
+}
+
+TEST(USSA1976, StateStructAt20km) {
+    auto state = vulcan::ussa1976::state(20000.0);
+
+    EXPECT_NEAR(state.temperature, 216.6, 0.5);
+    EXPECT_NEAR(state.pressure, 5529, 10);
+    EXPECT_NEAR(state.density, 0.089, 0.005);
+    EXPECT_NEAR(state.speed_of_sound, 295.1, 0.5);
+    // Reference: 14.22 μPa·s = 1.422e-5 Pa·s
+    EXPECT_NEAR(state.dynamic_viscosity, 1.422e-5, 1e-7);
+}
+
+// ============================================
+// Symbolic Tests
+// ============================================
+
+TEST(USSA1976, SymbolicEvaluation) {
+    auto alt = janus::sym("altitude");
+    auto T = vulcan::ussa1976::temperature(alt);
+
     EXPECT_FALSE(T.is_constant());
 
-    // Create function and evaluate
-    janus::Function f("T_us76", {alt}, {T});
+    janus::Function f("T_ussa1976", {alt}, {T});
     auto result = f({10000.0});
     EXPECT_NEAR(result[0](0, 0), 223.3, 0.5);
 }
 
-TEST(US76Atmosphere, SymbolicGradient) {
+TEST(USSA1976, SymbolicGradient) {
     auto alt = janus::sym("altitude");
-    auto rho = vulcan::us76::density(alt);
+    auto rho = vulcan::ussa1976::density(alt);
 
-    // Compute derivative
     auto drho_dalt = janus::jacobian(rho, alt);
 
-    janus::Function f("drho_dalt_us76", {alt}, {drho_dalt});
+    janus::Function f("drho_dalt_ussa1976", {alt}, {drho_dalt});
     auto result = f({5000.0});
 
     // Density should decrease with altitude
     EXPECT_LT(result[0](0, 0), 0.0);
 }
 
-TEST(US76Atmosphere, BatchQuery) {
-    // Test batch evaluation
-    janus::NumericVector altitudes(4);
-    altitudes << 0, 5000, 10000, 20000; // 0, 5, 10, 20 km
+TEST(USSA1976, SymbolicState) {
+    auto alt = janus::sym("altitude");
+    auto state = vulcan::ussa1976::state(alt);
 
-    auto temps = vulcan::us76::detail::temperature_table()(altitudes);
+    // Verify all fields are symbolic
+    EXPECT_FALSE(state.temperature.is_constant());
+    EXPECT_FALSE(state.pressure.is_constant());
+    EXPECT_FALSE(state.density.is_constant());
+    EXPECT_FALSE(state.speed_of_sound.is_constant());
+    EXPECT_FALSE(state.gravity.is_constant());
+
+    // Create function with all outputs
+    janus::Function f("state_ussa1976", {alt},
+                      {state.temperature, state.pressure, state.density,
+                       state.speed_of_sound, state.gravity});
+
+    auto result = f({0.0});
+    EXPECT_NEAR(result[0](0, 0), 288.1, 0.5);   // T
+    EXPECT_NEAR(result[1](0, 0), 101325, 10);   // P
+    EXPECT_NEAR(result[2](0, 0), 1.225, 0.001); // rho
+}
+
+TEST(USSA1976, BatchQuery) {
+    janus::NumericVector altitudes(4);
+    altitudes << 0, 5000, 10000, 20000;
+
+    auto temps = vulcan::ussa1976::detail::temperature_table()(altitudes);
 
     EXPECT_EQ(temps.size(), 4);
     EXPECT_NEAR(temps(0), 288.1, 0.5); // Sea level
     EXPECT_NEAR(temps(1), 255.7, 0.5); // 5 km
     EXPECT_NEAR(temps(2), 223.3, 0.5); // 10 km
-    EXPECT_NEAR(temps(3), 216.6, 0.5); // 20 km (tropopause)
+    EXPECT_NEAR(temps(3), 216.6, 0.5); // 20 km
 }

@@ -6,14 +6,35 @@
 #include <cstddef>
 #include <vulcan/core/TableInterpolator.hpp>
 
-namespace vulcan::us76 {
+namespace vulcan::ussa1976 {
+
+// ============================================================================
+// Atmospheric State Struct
+// ============================================================================
+
+/**
+ * @brief Complete atmospheric state at a given altitude
+ *
+ * Contains all atmospheric properties computed in a single evaluation.
+ * Efficient for trajectory optimization where multiple properties are needed.
+ *
+ * @tparam Scalar double or casadi::MX for symbolic computation
+ */
+template <typename Scalar> struct AtmosphericState {
+    Scalar temperature;       ///< Kinetic temperature [K]
+    Scalar pressure;          ///< Pressure [Pa]
+    Scalar density;           ///< Air density [kg/m³]
+    Scalar speed_of_sound;    ///< Speed of sound [m/s]
+    Scalar gravity;           ///< Gravitational acceleration [m/s²]
+    Scalar dynamic_viscosity; ///< Dynamic viscosity [Pa·s]
+};
 
 // ============================================================================
 // Embedded Reference Data (US Standard Atmosphere 1976)
 // ============================================================================
 // Data source: reference/atmos_temp.txt
 // Fine resolution (0.5 km) from -0.5 to 20 km, coarse (5-50 km) from 25-1000 km
-// Total: 93 data points
+// Total: 94 data points
 
 namespace detail {
 
@@ -106,7 +127,6 @@ inline constexpr std::array<double, N_POINTS> gravity_ms2 = {
 
 // Convert std::array to Eigen::Map for Table1D
 inline janus::NumericVector altitude_m_vec() {
-    // Convert km to m and return as vector
     janus::NumericVector v(N_POINTS);
     for (std::size_t i = 0; i < N_POINTS; ++i) {
         v(static_cast<Eigen::Index>(i)) = altitude_km[i] * 1000.0;
@@ -152,7 +172,21 @@ inline const Table1D &gravity_table() {
 } // namespace detail
 
 // ============================================================================
-// Public API - US Standard Atmosphere 1976 (Table-Based)
+// Altitude Bounds
+// ============================================================================
+
+/// Minimum supported altitude [m]
+inline constexpr double MIN_ALTITUDE = -500.0;
+
+/// Maximum supported altitude [m]
+inline constexpr double MAX_ALTITUDE = 1000000.0;
+
+// Sutherland formula constants for dynamic viscosity
+inline constexpr double SUTHERLAND_BETA = 1.458e-6; ///< kg/(s·m·K^0.5)
+inline constexpr double SUTHERLAND_S = 110.4;       ///< K
+
+// ============================================================================
+// Public API - Individual Property Accessors
 // ============================================================================
 
 /**
@@ -161,7 +195,7 @@ inline const Table1D &gravity_table() {
  * Interpolated from vetted reference data covering -500m to 1000km.
  * Values outside this range are clamped to boundary values.
  *
- * @tparam Scalar Type for scalar operations (double or casadi::MX)
+ * @tparam Scalar double or casadi::MX for symbolic computation
  * @param altitude Geometric altitude [m]
  * @return Temperature [K]
  */
@@ -172,9 +206,7 @@ template <typename Scalar> Scalar temperature(const Scalar &altitude) {
 /**
  * @brief US Standard Atmosphere 1976 - Pressure (table-based)
  *
- * Interpolated from vetted reference data covering -500m to 1000km.
- *
- * @tparam Scalar Type for scalar operations (double or casadi::MX)
+ * @tparam Scalar double or casadi::MX for symbolic computation
  * @param altitude Geometric altitude [m]
  * @return Pressure [Pa]
  */
@@ -185,9 +217,7 @@ template <typename Scalar> Scalar pressure(const Scalar &altitude) {
 /**
  * @brief US Standard Atmosphere 1976 - Density (table-based)
  *
- * Interpolated from vetted reference data covering -500m to 1000km.
- *
- * @tparam Scalar Type for scalar operations (double or casadi::MX)
+ * @tparam Scalar double or casadi::MX for symbolic computation
  * @param altitude Geometric altitude [m]
  * @return Density [kg/m³]
  */
@@ -198,9 +228,7 @@ template <typename Scalar> Scalar density(const Scalar &altitude) {
 /**
  * @brief US Standard Atmosphere 1976 - Speed of Sound (table-based)
  *
- * Interpolated from vetted reference data covering -500m to 1000km.
- *
- * @tparam Scalar Type for scalar operations (double or casadi::MX)
+ * @tparam Scalar double or casadi::MX for symbolic computation
  * @param altitude Geometric altitude [m]
  * @return Speed of sound [m/s]
  */
@@ -211,10 +239,9 @@ template <typename Scalar> Scalar speed_of_sound(const Scalar &altitude) {
 /**
  * @brief US Standard Atmosphere 1976 - Gravitational Acceleration (table-based)
  *
- * Interpolated from vetted reference data covering -500m to 1000km.
- * Note: This is the effective gravity at altitude, accounting for altitude.
+ * Effective gravity at altitude, accounting for altitude variation.
  *
- * @tparam Scalar Type for scalar operations (double or casadi::MX)
+ * @tparam Scalar double or casadi::MX for symbolic computation
  * @param altitude Geometric altitude [m]
  * @return Gravitational acceleration [m/s²]
  */
@@ -222,14 +249,47 @@ template <typename Scalar> Scalar gravity(const Scalar &altitude) {
     return detail::gravity_table()(altitude);
 }
 
+/**
+ * @brief US Standard Atmosphere 1976 - Dynamic Viscosity
+ *
+ * Computed using Sutherland's formula: μ = β·T^(3/2) / (T + S)
+ * Valid for all altitudes where temperature is defined.
+ *
+ * @tparam Scalar double or casadi::MX for symbolic computation
+ * @param altitude Geometric altitude [m]
+ * @return Dynamic viscosity [Pa·s]
+ */
+template <typename Scalar> Scalar dynamic_viscosity(const Scalar &altitude) {
+    Scalar T = detail::temperature_table()(altitude);
+    // Sutherland's formula: μ = β·T^(3/2) / (T + S)
+    return SUTHERLAND_BETA * janus::pow(T, 1.5) / (T + SUTHERLAND_S);
+}
+
 // ============================================================================
-// Altitude Bounds
+// Public API - Combined State Accessor
 // ============================================================================
 
-/// Minimum supported altitude [m]
-inline constexpr double MIN_ALTITUDE = -500.0;
+/**
+ * @brief US Standard Atmosphere 1976 - Complete atmospheric state
+ *
+ * Returns all atmospheric properties in a single evaluation.
+ * Efficient for trajectory optimization where multiple properties are needed.
+ *
+ * @tparam Scalar double or casadi::MX for symbolic computation
+ * @param altitude Geometric altitude [m]
+ * @return AtmosphericState containing T, P, ρ, a, g
+ */
+template <typename Scalar>
+AtmosphericState<Scalar> state(const Scalar &altitude) {
+    Scalar T = detail::temperature_table()(altitude);
+    return AtmosphericState<Scalar>{
+        .temperature = T,
+        .pressure = detail::pressure_table()(altitude),
+        .density = detail::density_table()(altitude),
+        .speed_of_sound = detail::speed_of_sound_table()(altitude),
+        .gravity = detail::gravity_table()(altitude),
+        .dynamic_viscosity =
+            SUTHERLAND_BETA * janus::pow(T, 1.5) / (T + SUTHERLAND_S)};
+}
 
-/// Maximum supported altitude [m]
-inline constexpr double MAX_ALTITUDE = 1000000.0;
-
-} // namespace vulcan::us76
+} // namespace vulcan::ussa1976

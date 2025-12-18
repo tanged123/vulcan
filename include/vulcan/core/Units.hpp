@@ -82,24 +82,98 @@ template <typename Scalar> constexpr Scalar mps_to_fps(const Scalar &mps) {
 // Mass/Force Conversions
 // =============================================================================
 
-/// Convert pounds to kilograms
-template <typename Scalar> constexpr Scalar lb_to_kg(const Scalar &lb) {
-    return lb * 0.453592;
+/// Convert pounds-mass (lbm) to kilograms
+template <typename Scalar> constexpr Scalar lbm_to_kg(const Scalar &lbm) {
+    return lbm * 0.45359237;
 }
 
-/// Convert kilograms to pounds
-template <typename Scalar> constexpr Scalar kg_to_lb(const Scalar &kg) {
-    return kg / 0.453592;
+/// Convert kilograms to pounds-mass (lbm)
+template <typename Scalar> constexpr Scalar kg_to_lbm(const Scalar &kg) {
+    return kg / 0.45359237;
+}
+
+/// Convert slugs to kilograms (1 slug = 1 lbf·s²/ft ≈ 14.5939 kg)
+template <typename Scalar> constexpr Scalar slug_to_kg(const Scalar &slug) {
+    return slug * 14.593903;
+}
+
+/// Convert kilograms to slugs
+template <typename Scalar> constexpr Scalar kg_to_slug(const Scalar &kg) {
+    return kg / 14.593903;
+}
+
+/// Convert slugs to pounds-mass (1 slug ≈ 32.174 lbm)
+template <typename Scalar> constexpr Scalar slug_to_lbm(const Scalar &slug) {
+    return slug * 32.17405;
+}
+
+/// Convert pounds-mass to slugs
+template <typename Scalar> constexpr Scalar lbm_to_slug(const Scalar &lbm) {
+    return lbm / 32.17405;
 }
 
 /// Convert pound-force to Newtons
 template <typename Scalar> constexpr Scalar lbf_to_N(const Scalar &lbf) {
-    return lbf * 4.44822;
+    return lbf * 4.4482216;
 }
 
 /// Convert Newtons to pound-force
 template <typename Scalar> constexpr Scalar N_to_lbf(const Scalar &N) {
-    return N / 4.44822;
+    return N / 4.4482216;
+}
+
+// =============================================================================
+// Inertia (Moment of Inertia) Conversions
+// =============================================================================
+
+/// Convert slug-ft² to kg-m²
+template <typename Scalar>
+constexpr Scalar slugft2_to_kgm2(const Scalar &slugft2) {
+    // 1 slug-ft² = 14.593903 kg * (0.3048 m)² = 1.35582 kg·m²
+    return slugft2 * 1.3558179;
+}
+
+/// Convert kg-m² to slug-ft²
+template <typename Scalar>
+constexpr Scalar kgm2_to_slugft2(const Scalar &kgm2) {
+    return kgm2 / 1.3558179;
+}
+
+/// Convert lbm-ft² to kg-m²
+template <typename Scalar>
+constexpr Scalar lbmft2_to_kgm2(const Scalar &lbmft2) {
+    // 1 lbm-ft² = 0.45359237 kg * (0.3048 m)² = 0.042140 kg·m²
+    return lbmft2 * 0.04214011;
+}
+
+/// Convert kg-m² to lbm-ft²
+template <typename Scalar> constexpr Scalar kgm2_to_lbmft2(const Scalar &kgm2) {
+    return kgm2 / 0.04214011;
+}
+
+/// Convert lbm-in² to kg-m²
+template <typename Scalar>
+constexpr Scalar lbmin2_to_kgm2(const Scalar &lbmin2) {
+    // 1 lbm-in² = 0.45359237 kg * (0.0254 m)² = 2.9264e-4 kg·m²
+    return lbmin2 * 2.9263966e-4;
+}
+
+/// Convert kg-m² to lbm-in²
+template <typename Scalar> constexpr Scalar kgm2_to_lbmin2(const Scalar &kgm2) {
+    return kgm2 / 2.9263966e-4;
+}
+
+/// Convert slug-in² to kg-m²
+template <typename Scalar>
+constexpr Scalar slugin2_to_kgm2(const Scalar &slugin2) {
+    // 1 slug-in² = 14.593903 kg * (0.0254 m)² = 9.4154e-3 kg·m²
+    return slugin2 * 9.4154069e-3;
+}
+
+/// Convert kg-m² to slug-in²
+template <typename Scalar>
+constexpr Scalar kgm2_to_slugin2(const Scalar &kgm2) {
+    return kgm2 / 9.4154069e-3;
 }
 
 // =============================================================================
@@ -148,6 +222,16 @@ template <typename Scalar> constexpr Scalar F_to_K(const Scalar &F) {
 /// Convert Kelvin to Fahrenheit
 template <typename Scalar> constexpr Scalar K_to_F(const Scalar &K) {
     return (K - 273.15) * 9.0 / 5.0 + 32.0;
+}
+
+/// Convert Rankine to Kelvin
+template <typename Scalar> constexpr Scalar R_to_K(const Scalar &R) {
+    return R * 5.0 / 9.0;
+}
+
+/// Convert Kelvin to Rankine
+template <typename Scalar> constexpr Scalar K_to_R(const Scalar &K) {
+    return K * 9.0 / 5.0;
 }
 
 } // namespace vulcan::units
