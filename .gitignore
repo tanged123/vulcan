@@ -37,5 +37,34 @@
 *.out
 *.app
 
+
 # debug information files
 *.dwo
+
+# logs
+logs/
+
+# Build Directories
+build/
+bin/
+lib/
+cmake-build-*/
+
+# Temporary Files
+*.swp
+*.swo
+*~
+.DS_Store
+*.log
+*.tmp
+.cache/
+*.pdf
+*.png
+*.dot
+*.json
+
+# Ignore 
+!docs/images/*.png
+
+# Licensed/Commercial Dependencies (use local copies only)
+reference/snopt7.7.7/
