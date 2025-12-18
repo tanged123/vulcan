@@ -1,0 +1,61 @@
+name: Feature Request
+description: Suggest a new feature for Vulcan
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature!
+  
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Description
+      description: Is this related to a problem? Describe it.
+      placeholder: I'm frustrated when...
+    validations:
+      required: false
+  
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: A clear description of what you want
+      placeholder: I would like...
+    validations:
+      required: true
+  
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      description: What module does this belong to?
+      options:
+        - Coordinate Systems
+        - Atmospheric Models
+        - Gravity Models
+        - Wind Models
+        - Aerodynamic Utilities
+        - Time Systems
+        - Data I/O
+        - Other
+    validations:
+      required: true
+  
+  - type: checkboxes
+    id: janus-compatible
+    attributes:
+      label: Janus Compatibility
+      description: Confirm this feature should work with Janus
+      options:
+        - label: This feature should support both numeric and symbolic modes
+          required: true
+  
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Any alternative solutions or features you've considered?
+    validations:
+      required: false

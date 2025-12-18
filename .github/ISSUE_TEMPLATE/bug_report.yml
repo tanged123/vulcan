@@ -1,0 +1,70 @@
+name: Bug Report
+description: Report a bug in Vulcan
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug!
+  
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of the bug
+      placeholder: What happened?
+    validations:
+      required: true
+  
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+  
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior
+      placeholder: |
+        1. Build with '...'
+        2. Run '...'
+        3. See error
+    validations:
+      required: true
+  
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Computational Mode
+      description: Which mode does this affect?
+      options:
+        - Numeric (double)
+        - Symbolic (casadi::MX)
+        - Both
+    validations:
+      required: true
+  
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Your environment details
+      placeholder: |
+        - OS: [e.g., NixOS, Ubuntu 22.04]
+        - Compiler: [e.g., Clang 17, GCC 13]
+        - Janus version: [e.g., 1.0.0]
+    validations:
+      required: false
+  
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add any other context, screenshots, or code snippets
+    validations:
+      required: false

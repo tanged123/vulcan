@@ -37,7 +37,6 @@
 *.out
 *.app
 
-
 # debug information files
 *.dwo
 
@@ -63,8 +62,5 @@ cmake-build-*/
 *.dot
 *.json
 
-# Ignore 
+# Preserve doc images
 !docs/images/*.png
-
-# Licensed/Commercial Dependencies (use local copies only)
-reference/snopt7.7.7/

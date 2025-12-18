@@ -1,0 +1,29 @@
+# =============================================================================
+# Intro Examples
+# =============================================================================
+add_executable(getting_started intro/getting_started.cpp)
+target_link_libraries(getting_started PRIVATE vulcan)
+
+# =============================================================================
+# Coordinate Examples
+# =============================================================================
+# add_executable(frame_demo coordinates/frame_demo.cpp)
+# target_link_libraries(frame_demo PRIVATE vulcan)
+
+# =============================================================================
+# Atmosphere Examples
+# =============================================================================
+add_executable(atmosphere_profile atmosphere/atmosphere_profile.cpp)
+target_link_libraries(atmosphere_profile PRIVATE vulcan)
+
+# =============================================================================
+# Gravity Examples
+# =============================================================================
+# add_executable(gravity_comparison gravity/gravity_comparison.cpp)
+# target_link_libraries(gravity_comparison PRIVATE vulcan)
+
+# =============================================================================
+# Integration with Janus Optimization
+# =============================================================================
+# add_executable(trajectory_opt integration/trajectory_optimization.cpp)
+# target_link_libraries(trajectory_opt PRIVATE vulcan)

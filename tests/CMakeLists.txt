@@ -1,0 +1,24 @@
+find_package(GTest REQUIRED)
+
+# Core tests - coordinates
+add_executable(test_coordinates
+    coordinates/test_frames.cpp
+)
+target_link_libraries(test_coordinates PRIVATE vulcan GTest::gtest_main)
+
+include(GoogleTest)
+gtest_discover_tests(test_coordinates)
+
+# Atmosphere tests
+add_executable(test_atmosphere
+    atmosphere/test_standard.cpp
+)
+target_link_libraries(test_atmosphere PRIVATE vulcan GTest::gtest_main)
+gtest_discover_tests(test_atmosphere)
+
+# Gravity tests
+add_executable(test_gravity
+    gravity/test_point_mass.cpp
+)
+target_link_libraries(test_gravity PRIVATE vulcan GTest::gtest_main)
+gtest_discover_tests(test_gravity)
