@@ -1,5 +1,9 @@
 // Vulcan Standard Atmosphere
 // US Standard Atmosphere 1976 implementation
+//
+// NOTE: This file contains the LEGACY analytical model
+// (vulcan::standard_atmosphere). For vetted table-based data, use vulcan::us76
+// from <vulcan/atmosphere/US76Atmosphere.hpp>
 #pragma once
 
 #include <janus/janus.hpp>
