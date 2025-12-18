@@ -11,8 +11,8 @@ TEST(CoordinateFrames, WGS84Constants) {
     EXPECT_NEAR(vulcan::constants::wgs84::f, 1.0 / 298.257223563, 1e-12);
 
     // Verify semi-minor axis calculation
-    double b_expected = vulcan::constants::wgs84::a * 
-                        (1.0 - vulcan::constants::wgs84::f);
+    double b_expected =
+        vulcan::constants::wgs84::a * (1.0 - vulcan::constants::wgs84::f);
     EXPECT_NEAR(vulcan::constants::wgs84::b, b_expected, 1.0);
 }
 

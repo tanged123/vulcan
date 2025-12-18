@@ -1,0 +1,6 @@
+[submodule "reference/janus"]
+	path = reference/janus
+	url = https://github.com/tanged123/janus.git
+[submodule "reference/AeroSandbox"]
+	path = reference/AeroSandbox
+	url = https://github.com/peterdsharpe/AeroSandbox.git

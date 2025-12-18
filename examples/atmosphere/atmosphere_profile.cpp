@@ -4,8 +4,7 @@
 #include <vulcan/vulcan.hpp>
 
 // Templated model function - works in both modes
-template <typename Scalar>
-Scalar air_density(const Scalar& altitude) {
+template <typename Scalar> Scalar air_density(const Scalar &altitude) {
     return vulcan::standard_atmosphere::density(altitude);
 }
 

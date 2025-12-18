@@ -14,8 +14,7 @@ namespace vulcan::standard_atmosphere {
  * @param altitude Geometric altitude [m]
  * @return Temperature [K]
  */
-template <typename Scalar>
-Scalar temperature(const Scalar& altitude) {
+template <typename Scalar> Scalar temperature(const Scalar &altitude) {
     // Constants (structural - OK to use as-is)
     constexpr double T0 = constants::atmosphere::T0;
     constexpr double L = constants::atmosphere::L;
@@ -40,8 +39,7 @@ Scalar temperature(const Scalar& altitude) {
  * @param altitude Geometric altitude [m]
  * @return Pressure [Pa]
  */
-template <typename Scalar>
-Scalar pressure(const Scalar& altitude) {
+template <typename Scalar> Scalar pressure(const Scalar &altitude) {
     constexpr double P0 = constants::atmosphere::P0;
     constexpr double g0 = constants::physics::g0;
     constexpr double M = constants::atmosphere::M;
@@ -74,8 +72,7 @@ Scalar pressure(const Scalar& altitude) {
  * @param altitude Geometric altitude [m]
  * @return Density [kg/m^3]
  */
-template <typename Scalar>
-Scalar density(const Scalar& altitude) {
+template <typename Scalar> Scalar density(const Scalar &altitude) {
     constexpr double R = constants::atmosphere::R; // Specific gas constant
 
     Scalar P = pressure(altitude);
@@ -92,8 +89,7 @@ Scalar density(const Scalar& altitude) {
  * @param altitude Geometric altitude [m]
  * @return Speed of sound [m/s]
  */
-template <typename Scalar>
-Scalar speed_of_sound(const Scalar& altitude) {
+template <typename Scalar> Scalar speed_of_sound(const Scalar &altitude) {
     constexpr double gamma = constants::atmosphere::gamma;
     constexpr double R = constants::atmosphere::R;
 

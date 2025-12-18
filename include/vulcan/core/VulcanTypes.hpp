@@ -6,16 +6,13 @@
 
 namespace vulcan {
 
-// Re-export Janus type aliases for convenience
+// Re-export Janus fixed-size type templates
 using janus::Mat2;
 using janus::Mat3;
 using janus::Mat4;
-using janus::MatX;
-using janus::RowVecX;
 using janus::Vec2;
 using janus::Vec3;
 using janus::Vec4;
-using janus::VecX;
 
 // Common symbolic type aliases
 using janus::NumericMatrix;

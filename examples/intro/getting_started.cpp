@@ -4,8 +4,7 @@
 #include <vulcan/vulcan.hpp>
 
 // Templated model function - works in both modes
-template <typename Scalar>
-Scalar air_density(const Scalar& altitude) {
+template <typename Scalar> Scalar air_density(const Scalar &altitude) {
     return vulcan::standard_atmosphere::density(altitude);
 }
 
@@ -59,14 +58,19 @@ int main() {
     auto rho_sym = air_density(h);
 
     std::cout << "  Created symbolic density expression" << std::endl;
-    std::cout << "  Evaluating at h=5000: "
-              << janus::eval(rho_sym, {{"h", 5000.0}}) << " kg/m^3"
+
+    // Create a CasADi function to evaluate
+    janus::Function rho_func("rho", {h}, {rho_sym});
+    auto result = rho_func({5000.0});
+    // result[0] is a matrix, extract scalar with (0,0)
+    std::cout << "  Evaluating at h=5000: " << result[0](0, 0) << " kg/m^3"
               << std::endl;
 
     // Compute gradient
     auto drho_dh = janus::jacobian(rho_sym, h);
-    double gradient = janus::eval(drho_dh, {{"h", 5000.0}});
-    std::cout << "  d(rho)/dh at h=5000: " << gradient << " kg/m^4"
+    janus::Function grad_func("drho_dh", {h}, {drho_dh});
+    auto grad_result = grad_func({5000.0});
+    std::cout << "  d(rho)/dh at h=5000: " << grad_result[0](0, 0) << " kg/m^4"
               << std::endl;
 
     std::cout << "\n✅ Vulcan is working correctly!" << std::endl;

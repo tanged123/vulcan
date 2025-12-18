@@ -6,17 +6,17 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 echo "Running examples..."
 
-# List of examples to run
+# List of examples to run (path relative to build directory)
 EXAMPLES=(
-    "build/getting_started"
-    "build/atmosphere_profile"
+    "examples/getting_started"
+    "examples/atmosphere_profile"
 )
 
 for exe in "${EXAMPLES[@]}"; do
-    if [ -f "$PROJECT_ROOT/$exe" ]; then
+    if [ -f "$PROJECT_ROOT/build/$exe" ]; then
         echo ""
         echo "=== Running $(basename $exe) ==="
-        "$PROJECT_ROOT/$exe"
+        "$PROJECT_ROOT/build/$exe"
     else
         echo "Skipping $exe (not built)"
     fi

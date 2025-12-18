@@ -1,11 +1,11 @@
 {
   description = "Vulcan: Aerospace Engineering Utilities";
-  
+
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     treefmt-nix.url = "github:numtide/treefmt-nix";
-    
+
     # Janus as a flake input
     janus = {
       url = "github:tanged123/janus";
@@ -14,12 +14,20 @@
     };
   };
 
-  outputs = { self, nixpkgs, flake-utils, treefmt-nix, janus }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+      treefmt-nix,
+      janus,
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
         stdenv = pkgs.llvmPackages_latest.stdenv;
-        
+
         # Get janus package from input
         janusPackage = janus.packages.${system}.default;
 
@@ -47,7 +55,7 @@
             pkgs.eigen
             pkgs.casadi
             pkgs.hdf5
-            pkgs.highfive  # C++ HDF5 wrapper
+            pkgs.highfive # C++ HDF5 wrapper
             janusPackage
           ];
 
@@ -57,24 +65,27 @@
         };
 
         devShells.default = pkgs.mkShell.override { inherit stdenv; } {
-          packages = with pkgs; [
-            cmake
-            ninja
-            pkg-config
-            eigen
-            casadi
-            hdf5
-            highfive
-            gtest
-            clang-tools
-            doxygen
-            graphviz
-            lcov
-            llvmPackages_latest.llvm
-          ] ++ [
-            janusPackage
-            treefmtEval.config.build.wrapper
-          ];
+          packages =
+            with pkgs;
+            [
+              cmake
+              ninja
+              pkg-config
+              eigen
+              casadi
+              hdf5
+              highfive
+              gtest
+              clang-tools
+              doxygen
+              graphviz
+              lcov
+              llvmPackages_latest.llvm
+            ]
+            ++ [
+              janusPackage
+              treefmtEval.config.build.wrapper
+            ];
 
           shellHook = ''
             export CMAKE_PREFIX_PATH=${pkgs.eigen}:${pkgs.casadi}:${pkgs.gtest}:${pkgs.hdf5}:${pkgs.highfive}:${janusPackage}

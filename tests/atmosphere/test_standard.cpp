@@ -40,9 +40,11 @@ TEST(StandardAtmosphere, SymbolicEvaluation) {
     // Verify symbolic expression was created
     EXPECT_FALSE(rho.is_constant());
 
-    // Evaluate symbolically-created function
-    double result = janus::eval(rho, {{"altitude", 0.0}});
-    EXPECT_NEAR(result, 1.225, 1e-3);
+    // Create a CasADi function to evaluate the symbolic expression
+    janus::Function f("rho", {alt}, {rho});
+    auto result = f({0.0});
+    // result[0] is a matrix, extract scalar with (0,0)
+    EXPECT_NEAR(result[0](0, 0), 1.225, 1e-3);
 }
 
 TEST(StandardAtmosphere, SymbolicGradient) {
@@ -52,17 +54,24 @@ TEST(StandardAtmosphere, SymbolicGradient) {
     // Verify derivatives exist
     auto drho_dalt = janus::jacobian(rho, alt);
 
-    // Density should decrease with altitude
-    double grad = janus::eval(drho_dalt, {{"altitude", 5000.0}});
-    EXPECT_LT(grad, 0.0);
+    // Create function for gradient evaluation
+    janus::Function f("drho_dalt", {alt}, {drho_dalt});
+    auto result = f({5000.0});
+
+    // Density should decrease with altitude (negative gradient)
+    EXPECT_LT(result[0](0, 0), 0.0);
 }
 
 TEST(StandardAtmosphere, SymbolicTemperature) {
     auto alt = janus::sym("altitude");
     auto T = vulcan::standard_atmosphere::temperature(alt);
 
+    // Create function for temperature evaluation
+    janus::Function f("T", {alt}, {T});
+    auto result = f({5000.0});
+    double T_5km = result[0](0, 0);
+
     // Troposphere: T should decrease
-    double T_5km = janus::eval(T, {{"altitude", 5000.0}});
     EXPECT_LT(T_5km, 288.15);
     EXPECT_GT(T_5km, 220.0);
 }
