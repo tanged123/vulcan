@@ -19,6 +19,7 @@ gtest_discover_tests(test_coordinates)
 # Atmosphere tests
 add_executable(test_atmosphere
     atmosphere/test_standard.cpp
+    atmosphere/test_exponential.cpp
 )
 target_link_libraries(test_atmosphere PRIVATE vulcan GTest::gtest_main)
 gtest_discover_tests(test_atmosphere)
