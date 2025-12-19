@@ -56,7 +56,7 @@ int main() {
     // Numeric mode
     double rho = air_density(10000.0);  // 10 km
     
-    // Symbolic mode (for optimization)
+    // Symbolic mode
     auto h = janus::sym("h");
     auto rho_sym = air_density(h);
     auto drho_dh = janus::jacobian(rho_sym, h);  // Automatic differentiation!
