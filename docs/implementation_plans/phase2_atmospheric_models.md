@@ -158,37 +158,7 @@ namespace vulcan::exponential_atmosphere {
 
 ---
 
-### Component 4: Custom Tabulated Atmosphere
-
-Class-based interface for user-provided atmospheric data.
-
-#### [NEW] [TabulatedAtmosphere.hpp](file:///home/tanged/sources/vulcan/include/vulcan/atmosphere/TabulatedAtmosphere.hpp)
-
-```cpp
-namespace vulcan {
-class TabulatedAtmosphere {
-    janus::Interp1D temp_interp_, pres_interp_, dens_interp_;
-    janus::Interp1D sos_interp_, grav_interp_;
-    double min_alt_, max_alt_;
-public:
-    // Construct from vectors (altitude in meters)
-    TabulatedAtmosphere(const Eigen::VectorXd& altitude,
-                        const Eigen::VectorXd& temperature,
-                        const Eigen::VectorXd& pressure,
-                        const Eigen::VectorXd& density,
-                        janus::InterpolationMethod method = janus::InterpolationMethod::Linear);
-    
-    template<typename Scalar> Scalar temperature(const Scalar& alt) const;
-    template<typename Scalar> Scalar pressure(const Scalar& alt) const;
-    template<typename Scalar> Scalar density(const Scalar& alt) const;
-    // ... etc
-};
-}
-```
-
----
-
-### Component 5: Tests
+### Component 4: Tests
 
 #### [MODIFY] [test_standard.cpp](file:///home/tanged/sources/vulcan/tests/atmosphere/test_standard.cpp)
 
@@ -198,9 +168,6 @@ Update existing tests to use new `us76::` namespace and add validation against r
 
 Test exponential atmosphere model.
 
-#### [NEW] [test_tabulated.cpp](file:///home/tanged/sources/vulcan/tests/atmosphere/test_tabulated.cpp)
-
-Test custom tabulated atmosphere class.
 
 ---
 
@@ -224,7 +191,6 @@ cd build && ctest -R atmosphere --output-on-failure
 |-----------|----------|
 | `test_standard.cpp` | US76 table vs reference data, symbolic differentiation |
 | `test_exponential.cpp` | Exponential decay, boundary conditions |
-| `test_tabulated.cpp` | Custom data loading, interpolation accuracy |
 
 ### Validation Against Reference
 
