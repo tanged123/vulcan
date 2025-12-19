@@ -1,7 +1,10 @@
 #include <gtest/gtest.h>
+#include <vulcan/coordinates/CoordinateFrame.hpp>
 #include <vulcan/coordinates/EarthModel.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/core/Units.hpp>
+
+#include <janus/janus.hpp>
 
 // ============================================
 // Coordinate Frame Placeholder Tests
@@ -168,4 +171,335 @@ TEST(EarthRotation, PolymorphicInterface) {
     double angle = rotation->gmst(3600.0);
     double expected = vulcan::constants::wgs84::omega * 3600.0;
     EXPECT_NEAR(angle, expected, 1e-10);
+}
+
+// ============================================
+// CoordinateFrame Tests
+// ============================================
+TEST(CoordinateFrame, ECEF_Identity) {
+    auto ecef = vulcan::CoordinateFrame<double>::ecef();
+
+    // ECEF is the identity frame
+    EXPECT_TRUE(ecef.is_valid());
+
+    // Basis vectors should be standard basis
+    EXPECT_NEAR(ecef.x_axis(0), 1.0, 1e-10);
+    EXPECT_NEAR(ecef.x_axis(1), 0.0, 1e-10);
+    EXPECT_NEAR(ecef.x_axis(2), 0.0, 1e-10);
+
+    EXPECT_NEAR(ecef.y_axis(0), 0.0, 1e-10);
+    EXPECT_NEAR(ecef.y_axis(1), 1.0, 1e-10);
+    EXPECT_NEAR(ecef.y_axis(2), 0.0, 1e-10);
+
+    EXPECT_NEAR(ecef.z_axis(0), 0.0, 1e-10);
+    EXPECT_NEAR(ecef.z_axis(1), 0.0, 1e-10);
+    EXPECT_NEAR(ecef.z_axis(2), 1.0, 1e-10);
+
+    // Origin at Earth center
+    EXPECT_NEAR(ecef.origin(0), 0.0, 1e-10);
+    EXPECT_NEAR(ecef.origin(1), 0.0, 1e-10);
+    EXPECT_NEAR(ecef.origin(2), 0.0, 1e-10);
+}
+
+TEST(CoordinateFrame, ECEF_Roundtrip) {
+    auto ecef = vulcan::CoordinateFrame<double>::ecef();
+
+    vulcan::Vec3<double> v;
+    v << 1000.0, 2000.0, 3000.0;
+
+    // ECEF to local and back should be identity
+    auto v_local = ecef.from_ecef(v);
+    auto v_back = ecef.to_ecef(v_local);
+
+    EXPECT_NEAR(v_back(0), v(0), 1e-10);
+    EXPECT_NEAR(v_back(1), v(1), 1e-10);
+    EXPECT_NEAR(v_back(2), v(2), 1e-10);
+}
+
+TEST(CoordinateFrame, ECI_ZeroTime) {
+    // At t=0 (gmst=0), ECI should align with ECEF
+    auto eci = vulcan::CoordinateFrame<double>::eci(0.0);
+
+    EXPECT_TRUE(eci.is_valid());
+
+    // Should be same as ECEF
+    EXPECT_NEAR(eci.x_axis(0), 1.0, 1e-10);
+    EXPECT_NEAR(eci.y_axis(1), 1.0, 1e-10);
+    EXPECT_NEAR(eci.z_axis(2), 1.0, 1e-10);
+}
+
+TEST(CoordinateFrame, ECI_QuarterRotation) {
+    // At gmst = π/2, ECI X should point to ECEF -Y
+    double gmst = vulcan::constants::angle::pi / 2.0;
+    auto eci = vulcan::CoordinateFrame<double>::eci(gmst);
+
+    EXPECT_TRUE(eci.is_valid());
+
+    // ECI X-axis should point toward ECEF (0, -1, 0)
+    EXPECT_NEAR(eci.x_axis(0), 0.0, 1e-10);
+    EXPECT_NEAR(eci.x_axis(1), -1.0, 1e-10);
+    EXPECT_NEAR(eci.x_axis(2), 0.0, 1e-10);
+
+    // ECI Y-axis should point toward ECEF (1, 0, 0)
+    EXPECT_NEAR(eci.y_axis(0), 1.0, 1e-10);
+    EXPECT_NEAR(eci.y_axis(1), 0.0, 1e-10);
+    EXPECT_NEAR(eci.y_axis(2), 0.0, 1e-10);
+
+    // Z-axis unchanged
+    EXPECT_NEAR(eci.z_axis(2), 1.0, 1e-10);
+}
+
+TEST(CoordinateFrame, ECI_ECEF_Transform) {
+    double gmst = vulcan::constants::angle::pi / 4.0; // 45 degrees
+    auto eci = vulcan::CoordinateFrame<double>::eci(gmst);
+
+    // A vector pointing along ECEF X
+    vulcan::Vec3<double> v_ecef;
+    v_ecef << 1.0, 0.0, 0.0;
+
+    // Transform to ECI
+    auto v_eci = eci.from_ecef(v_ecef);
+
+    // In ECI, this should be rotated by -gmst about Z
+    double c = std::cos(gmst);
+    double s = std::sin(gmst);
+    EXPECT_NEAR(v_eci(0), c, 1e-10);
+    EXPECT_NEAR(v_eci(1), s, 1e-10);
+    EXPECT_NEAR(v_eci(2), 0.0, 1e-10);
+}
+
+TEST(CoordinateFrame, NED_Equator) {
+    // NED at equator, prime meridian (lon=0, lat=0)
+    auto ned = vulcan::CoordinateFrame<double>::ned(0.0, 0.0);
+
+    EXPECT_TRUE(ned.is_valid());
+
+    // North should point to +Z (ECEF)
+    EXPECT_NEAR(ned.x_axis(0), 0.0, 1e-10);
+    EXPECT_NEAR(ned.x_axis(1), 0.0, 1e-10);
+    EXPECT_NEAR(ned.x_axis(2), 1.0, 1e-10);
+
+    // East should point to +Y (ECEF)
+    EXPECT_NEAR(ned.y_axis(0), 0.0, 1e-10);
+    EXPECT_NEAR(ned.y_axis(1), 1.0, 1e-10);
+    EXPECT_NEAR(ned.y_axis(2), 0.0, 1e-10);
+
+    // Down should point to -X (ECEF)
+    EXPECT_NEAR(ned.z_axis(0), -1.0, 1e-10);
+    EXPECT_NEAR(ned.z_axis(1), 0.0, 1e-10);
+    EXPECT_NEAR(ned.z_axis(2), 0.0, 1e-10);
+}
+
+TEST(CoordinateFrame, NED_NorthPole) {
+    // NED at North Pole (lon=0, lat=π/2)
+    double lat = vulcan::constants::angle::pi / 2.0;
+    auto ned = vulcan::CoordinateFrame<double>::ned(0.0, lat);
+
+    EXPECT_TRUE(ned.is_valid());
+
+    // At North Pole, Down should point to -Z (ECEF)
+    EXPECT_NEAR(ned.z_axis(0), 0.0, 1e-10);
+    EXPECT_NEAR(ned.z_axis(1), 0.0, 1e-10);
+    EXPECT_NEAR(ned.z_axis(2), -1.0, 1e-10);
+}
+
+TEST(CoordinateFrame, ENU_Equator) {
+    // ENU at equator, prime meridian
+    auto enu = vulcan::CoordinateFrame<double>::enu(0.0, 0.0);
+
+    EXPECT_TRUE(enu.is_valid());
+
+    // East should point to +Y (ECEF)
+    EXPECT_NEAR(enu.x_axis(0), 0.0, 1e-10);
+    EXPECT_NEAR(enu.x_axis(1), 1.0, 1e-10);
+    EXPECT_NEAR(enu.x_axis(2), 0.0, 1e-10);
+
+    // North should point to +Z (ECEF)
+    EXPECT_NEAR(enu.y_axis(0), 0.0, 1e-10);
+    EXPECT_NEAR(enu.y_axis(1), 0.0, 1e-10);
+    EXPECT_NEAR(enu.y_axis(2), 1.0, 1e-10);
+
+    // Up should point to +X (ECEF)
+    EXPECT_NEAR(enu.z_axis(0), 1.0, 1e-10);
+    EXPECT_NEAR(enu.z_axis(1), 0.0, 1e-10);
+    EXPECT_NEAR(enu.z_axis(2), 0.0, 1e-10);
+}
+
+TEST(CoordinateFrame, DCM_Orthonormal) {
+    auto ned = vulcan::CoordinateFrame<double>::ned(0.5, 0.3);
+    auto dcm = ned.dcm();
+
+    // DCM should be orthonormal: R^T * R = I
+    auto eye = dcm.transpose() * dcm;
+
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            double expected = (i == j) ? 1.0 : 0.0;
+            EXPECT_NEAR(eye(i, j), expected, 1e-10);
+        }
+    }
+}
+
+TEST(CoordinateFrame, TransformVector_Roundtrip) {
+    auto ned = vulcan::CoordinateFrame<double>::ned(0.5, 0.3);
+    auto ecef = vulcan::CoordinateFrame<double>::ecef();
+
+    vulcan::Vec3<double> v;
+    v << 100.0, 200.0, 300.0;
+
+    // ECEF -> NED -> ECEF should be identity
+    auto v_ned = vulcan::transform_vector(v, ecef, ned);
+    auto v_back = vulcan::transform_vector(v_ned, ned, ecef);
+
+    EXPECT_NEAR(v_back(0), v(0), 1e-10);
+    EXPECT_NEAR(v_back(1), v(1), 1e-10);
+    EXPECT_NEAR(v_back(2), v(2), 1e-10);
+}
+
+TEST(CoordinateFrame, Symbolic_ECI_Evaluation) {
+    using Scalar = janus::SymbolicScalar;
+
+    // Create symbolic GMST
+    Scalar gmst = janus::sym("gmst");
+
+    // Create ECI frame symbolically
+    auto eci = vulcan::CoordinateFrame<Scalar>::eci(gmst);
+
+    // Verify symbolic expressions were created
+    EXPECT_FALSE(eci.x_axis(0).is_constant());
+
+    // Create function to evaluate ECI basis vectors
+    janus::Function f("eci_basis", {gmst},
+                      {eci.x_axis(0), eci.x_axis(1), eci.x_axis(2),
+                       eci.y_axis(0), eci.y_axis(1), eci.y_axis(2)});
+
+    // Test at gmst = π/4 (45 degrees)
+    double test_gmst = vulcan::constants::angle::pi / 4.0;
+    auto result = f({test_gmst});
+
+    // Compare against direct numeric computation
+    auto eci_numeric = vulcan::CoordinateFrame<double>::eci(test_gmst);
+
+    EXPECT_NEAR(result[0](0, 0), eci_numeric.x_axis(0), 1e-12);
+    EXPECT_NEAR(result[1](0, 0), eci_numeric.x_axis(1), 1e-12);
+    EXPECT_NEAR(result[2](0, 0), eci_numeric.x_axis(2), 1e-12);
+    EXPECT_NEAR(result[3](0, 0), eci_numeric.y_axis(0), 1e-12);
+    EXPECT_NEAR(result[4](0, 0), eci_numeric.y_axis(1), 1e-12);
+    EXPECT_NEAR(result[5](0, 0), eci_numeric.y_axis(2), 1e-12);
+}
+
+TEST(CoordinateFrame, Symbolic_NED_Evaluation) {
+    using Scalar = janus::SymbolicScalar;
+
+    // Create symbolic coordinates
+    Scalar lon = janus::sym("lon");
+    Scalar lat = janus::sym("lat");
+
+    // Create NED frame symbolically
+    auto ned = vulcan::CoordinateFrame<Scalar>::ned(lon, lat);
+
+    // Verify symbolic expressions
+    EXPECT_FALSE(ned.x_axis(0).is_constant());
+
+    // Create function to evaluate all NED basis vectors
+    janus::Function f("ned_basis", {lon, lat},
+                      {ned.x_axis(0), ned.x_axis(1), ned.x_axis(2),
+                       ned.y_axis(0), ned.y_axis(1), ned.y_axis(2),
+                       ned.z_axis(0), ned.z_axis(1), ned.z_axis(2)});
+
+    // Test at Washington DC (approx 38.9°N, 77.0°W)
+    double test_lon = -77.0 * vulcan::constants::angle::deg2rad;
+    double test_lat = 38.9 * vulcan::constants::angle::deg2rad;
+    auto result = f({test_lon, test_lat});
+
+    // Compare against direct numeric computation
+    auto ned_numeric = vulcan::CoordinateFrame<double>::ned(test_lon, test_lat);
+
+    EXPECT_NEAR(result[0](0, 0), ned_numeric.x_axis(0), 1e-12);
+    EXPECT_NEAR(result[1](0, 0), ned_numeric.x_axis(1), 1e-12);
+    EXPECT_NEAR(result[2](0, 0), ned_numeric.x_axis(2), 1e-12);
+    EXPECT_NEAR(result[3](0, 0), ned_numeric.y_axis(0), 1e-12);
+    EXPECT_NEAR(result[4](0, 0), ned_numeric.y_axis(1), 1e-12);
+    EXPECT_NEAR(result[5](0, 0), ned_numeric.y_axis(2), 1e-12);
+    EXPECT_NEAR(result[6](0, 0), ned_numeric.z_axis(0), 1e-12);
+    EXPECT_NEAR(result[7](0, 0), ned_numeric.z_axis(1), 1e-12);
+    EXPECT_NEAR(result[8](0, 0), ned_numeric.z_axis(2), 1e-12);
+}
+
+TEST(CoordinateFrame, Symbolic_Transform_Evaluation) {
+    using Scalar = janus::SymbolicScalar;
+
+    // Create symbolic inputs
+    Scalar lon = janus::sym("lon");
+    Scalar lat = janus::sym("lat");
+    Scalar vx = janus::sym("vx");
+    Scalar vy = janus::sym("vy");
+    Scalar vz = janus::sym("vz");
+
+    // Create symbolic NED frame
+    auto ned = vulcan::CoordinateFrame<Scalar>::ned(lon, lat);
+
+    // Create symbolic ECEF vector
+    vulcan::Vec3<Scalar> v_ecef;
+    v_ecef << vx, vy, vz;
+
+    // Transform to NED
+    auto v_ned = ned.from_ecef(v_ecef);
+
+    // Create function
+    janus::Function f("ecef_to_ned", {lon, lat, vx, vy, vz},
+                      {v_ned(0), v_ned(1), v_ned(2)});
+
+    // Test with concrete values
+    double test_lon = 0.5;
+    double test_lat = 0.3;
+    vulcan::Vec3<double> test_v;
+    test_v << 100.0, 200.0, 300.0;
+
+    auto result = f({test_lon, test_lat, test_v(0), test_v(1), test_v(2)});
+
+    // Compare against direct numeric computation
+    auto ned_numeric = vulcan::CoordinateFrame<double>::ned(test_lon, test_lat);
+    auto v_ned_numeric = ned_numeric.from_ecef(test_v);
+
+    EXPECT_NEAR(result[0](0, 0), v_ned_numeric(0), 1e-10);
+    EXPECT_NEAR(result[1](0, 0), v_ned_numeric(1), 1e-10);
+    EXPECT_NEAR(result[2](0, 0), v_ned_numeric(2), 1e-10);
+}
+
+TEST(CoordinateFrame, Symbolic_Roundtrip_Evaluation) {
+    using Scalar = janus::SymbolicScalar;
+
+    // Create symbolic GMST and vector
+    Scalar gmst = janus::sym("gmst");
+    Scalar vx = janus::sym("vx");
+    Scalar vy = janus::sym("vy");
+    Scalar vz = janus::sym("vz");
+
+    // Create symbolic ECI frame
+    auto eci = vulcan::CoordinateFrame<Scalar>::eci(gmst);
+
+    // Create symbolic ECEF vector
+    vulcan::Vec3<Scalar> v_ecef;
+    v_ecef << vx, vy, vz;
+
+    // Roundtrip: ECEF -> ECI -> ECEF
+    auto v_eci = eci.from_ecef(v_ecef);
+    auto v_back = eci.to_ecef(v_eci);
+
+    // Create function
+    janus::Function f("eci_roundtrip", {gmst, vx, vy, vz},
+                      {v_back(0), v_back(1), v_back(2)});
+
+    // Test with concrete values
+    double test_gmst = 1.234;
+    vulcan::Vec3<double> test_v;
+    test_v << 1000.0, 2000.0, 3000.0;
+
+    auto result = f({test_gmst, test_v(0), test_v(1), test_v(2)});
+
+    // Roundtrip should return original vector
+    EXPECT_NEAR(result[0](0, 0), test_v(0), 1e-10);
+    EXPECT_NEAR(result[1](0, 0), test_v(1), 1e-10);
+    EXPECT_NEAR(result[2](0, 0), test_v(2), 1e-10);
 }
