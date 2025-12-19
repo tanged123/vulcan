@@ -20,6 +20,7 @@
 #include <vulcan/coordinates/EarthModel.hpp>
 #include <vulcan/coordinates/Geodetic.hpp>
 #include <vulcan/coordinates/LocalFrames.hpp>
+#include <vulcan/coordinates/QuaternionUtils.hpp>
 #include <vulcan/coordinates/Transforms.hpp>
 
 // Gravity models - TODO

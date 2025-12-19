@@ -8,6 +8,7 @@
 /// - Flight path and aerodynamic angles
 /// - Transforms between frames
 
+#include <janus/core/JanusIO.hpp>
 #include <vulcan/vulcan.hpp>
 
 #include <cmath>
@@ -227,6 +228,102 @@ int main() {
               << ", " << v_leo_eci(2) << "] m/s\n";
     std::cout << "  Speed in ECI: " << v_leo_eci.norm() << " m/s\n";
     std::cout << "  (Earth rotation velocity at this latitude)\n\n";
+
+    // =========================================================================
+    // 11. Symbolic Examples
+    // =========================================================================
+    std::cout << "--- Symbolic Examples ---\n";
+
+    // Define symbolic variables using Janus
+    // SymbolicScalar is an alias for casadi::MX
+    SymbolicScalar sym_lon = sym("lon");
+    SymbolicScalar sym_lat = sym("lat");
+    SymbolicScalar sym_alt = sym("alt");
+
+    // Create symbolic LLA struct
+    LLA<SymbolicScalar> lla_sym = {sym_lon, sym_lat, sym_alt};
+
+    // Perform symbolic conversion to ECEF using the same function as numeric
+    Vec3<SymbolicScalar> ecef_sym = lla_to_ecef(lla_sym);
+
+    // Create a Janus Function for this transformation
+    // Arguments: [lon, lat, alt]
+    // Returns: [x, y, z]
+    // This compiles the computation graph into a callable function
+    janus::Function f_lla_to_ecef("lla_to_ecef", {sym_lon, sym_lat, sym_alt},
+                                  {ecef_sym(0), ecef_sym(1), ecef_sym(2)});
+
+    // Evaluate the function using the Washington DC values
+    // We pass the arguments as a std::vector<double>
+    std::vector<double> args = {lon, lat, alt_m};
+
+    // Evaluation returns a vector of results (one for each output expression)
+    auto res = f_lla_to_ecef(args);
+
+    std::cout << "Symbolic Function Evaluation (Washington DC):\n";
+
+    // Extract results (CasADi returns DM/Matrix, we access element (0,0))
+    // Note: The explicit cast to double ensures we get the scalar value
+    double sym_x = double(res[0](0, 0));
+    double sym_y = double(res[1](0, 0));
+    double sym_z = double(res[2](0, 0));
+
+    std::cout << "  ECEF X: " << sym_x / 1000.0 << " km\n";
+    std::cout << "  ECEF Y: " << sym_y / 1000.0 << " km\n";
+    std::cout << "  ECEF Z: " << sym_z / 1000.0 << " km\n";
+
+    // Compare with the numeric result from earlier
+    double err_x = std::abs(sym_x - r_ecef(0));
+    double err_y = std::abs(sym_y - r_ecef(1));
+    double err_z = std::abs(sym_z - r_ecef(2));
+
+    std::cout << "  Difference from numeric: [" << err_x << ", " << err_y
+              << ", " << err_z << "] m\n";
+    std::cout
+        << "  (Zero difference confirms dual numeric/symbolic consistency)\n\n";
+
+    std::cout << "  Symbolic Graph Construction Successful\n\n";
+
+    // Visualize the computational graph
+    std::cout << "  Generating graph visualization...\n";
+    // We convert the Eigen vector to a Janus symbolic expression (MX) using
+    // as_mx This allows visualizing the entire vector output as one graph
+    janus::visualize_graph(janus::as_mx(ecef_sym), "lla_to_ecef_graph");
+    std::cout << "  Graph saved to 'lla_to_ecef_graph.dot' (and .pdf if "
+                 "Graphviz is installed)\n\n";
+
+    // ---------------------------------------------------------
+    // Symbolic ECEF -> LLA (Vermeille Algorithm)
+    // ---------------------------------------------------------
+    std::cout << "  Generating symbolic ECEF -> LLA graph...\n";
+
+    SymbolicScalar sym_x_in = sym("x");
+    SymbolicScalar sym_y_in = sym("y");
+    SymbolicScalar sym_z_in = sym("z");
+
+    Vec3<SymbolicScalar> sym_r_ecef;
+    sym_r_ecef << sym_x_in, sym_y_in, sym_z_in;
+
+    // Perform symbolic conversion
+    // This builds the graph for Vermeille's algorithm
+    LLA<SymbolicScalar> sym_lla_back = ecef_to_lla(sym_r_ecef);
+
+    // Group outputs into a vector for visualization
+    // [lon, lat, alt]
+    std::vector<SymbolicScalar> lla_outputs = {
+        sym_lla_back.lon, sym_lla_back.lat, sym_lla_back.alt};
+
+    // Visualize the graph
+    // Note: visualize_graph accepts a vector of expressions or a single
+    // expression We'll create a single vector expression for clean
+    // visualization
+    SymbolicVector sym_lla_vec = janus::sym_vec("lla_out", 3);
+    sym_lla_vec(0) = sym_lla_back.lon;
+    sym_lla_vec(1) = sym_lla_back.lat;
+    sym_lla_vec(2) = sym_lla_back.alt;
+
+    janus::visualize_graph(janus::as_mx(sym_lla_vec), "ecef_to_lla_graph");
+    std::cout << "  Graph saved to 'ecef_to_lla_graph.dot' (and .pdf)\n\n";
 
     std::cout << "=== Demo Complete ===\n";
     return 0;

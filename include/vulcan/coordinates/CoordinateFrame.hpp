@@ -6,6 +6,7 @@
 #include <vulcan/core/VulcanTypes.hpp>
 
 #include <janus/math/Linalg.hpp>
+#include <janus/math/Quaternion.hpp>
 #include <janus/math/Rotations.hpp>
 #include <janus/math/Trig.hpp>
 
@@ -136,6 +137,42 @@ template <typename Scalar> struct CoordinateFrame {
     ///
     /// @return 3x3 inverse (transpose) DCM
     [[nodiscard]] Mat3<Scalar> dcm_inverse() const { return dcm().transpose(); }
+
+    // =========================================================================
+    // Quaternion Representation
+    // =========================================================================
+
+    /// Get frame orientation as quaternion (rotation from ECEF to this frame)
+    ///
+    /// The quaternion represents the rotation that transforms vectors from
+    /// ECEF coordinates to this frame's coordinates.
+    ///
+    /// @return Quaternion representing frame orientation
+    [[nodiscard]] janus::Quaternion<Scalar> quaternion() const {
+        // The DCM columns are our basis vectors in ECEF
+        // DCM = [x_axis | y_axis | z_axis] transforms local -> ECEF
+        // We want ECEF -> local, which is DCM transpose
+        // Quaternion from rotation matrix expects ECEF -> local convention
+        return janus::Quaternion<Scalar>::from_rotation_matrix(dcm_inverse());
+    }
+
+    /// Create frame from quaternion and origin
+    ///
+    /// The quaternion should represent the rotation from ECEF to the
+    /// target frame (i.e., how to transform ECEF vectors to local coords).
+    ///
+    /// @param q Quaternion (ECEF to local rotation)
+    /// @param o Origin in ECEF [m]
+    /// @return CoordinateFrame
+    static CoordinateFrame
+    from_quaternion(const janus::Quaternion<Scalar> &q,
+                    const Vec3<Scalar> &o = Vec3<Scalar>::Zero()) {
+        // q.to_rotation_matrix() gives R such that v_local = R * v_ecef
+        // We need basis vectors in ECEF, so we take R^T columns
+        Mat3<Scalar> R = q.to_rotation_matrix();
+        Mat3<Scalar> R_T = R.transpose();
+        return CoordinateFrame(R_T.col(0), R_T.col(1), R_T.col(2), o);
+    }
 
     // =========================================================================
     // Validation

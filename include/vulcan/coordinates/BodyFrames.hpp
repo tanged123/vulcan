@@ -7,18 +7,85 @@
 #include <vulcan/coordinates/LocalFrames.hpp>
 
 #include <janus/math/Linalg.hpp>
+#include <janus/math/Quaternion.hpp>
 #include <janus/math/Trig.hpp>
 
 namespace vulcan {
 
 // =============================================================================
-// Body-Fixed Frame Construction
+// Quaternion-Based Body Frame Construction
+// =============================================================================
+
+/// Create body-fixed frame from quaternion relative to NED
+///
+/// @tparam Scalar Scalar type (double for numeric, SymbolicScalar for symbolic)
+/// @param ned Reference NED frame (origin for body frame)
+/// @param q_body_ned Quaternion rotating from NED to body frame
+/// @return Body-fixed frame expressed in ECEF
+template <typename Scalar>
+CoordinateFrame<Scalar>
+body_from_quaternion(const CoordinateFrame<Scalar> &ned,
+                     const janus::Quaternion<Scalar> &q_body_to_ned) {
+    // q_body_to_ned transforms body vectors to NED vectors: v_ned =
+    // q.rotate(v_body) The body axes (unit vectors in body coords) rotated to
+    // NED give body axes in NED
+
+    // Body axes in body coordinates
+    Vec3<Scalar> x_body = Vec3<Scalar>::UnitX();
+    Vec3<Scalar> y_body = Vec3<Scalar>::UnitY();
+    Vec3<Scalar> z_body = Vec3<Scalar>::UnitZ();
+
+    // Body axes expressed in NED (rotate body unit vectors to NED)
+    Vec3<Scalar> x_body_ned = q_body_to_ned.rotate(x_body);
+    Vec3<Scalar> y_body_ned = q_body_to_ned.rotate(y_body);
+    Vec3<Scalar> z_body_ned = q_body_to_ned.rotate(z_body);
+
+    // Transform body axes from NED to ECEF
+    Vec3<Scalar> x_body_ecef = ned.to_ecef(x_body_ned);
+    Vec3<Scalar> y_body_ecef = ned.to_ecef(y_body_ned);
+    Vec3<Scalar> z_body_ecef = ned.to_ecef(z_body_ned);
+
+    return CoordinateFrame<Scalar>(x_body_ecef, y_body_ecef, z_body_ecef,
+                                   ned.origin);
+}
+
+/// Extract quaternion representing body orientation relative to NED
+///
+/// @tparam Scalar Scalar type
+/// @param body Body-fixed frame
+/// @param ned Reference NED frame
+/// @return Quaternion rotating from body to NED (v_ned = q.rotate(v_body))
+template <typename Scalar>
+janus::Quaternion<Scalar>
+quaternion_from_body(const CoordinateFrame<Scalar> &body,
+                     const CoordinateFrame<Scalar> &ned) {
+    // Get body axes in NED coordinates
+    Vec3<Scalar> x_body_ned = ned.from_ecef(body.x_axis);
+    Vec3<Scalar> y_body_ned = ned.from_ecef(body.y_axis);
+    Vec3<Scalar> z_body_ned = ned.from_ecef(body.z_axis);
+
+    // Build rotation matrix (body axes as columns)
+    // R transforms body vectors to NED: v_ned = R * v_body
+    Mat3<Scalar> R;
+    R.col(0) = x_body_ned;
+    R.col(1) = y_body_ned;
+    R.col(2) = z_body_ned;
+
+    // Return quaternion that rotates body to NED (same as from_euler
+    // convention)
+    return janus::Quaternion<Scalar>::from_rotation_matrix(R);
+}
+
+// =============================================================================
+// Euler Angle Construction (Using Quaternions Internally)
 // =============================================================================
 
 /// Create body-fixed frame from Euler angles relative to NED
 ///
 /// Rotation sequence: Yaw (Z) -> Pitch (Y') -> Roll (X'')
 /// This is the standard aerospace Tait-Bryan rotation sequence.
+///
+/// Internally uses quaternions to avoid gimbal lock issues during composition.
 ///
 /// @tparam Scalar Scalar type (double for numeric, SymbolicScalar for symbolic)
 /// @param ned Reference NED frame (origin for body frame)
@@ -29,51 +96,25 @@ namespace vulcan {
 template <typename Scalar>
 CoordinateFrame<Scalar> body_from_euler(const CoordinateFrame<Scalar> &ned,
                                         Scalar yaw, Scalar pitch, Scalar roll) {
-    // Compute trig values
-    Scalar cy = janus::cos(yaw);
-    Scalar sy = janus::sin(yaw);
-    Scalar cp = janus::cos(pitch);
-    Scalar sp = janus::sin(pitch);
-    Scalar cr = janus::cos(roll);
-    Scalar sr = janus::sin(roll);
-
-    // Compose rotation matrix R = Rz(yaw) * Ry(pitch) * Rx(roll)
-    // This gives body axes in NED coordinates
-    //
-    // R = [cy*cp,  cy*sp*sr - sy*cr,  cy*sp*cr + sy*sr]
-    //     [sy*cp,  sy*sp*sr + cy*cr,  sy*sp*cr - cy*sr]
-    //     [-sp,    cp*sr,             cp*cr           ]
-
-    // Body X-axis (forward) in NED
-    Vec3<Scalar> x_body_ned;
-    x_body_ned << cy * cp, sy * cp, -sp;
-
-    // Body Y-axis (right wing) in NED
-    Vec3<Scalar> y_body_ned;
-    y_body_ned << cy * sp * sr - sy * cr, sy * sp * sr + cy * cr, cp * sr;
-
-    // Body Z-axis (down through floor) in NED
-    Vec3<Scalar> z_body_ned;
-    z_body_ned << cy * sp * cr + sy * sr, sy * sp * cr - cy * sr, cp * cr;
-
-    // Transform body axes from NED to ECEF
-    Vec3<Scalar> x_body = ned.to_ecef(x_body_ned);
-    Vec3<Scalar> y_body = ned.to_ecef(y_body_ned);
-    Vec3<Scalar> z_body = ned.to_ecef(z_body_ned);
-
-    return CoordinateFrame<Scalar>(x_body, y_body, z_body, ned.origin);
+    // Janus from_euler uses (roll, pitch, yaw) for XYZ intrinsic sequence
+    // which corresponds to ZYX extrinsic (yaw-pitch-roll aerospace convention)
+    auto q = janus::Quaternion<Scalar>::from_euler(roll, pitch, yaw);
+    return body_from_quaternion(ned, q);
 }
 
 // =============================================================================
-// Euler Angle Extraction
+// Euler Angle Extraction (Custom DCM-based with Gimbal Lock Handling)
 // =============================================================================
 
 /// Extract Euler angles from body frame relative to NED
 ///
 /// Returns [yaw, pitch, roll] in the Yaw-Pitch-Roll (Z-Y'-X'') sequence.
 ///
-/// Note: Gimbal lock occurs when pitch = +/-90 deg. In this case, yaw and roll
-/// become coupled and we set roll = 0, solving only for yaw.
+/// Uses direct DCM extraction with proper gimbal lock handling:
+/// - Near singularity (|sin(pitch)| ≈ 1): sets roll = 0
+/// - Computes yaw from DCM elements with sign adjustment based on pitch sign
+///
+/// This is compatible with symbolic mode via janus::where.
 ///
 /// @tparam Scalar Scalar type (double for numeric, SymbolicScalar for symbolic)
 /// @param body Body-fixed frame
@@ -82,47 +123,57 @@ CoordinateFrame<Scalar> body_from_euler(const CoordinateFrame<Scalar> &ned,
 template <typename Scalar>
 Vec3<Scalar> euler_from_body(const CoordinateFrame<Scalar> &body,
                              const CoordinateFrame<Scalar> &ned) {
-    // Get body X-axis in NED coordinates
-    Vec3<Scalar> x_body_ned = ned.from_ecef(body.x_axis);
-    Vec3<Scalar> y_body_ned = ned.from_ecef(body.y_axis);
-    Vec3<Scalar> z_body_ned = ned.from_ecef(body.z_axis);
+    // Get body axes in NED coordinates (columns of DCM: v_ned = R * v_body)
+    Vec3<Scalar> x_body_ned = ned.from_ecef(body.x_axis); // R[:,0]
+    Vec3<Scalar> y_body_ned = ned.from_ecef(body.y_axis); // R[:,1]
+    Vec3<Scalar> z_body_ned = ned.from_ecef(body.z_axis); // R[:,2]
 
-    // From rotation matrix:
+    // DCM elements for Yaw-Pitch-Roll (ZYX) sequence:
+    // R = Rz(yaw) * Ry(pitch) * Rx(roll)
+    //
     // R[2,0] = -sin(pitch)
     // R[0,0] = cos(yaw)*cos(pitch)
     // R[1,0] = sin(yaw)*cos(pitch)
     // R[2,1] = cos(pitch)*sin(roll)
     // R[2,2] = cos(pitch)*cos(roll)
+    //
+    // DCM elements (0-indexed, column-major - our columns are body axes):
+    Scalar dcm00 = x_body_ned(0); // R[0,0]
+    Scalar dcm10 = x_body_ned(1); // R[1,0]
+    Scalar dcm20 = x_body_ned(2); // R[2,0] = -sin(pitch)
+    Scalar dcm21 = y_body_ned(2); // R[2,1] = cos(pitch)*sin(roll)
+    Scalar dcm22 = z_body_ned(2); // R[2,2] = cos(pitch)*cos(roll)
 
-    Scalar neg_sp = x_body_ned(2); // -sin(pitch)
+    // Pitch from R[2,0] = -sin(pitch)
+    Scalar sin_pitch = -dcm20;
+    Scalar pitch = janus::asin(sin_pitch);
 
-    // Pitch: asin(-R[2,0])
-    // Clamp to avoid numerical issues at +/-1
-    Scalar sp = -neg_sp;
-    Scalar pitch = janus::asin(sp);
-
-    // Check for gimbal lock (|sp| approx 1)
-    // For symbolic mode, we use conditional
+    // Gimbal lock threshold
+    Scalar eps = Scalar(1e-6);
     Scalar cos_pitch = janus::cos(pitch);
-    Scalar eps = Scalar(1e-10);
+    Scalar is_gimbal_lock = janus::abs(cos_pitch) < eps;
 
     // Normal case: cos(pitch) != 0
-    // yaw = atan2(R[1,0], R[0,0]) = atan2(sy*cp, cy*cp)
-    // roll = atan2(R[2,1], R[2,2]) = atan2(cp*sr, cp*cr)
-    Scalar yaw_normal = janus::atan2(x_body_ned(1), x_body_ned(0));
-    Scalar roll_normal = janus::atan2(y_body_ned(2), z_body_ned(2));
+    // yaw = atan2(R[1,0], R[0,0]) = atan2(sin(yaw)*cos(pitch),
+    // cos(yaw)*cos(pitch)) roll = atan2(R[2,1], R[2,2]) =
+    // atan2(cos(pitch)*sin(roll), cos(pitch)*cos(roll))
+    Scalar yaw_normal = janus::atan2(dcm10, dcm00);
+    Scalar roll_normal = janus::atan2(dcm21, dcm22);
 
-    // Gimbal lock case: set roll = 0, compute yaw from y-axis or z-axis
-    // When pitch = 90 deg: y_body_ned = [sin(roll-yaw), cos(roll-yaw), 0]
-    // When pitch = -90 deg: y_body_ned = [sin(roll+yaw), cos(roll+yaw), 0]
-    // Setting roll = 0: yaw = atan2(y_body_ned[0], y_body_ned[1]) for pitch=90
-    Scalar yaw_gimbal = janus::atan2(y_body_ned(0), y_body_ned(1));
+    // Gimbal lock case: set roll = 0, compute yaw from y-body axis
+    // When pitch = +90° (sin_pitch > 0):
+    //   yaw = atan2(dcm21, dcm20) = atan2(R[2,1], R[2,0])
+    // When pitch = -90° (sin_pitch < 0):
+    //   yaw = atan2(-dcm21, -dcm20)
+    Scalar yaw_gimbal_pos = janus::atan2(dcm21, dcm20);
+    Scalar yaw_gimbal_neg = janus::atan2(-dcm21, -dcm20);
+    Scalar yaw_gimbal =
+        janus::where(sin_pitch > Scalar(0), yaw_gimbal_pos, yaw_gimbal_neg);
     Scalar roll_gimbal = Scalar(0);
 
     // Select based on gimbal lock condition
-    Scalar is_gimbal = janus::abs(cos_pitch) < eps;
-    Scalar yaw = janus::where(is_gimbal, yaw_gimbal, yaw_normal);
-    Scalar roll = janus::where(is_gimbal, roll_gimbal, roll_normal);
+    Scalar yaw = janus::where(is_gimbal_lock, yaw_gimbal, yaw_normal);
+    Scalar roll = janus::where(is_gimbal_lock, roll_gimbal, roll_normal);
 
     Vec3<Scalar> euler;
     euler << yaw, pitch, roll;
@@ -168,18 +219,11 @@ CoordinateFrame<Scalar> velocity_frame(const Vec3<Scalar> &velocity_ecef,
     x_vel_ned(1) = janus::where(is_zero, Scalar(0), x_vel_ned(1));
     x_vel_ned(2) = janus::where(is_zero, Scalar(0), x_vel_ned(2));
 
-    // Z-axis: Cross product of x_vel with Down (NED Z-axis)
-    // This gives a vector perpendicular to velocity in the horizontal plane
-    // Actually: we want Y to be horizontal, Z to complete the triad
-
-    // Alternative approach: Y is horizontal component perpendicular to v
-    // Horizontal velocity
+    // Horizontal velocity magnitude
     Scalar v_horiz = janus::sqrt(v_ned(0) * v_ned(0) + v_ned(1) * v_ned(1));
     Scalar is_vertical = v_horiz < eps;
 
     // Y-axis: Horizontal, perpendicular to velocity (to the right)
-    // For horizontal component [vn, ve], perpendicular is [ve, -vn] normalized
-    // Then scaled by appropriate factor
     Vec3<Scalar> y_vel_ned;
     y_vel_ned << v_ned(1) / v_horiz, -v_ned(0) / v_horiz, Scalar(0);
 
@@ -228,7 +272,7 @@ Vec2<Scalar> flight_path_angles(const Vec3<Scalar> &velocity_ned) {
     Scalar eps = Scalar(1e-10);
     Scalar is_zero = v_total < eps;
 
-    // Flight path angle: gamma = atan2(-vd, v_horiz) = asin(-vd / v_total)
+    // Flight path angle: gamma = atan2(-vd, v_horiz)
     // For climbing, vd < 0, so gamma > 0
     Scalar gamma = janus::atan2(-vd, v_horiz);
     gamma = janus::where(is_zero, Scalar(0), gamma);

@@ -91,20 +91,42 @@ TEST(BodyFrames, EulerRoundtrip) {
 
 TEST(BodyFrames, GimbalLock) {
     // Pitch = 90 degrees (gimbal lock)
+    // At gimbal lock, yaw and roll become coupled in euler representation
+    // Our custom euler extraction handles this by setting roll=0
     double pitch = vulcan::constants::angle::pi / 2.0;
     double yaw = 0.3;
-    double roll = 0.0; // Must be zero due to our convention
+    double roll = 0.0;
 
     auto ned = vulcan::CoordinateFrame<double>::ned(0.0, 0.0);
     auto body = vulcan::body_from_euler(ned, yaw, pitch, roll);
 
     EXPECT_TRUE(body.is_valid());
 
-    // Extract Euler angles - pitch should be pi/2
+    // Quaternion representation always works at gimbal lock
+    auto q = vulcan::quaternion_from_body(body, ned);
+    EXPECT_NEAR(q.norm(), 1.0, 1e-10);
+
+    auto body2 = vulcan::body_from_quaternion(ned, q);
+    EXPECT_NEAR(body.x_axis(0), body2.x_axis(0), 1e-10);
+    EXPECT_NEAR(body.x_axis(1), body2.x_axis(1), 1e-10);
+    EXPECT_NEAR(body.x_axis(2), body2.x_axis(2), 1e-10);
+
+    // Euler extraction should work correctly with our gimbal lock handling
     auto euler = vulcan::euler_from_body(body, ned);
+
+    // Pitch should be exactly pi/2
     EXPECT_NEAR(euler(1), pitch, 1e-6);
-    // Roll is set to 0 in gimbal lock
+
+    // Roll should be 0 at gimbal lock (our convention)
     EXPECT_NEAR(euler(2), 0.0, 1e-6);
+
+    // Euler roundtrip: create body from extracted euler and compare
+    // Relaxed tolerance due to numerical precision at singularity
+    auto body3 = vulcan::body_from_euler(ned, euler(0), euler(1), euler(2));
+    EXPECT_NEAR(body.x_axis(0), body3.x_axis(0), 1e-6);
+    EXPECT_NEAR(body.x_axis(1), body3.x_axis(1), 1e-6);
+    EXPECT_NEAR(body.x_axis(2), body3.x_axis(2), 1e-6);
+    EXPECT_NEAR(body.y_axis(0), body3.y_axis(0), 1e-6);
 }
 
 // ============================================
@@ -505,6 +527,8 @@ TEST(FlightPathAngles, Symbolic) {
     EXPECT_NEAR(result[1](0, 0), angles_num(1), 1e-12);
 }
 
+#include <vulcan/coordinates/QuaternionUtils.hpp>
+
 // ============================================
 // NED Transport Rate Tests
 // ============================================
@@ -535,4 +559,143 @@ TEST(TransportRate, Omega_NED_ECI) {
     EXPECT_NEAR(omega(0), vulcan::constants::wgs84::omega, 1e-14);
     EXPECT_NEAR(omega(1), 0.0, 1e-14);
     EXPECT_NEAR(omega(2), 0.0, 1e-14);
+}
+
+// ============================================
+// Quaternion Tests
+// ============================================
+TEST(Quaternion, FrameQuaternionRoundtrip) {
+    // Create NED frame
+    auto ned = vulcan::CoordinateFrame<double>::ned(0.5, 0.3);
+
+    // Get quaternion representation
+    auto q = ned.quaternion();
+
+    // Recreate frame from quaternion
+    auto ned_back = vulcan::CoordinateFrame<double>::from_quaternion(q);
+
+    // Should match original (within numerical tolerance)
+    EXPECT_NEAR(ned_back.x_axis(0), ned.x_axis(0), 1e-10);
+    EXPECT_NEAR(ned_back.x_axis(1), ned.x_axis(1), 1e-10);
+    EXPECT_NEAR(ned_back.x_axis(2), ned.x_axis(2), 1e-10);
+
+    EXPECT_NEAR(ned_back.y_axis(0), ned.y_axis(0), 1e-10);
+    EXPECT_NEAR(ned_back.y_axis(1), ned.y_axis(1), 1e-10);
+    EXPECT_NEAR(ned_back.y_axis(2), ned.y_axis(2), 1e-10);
+}
+
+TEST(Quaternion, BodyQuaternionRoundtrip) {
+    // Create body frame from quaternion
+    auto ned = vulcan::CoordinateFrame<double>::ned(0.0, 0.0);
+
+    // 45 deg yaw rotation as quaternion
+    double yaw = 0.785398; // pi/4
+    auto q_in = janus::Quaternion<double>::from_euler(0.0, 0.0, yaw);
+
+    auto body = vulcan::body_from_quaternion(ned, q_in);
+    auto q_out = vulcan::quaternion_from_body(body, ned);
+
+    // Quaternions should match (or be negatives, same rotation)
+    double dot = q_in.w * q_out.w + q_in.x * q_out.x + q_in.y * q_out.y +
+                 q_in.z * q_out.z;
+    EXPECT_NEAR(std::abs(dot), 1.0, 1e-10);
+}
+
+TEST(Quaternion, QuaternionEulerConsistency) {
+    // Create body frame from Euler angles
+    double yaw = 0.5;
+    double pitch = 0.2;
+    double roll = 0.1;
+
+    auto ned = vulcan::CoordinateFrame<double>::ned(1.0, 0.5);
+
+    // Using Euler interface
+    auto body_euler = vulcan::body_from_euler(ned, yaw, pitch, roll);
+
+    // Using quaternion interface
+    auto q = janus::Quaternion<double>::from_euler(roll, pitch, yaw);
+    auto body_quat = vulcan::body_from_quaternion(ned, q);
+
+    // Both should give same frame
+    EXPECT_NEAR(body_euler.x_axis(0), body_quat.x_axis(0), 1e-10);
+    EXPECT_NEAR(body_euler.x_axis(1), body_quat.x_axis(1), 1e-10);
+    EXPECT_NEAR(body_euler.x_axis(2), body_quat.x_axis(2), 1e-10);
+
+    EXPECT_NEAR(body_euler.y_axis(0), body_quat.y_axis(0), 1e-10);
+    EXPECT_NEAR(body_euler.y_axis(1), body_quat.y_axis(1), 1e-10);
+    EXPECT_NEAR(body_euler.y_axis(2), body_quat.y_axis(2), 1e-10);
+}
+
+TEST(Quaternion, ComposeRotations) {
+    // Two 90-degree rotations about Z should give 180-degree rotation
+    double angle = vulcan::constants::angle::pi / 2.0;
+    auto q1 = janus::Quaternion<double>::from_euler(0.0, 0.0, angle);
+    auto q2 = janus::Quaternion<double>::from_euler(0.0, 0.0, angle);
+
+    auto q_composed = vulcan::compose_rotations(q1, q2);
+    auto euler = q_composed.to_euler();
+
+    EXPECT_NEAR(std::abs(euler(2)), vulcan::constants::angle::pi, 1e-10);
+}
+
+TEST(Quaternion, RelativeRotation) {
+    // Relative rotation from identity to 90 deg yaw
+    auto q_identity = janus::Quaternion<double>();
+    double yaw = vulcan::constants::angle::pi / 2.0;
+    auto q_rotated = janus::Quaternion<double>::from_euler(0.0, 0.0, yaw);
+
+    auto q_rel = vulcan::relative_rotation(q_identity, q_rotated);
+
+    // Should match q_rotated
+    double dot = q_rel.w * q_rotated.w + q_rel.x * q_rotated.x +
+                 q_rel.y * q_rotated.y + q_rel.z * q_rotated.z;
+    EXPECT_NEAR(std::abs(dot), 1.0, 1e-10);
+}
+
+TEST(Quaternion, Slerp) {
+    // Interpolate between identity and 90 deg yaw
+    auto q0 = janus::Quaternion<double>();
+    double yaw = vulcan::constants::angle::pi / 2.0;
+    auto q1 = janus::Quaternion<double>::from_euler(0.0, 0.0, yaw);
+
+    auto q_half = vulcan::slerp(q0, q1, 0.5);
+    auto euler = q_half.to_euler();
+
+    EXPECT_NEAR(euler(2), vulcan::constants::angle::pi / 4.0, 1e-10);
+}
+
+TEST(Quaternion, SymbolicQuaternionBody) {
+    using Scalar = janus::SymbolicScalar;
+
+    Scalar lon = janus::sym("lon");
+    Scalar lat = janus::sym("lat");
+    Scalar qw = janus::sym("qw");
+    Scalar qx = janus::sym("qx");
+    Scalar qy = janus::sym("qy");
+    Scalar qz = janus::sym("qz");
+
+    auto ned = vulcan::CoordinateFrame<Scalar>::ned(lon, lat);
+    janus::Quaternion<Scalar> q(qw, qx, qy, qz);
+
+    auto body = vulcan::body_from_quaternion(ned, q);
+
+    // Verify symbolic expression
+    EXPECT_FALSE(body.x_axis(0).is_constant());
+
+    // Create function and evaluate
+    janus::Function f("body_quat", {lon, lat, qw, qx, qy, qz},
+                      {body.x_axis(0), body.x_axis(1), body.x_axis(2)});
+
+    // Test with identity quaternion (1, 0, 0, 0)
+    double test_lon = 0.0;
+    double test_lat = 0.0;
+
+    auto result = f({test_lon, test_lat, 1.0, 0.0, 0.0, 0.0});
+
+    // With identity quaternion, body should equal NED
+    auto ned_num = vulcan::CoordinateFrame<double>::ned(test_lon, test_lat);
+
+    EXPECT_NEAR(result[0](0, 0), ned_num.x_axis(0), 1e-12);
+    EXPECT_NEAR(result[1](0, 0), ned_num.x_axis(1), 1e-12);
+    EXPECT_NEAR(result[2](0, 0), ned_num.x_axis(2), 1e-12);
 }
