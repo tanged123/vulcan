@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 set -e
 
+# Ensure we are in a Nix environment
+if [ -z "$IN_NIX_SHELL" ]; then
+    echo "Not in Nix environment. Re-running inside Nix..."
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    "$SCRIPT_DIR/dev.sh" "$0" "$@"
+    exit $?
+fi
+
 # Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -13,9 +21,10 @@ TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 LOG_FILE="$PROJECT_ROOT/logs/ci_${TIMESTAMP}.log"
 
 # Run build and test scripts inside the nix environment
-echo "Running CI under Nix..."
+# Run build and test scripts
+echo "Running CI..."
 cd "$PROJECT_ROOT"
-nix develop --command bash -c "./scripts/build.sh --clean && ./scripts/test.sh" 2>&1 | tee "$LOG_FILE"
+(./scripts/build.sh --clean && ./scripts/test.sh) 2>&1 | tee "$LOG_FILE"
 
 # Create symlink to latest
 ln -sf "ci_${TIMESTAMP}.log" "$PROJECT_ROOT/logs/ci.log"

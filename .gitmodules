@@ -4,3 +4,6 @@
 [submodule "reference/AeroSandbox"]
 	path = reference/AeroSandbox
 	url = https://github.com/peterdsharpe/AeroSandbox.git
+[submodule "reference/aerospace-toolbox"]
+	path = reference/aerospace-toolbox
+	url = https://github.com/williamgravel/aerospace-toolbox.git

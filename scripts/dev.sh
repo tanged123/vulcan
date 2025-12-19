@@ -1,3 +1,7 @@
 #!/usr/bin/env bash
 # Enter the Vulcan development environment
-nix develop
+if [ $# -gt 0 ]; then
+    nix develop --command "$@"
+else
+    nix develop
+fi

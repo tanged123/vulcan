@@ -1339,29 +1339,29 @@ IndentWidth: 4
 ## 13. Initial Module Roadmap
 
 ### Phase 1: Core Infrastructure
-- [ ] Set up repository structure
-- [ ] Configure Nix flake with Janus dependency
-- [ ] Configure CMake
-- [ ] Set up CI/CD workflows
-- [ ] Create initial documentation
+- [x] Set up repository structure
+- [x] Configure Nix flake with Janus dependency
+- [x] Configure CMake
+- [x] Set up CI/CD workflows
+- [x] Create initial documentation
 
-### Phase 2: Coordinate Systems
+### Phase 2: Atmospheric Models
+- [ ] US Standard Atmosphere 1976
+- [ ] Exponential atmosphere
+- [ ] Custom tabulated atmosphere
+
+### Phase 3: Coordinate Systems
 - [ ] WGS84 ellipsoid constants
 - [ ] ECI/ECEF frames
 - [ ] NED/ENU local frames
 - [ ] Body frame definitions
 - [ ] Transformation matrices (templated)
 
-### Phase 3: Rotations
+### Phase 4: Rotations
 - [ ] DCM utilities (extend Janus quaternions)
 - [ ] Euler angle sequences (all 12)
 - [ ] Axis-angle conversions
 - [ ] Rotation composition
-
-### Phase 4: Atmospheric Models
-- [ ] US Standard Atmosphere 1976
-- [ ] Exponential atmosphere
-- [ ] Custom tabulated atmosphere
 
 ### Phase 5: Wind Models
 - [ ] Constant wind field

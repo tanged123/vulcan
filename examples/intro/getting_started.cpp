@@ -1,11 +1,13 @@
 // Getting Started with Vulcan
 // This example demonstrates both numeric and symbolic modes
 #include <iostream>
+#include <janus/core/Function.hpp>
+#include <janus/math/AutoDiff.hpp>
 #include <vulcan/vulcan.hpp>
 
 // Templated model function - works in both modes
 template <typename Scalar> Scalar air_density(const Scalar &altitude) {
-    return vulcan::standard_atmosphere::density(altitude);
+    return vulcan::ussa1976::density(altitude);
 }
 
 int main() {
@@ -22,11 +24,12 @@ int main() {
     double rho = air_density(alt);
     std::cout << "  Density at 10km: " << rho << " kg/m^3" << std::endl;
 
-    double T = vulcan::standard_atmosphere::temperature(alt);
-    std::cout << "  Temperature at 10km: " << T << " K" << std::endl;
-
-    double a = vulcan::standard_atmosphere::speed_of_sound(alt);
-    std::cout << "  Speed of sound at 10km: " << a << " m/s" << std::endl;
+    // Use state() to get all properties at once
+    auto atm = vulcan::ussa1976::state(alt);
+    std::cout << "  Temperature at 10km: " << atm.temperature << " K"
+              << std::endl;
+    std::cout << "  Speed of sound at 10km: " << atm.speed_of_sound << " m/s"
+              << std::endl;
 
     // ========================================
     // 2. Unit Conversions
@@ -35,8 +38,9 @@ int main() {
     double alt_ft = vulcan::units::m_to_ft(alt);
     std::cout << "  10 km = " << alt_ft << " ft" << std::endl;
 
-    double T_C = vulcan::units::K_to_C(T);
-    std::cout << "  " << T << " K = " << T_C << " °C" << std::endl;
+    double T_C = vulcan::units::K_to_C(atm.temperature);
+    std::cout << "  " << atm.temperature << " K = " << T_C << " °C"
+              << std::endl;
 
     // ========================================
     // 3. Physical Constants
@@ -59,10 +63,9 @@ int main() {
 
     std::cout << "  Created symbolic density expression" << std::endl;
 
-    // Create a CasADi function to evaluate
+    // Create a function to evaluate
     janus::Function rho_func("rho", {h}, {rho_sym});
     auto result = rho_func({5000.0});
-    // result[0] is a matrix, extract scalar with (0,0)
     std::cout << "  Evaluating at h=5000: " << result[0](0, 0) << " kg/m^3"
               << std::endl;
 

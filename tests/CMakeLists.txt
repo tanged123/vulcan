@@ -1,5 +1,12 @@
 find_package(GTest REQUIRED)
 
+# Core tests
+add_executable(test_core
+    core/test_table_interpolator.cpp
+)
+target_link_libraries(test_core PRIVATE vulcan GTest::gtest_main)
+gtest_discover_tests(test_core)
+
 # Core tests - coordinates
 add_executable(test_coordinates
     coordinates/test_frames.cpp
@@ -12,6 +19,7 @@ gtest_discover_tests(test_coordinates)
 # Atmosphere tests
 add_executable(test_atmosphere
     atmosphere/test_standard.cpp
+    atmosphere/test_exponential.cpp
 )
 target_link_libraries(test_atmosphere PRIVATE vulcan GTest::gtest_main)
 gtest_discover_tests(test_atmosphere)
@@ -22,3 +30,4 @@ add_executable(test_gravity
 )
 target_link_libraries(test_gravity PRIVATE vulcan GTest::gtest_main)
 gtest_discover_tests(test_gravity)
+
