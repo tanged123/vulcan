@@ -14,10 +14,14 @@
 // Atmospheric models
 #include <vulcan/atmosphere/USSA1976.hpp>
 
-// Coordinate systems - TODO
-// #include <vulcan/coordinates/Frames.hpp>
-// #include <vulcan/coordinates/Transformations.hpp>
-// #include <vulcan/coordinates/Geodetic.hpp>
+// Coordinate systems
+#include <vulcan/coordinates/BodyFrames.hpp>
+#include <vulcan/coordinates/CoordinateFrame.hpp>
+#include <vulcan/coordinates/EarthModel.hpp>
+#include <vulcan/coordinates/Geodetic.hpp>
+#include <vulcan/coordinates/LocalFrames.hpp>
+#include <vulcan/coordinates/QuaternionUtils.hpp>
+#include <vulcan/coordinates/Transforms.hpp>
 
 // Gravity models - TODO
 // #include <vulcan/gravity/PointMass.hpp>
