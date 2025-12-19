@@ -64,3 +64,4 @@ cmake-build-*/
 
 # Preserve doc images
 !docs/images/*.png
+!refs/taos_documentation.pdf
