@@ -7,8 +7,8 @@ target_link_libraries(getting_started PRIVATE vulcan)
 # =============================================================================
 # Coordinate Examples
 # =============================================================================
-# add_executable(frame_demo coordinates/frame_demo.cpp)
-# target_link_libraries(frame_demo PRIVATE vulcan)
+add_executable(coordinate_demo coordinates/coordinate_demo.cpp)
+target_link_libraries(coordinate_demo PRIVATE vulcan)
 
 # =============================================================================
 # Atmosphere Examples
