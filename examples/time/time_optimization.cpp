@@ -240,5 +240,36 @@ int main() {
 
     std::cout << "\n✓ Optimization complete using janus::Opti + Vulcan time infrastructure!\n";
 
+    // =========================================================================
+    // Part 6: Export Computational Graphs
+    // =========================================================================
+    std::cout << "\n=== Part 6: Exporting Interactive Computational Graphs ===\n\n";
+
+    // Create a simple symbolic expression to visualize the time computation chain
+    auto t_sym = janus::sym("t");
+    auto epoch_for_graph = SymbolicEpoch::from_tai_seconds(t_sym);
+
+    // Export the JD TT computation graph
+    auto jd_tt_expr = epoch_for_graph.jd_tt();
+    janus::export_graph_html(jd_tt_expr, "graph_jd_tt", "JD_TT_from_TAI");
+    std::cout << "✓ Exported: graph_jd_tt.html (TAI → JD TT conversion)\n";
+
+    // Export the centuries since J2000 computation
+    auto centuries_expr = epoch_for_graph.centuries_tt();
+    janus::export_graph_html(centuries_expr, "graph_centuries_tt", "Centuries_TT");
+    std::cout << "✓ Exported: graph_centuries_tt.html (J2000 centuries computation)\n";
+
+    // Export the visibility objective (more complex graph)
+    auto vis_expr = visibility_metric(epoch_for_graph, sat_period);
+    janus::export_graph_html(vis_expr, "graph_visibility", "Visibility_Objective");
+    std::cout << "✓ Exported: graph_visibility.html (full visibility objective)\n";
+
+    // Export the solar elevation component
+    auto solar_expr = solar_elevation(epoch_for_graph, 40.0 * M_PI / 180.0);
+    janus::export_graph_html(solar_expr, "graph_solar_elevation", "Solar_Elevation");
+    std::cout << "✓ Exported: graph_solar_elevation.html (solar elevation model)\n";
+
+    std::cout << "\nOpen these HTML files in a browser to explore the computational graphs!\n";
+
     return 0;
 }

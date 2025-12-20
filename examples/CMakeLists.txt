@@ -22,6 +22,9 @@ target_link_libraries(atmosphere_profile PRIVATE vulcan)
 add_executable(time_optimization time/time_optimization.cpp)
 target_link_libraries(time_optimization PRIVATE vulcan)
 
+add_executable(mission_planning time/mission_planning.cpp)
+target_link_libraries(mission_planning PRIVATE vulcan)
+
 # =============================================================================
 # Gravity Examples
 # =============================================================================
