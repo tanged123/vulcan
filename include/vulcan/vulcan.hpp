@@ -36,6 +36,5 @@
 #include <vulcan/wind/WindShear.hpp>
 #include <vulcan/wind/WindTypes.hpp>
 
-// Gravity models - TODO
-// #include <vulcan/gravity/PointMass.hpp>
-// #include <vulcan/gravity/J2.hpp>
+// Gravity models
+#include <vulcan/gravity/Gravity.hpp>

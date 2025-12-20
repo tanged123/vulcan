@@ -1364,10 +1364,10 @@ IndentWidth: 4
 - [x] Rotation composition
 
 ### Phase 5: Wind Models
-- [ ] Constant wind field
-- [ ] Wind shear profiles (linear, exponential)
-- [ ] Dryden turbulence model
-- [ ] von Kármán turbulence model
+- [x] Constant wind field
+- [x] Wind shear profiles (linear, exponential)
+- [x] Dryden turbulence model
+- [x] von Kármán turbulence model
 
 ### Phase 6: Gravity Models
 - [ ] Point mass gravity

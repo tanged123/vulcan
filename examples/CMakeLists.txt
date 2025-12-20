@@ -34,8 +34,8 @@ target_link_libraries(rotations_demo PRIVATE vulcan)
 # =============================================================================
 # Gravity Examples
 # =============================================================================
-# add_executable(gravity_comparison gravity/gravity_comparison.cpp)
-# target_link_libraries(gravity_comparison PRIVATE vulcan)
+add_executable(gravity_demo gravity/gravity_demo.cpp)
+target_link_libraries(gravity_demo PRIVATE vulcan)
 
 # =============================================================================
 # Wind Examples
