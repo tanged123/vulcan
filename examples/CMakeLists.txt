@@ -26,6 +26,12 @@ add_executable(mission_planning time/mission_planning.cpp)
 target_link_libraries(mission_planning PRIVATE vulcan)
 
 # =============================================================================
+# Rotations Examples
+# =============================================================================
+add_executable(rotations_demo rotations/rotations_demo.cpp)
+target_link_libraries(rotations_demo PRIVATE vulcan)
+
+# =============================================================================
 # Gravity Examples
 # =============================================================================
 # add_executable(gravity_comparison gravity/gravity_comparison.cpp)

@@ -290,7 +290,12 @@ int main() {
     // as_mx This allows visualizing the entire vector output as one graph
     janus::visualize_graph(janus::as_mx(ecef_sym), "lla_to_ecef_graph");
     std::cout << "  Graph saved to 'lla_to_ecef_graph.dot' (and .pdf if "
-                 "Graphviz is installed)\n\n";
+                 "Graphviz is installed)\n";
+
+    // Export as interactive HTML
+    janus::export_graph_html(ecef_sym(0), "graph_lla_to_ecef_x",
+                             "LLA_to_ECEF_X");
+    std::cout << "  -> graph_lla_to_ecef_x.html (interactive)\n\n";
 
     // ---------------------------------------------------------
     // Symbolic ECEF -> LLA (Vermeille Algorithm)
@@ -323,7 +328,12 @@ int main() {
     sym_lla_vec(2) = sym_lla_back.alt;
 
     janus::visualize_graph(janus::as_mx(sym_lla_vec), "ecef_to_lla_graph");
-    std::cout << "  Graph saved to 'ecef_to_lla_graph.dot' (and .pdf)\n\n";
+    std::cout << "  Graph saved to 'ecef_to_lla_graph.dot' (and .pdf)\n";
+
+    // Export as interactive HTML
+    janus::export_graph_html(sym_lla_back.lat, "graph_ecef_to_lla_lat",
+                             "ECEF_to_LLA_Latitude");
+    std::cout << "  -> graph_ecef_to_lla_lat.html (Vermeille algorithm)\n\n";
 
     std::cout << "=== Demo Complete ===\n";
     return 0;

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ECEF_to_LLA_Latitude</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/2.1.2/viz.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/2.1.2/full.render.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; width: 100%; }
+        body { font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: #eee; overflow: hidden; display: flex; }
+        #controls { position: fixed; top: 10px; left: 10px; z-index: 100; background: rgba(0,0,0,0.8);
+                    padding: 12px; border-radius: 8px; }
+        #controls button { margin: 2px; padding: 8px 14px; cursor: pointer; border: none;
+                           border-radius: 4px; background: #4a4a6a; color: white; font-size: 13px; }
+        #controls button:hover { background: #6a6a8a; }
+        #graph { flex: 1; cursor: grab; overflow: hidden; height: 100%; }
+        #graph:active { cursor: grabbing; }
+        #graph svg { display: block; }
+        #sidebar { width: 320px; height: 100%; background: #16213e; padding: 16px; overflow-y: auto; 
+                   border-left: 2px solid #0f3460; }
+        #sidebar h2 { color: #e94560; margin-bottom: 12px; font-size: 16px; }
+        #sidebar .section { margin-bottom: 16px; }
+        #sidebar .label { color: #888; font-size: 11px; text-transform: uppercase; margin-bottom: 4px; }
+        #sidebar .value { background: #0f3460; padding: 10px; border-radius: 6px; font-family: monospace;
+                          font-size: 13px; word-break: break-all; white-space: pre-wrap; max-height: 200px; overflow-y: auto; }
+        #sidebar .type-badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px;
+                               margin-left: 8px; }
+        .type-input { background: #90EE90; color: #000; }
+        .type-constant { background: #FFE4B5; color: #000; }
+        .type-operation { background: #87CEEB; color: #000; }
+        .type-leaf { background: #DDA0DD; color: #000; }
+        #info { position: fixed; bottom: 10px; left: 10px; background: rgba(0,0,0,0.8);
+                padding: 10px; border-radius: 4px; font-size: 12px; }
+        .node-highlighted polygon, .node-highlighted ellipse, .node-highlighted path { stroke: #e94560 !important; stroke-width: 3px !important; }
+        .edge-highlighted path { stroke: #e94560 !important; stroke-width: 2px !important; }
+        .edge-highlighted polygon { stroke: #e94560 !important; fill: #e94560 !important; }
+        svg .node { cursor: pointer; }
+        svg .node:hover polygon, svg .node:hover ellipse { stroke: #fff !important; stroke-width: 2px !important; }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <button onclick="zoomIn()">Zoom +</button>
+        <button onclick="zoomOut()">Zoom -</button>
+        <button onclick="resetView()">Reset</button>
+        <button onclick="fitToScreen()">Fit</button>
+    </div>
+    <div id="graph"></div>
+    <div id="sidebar">
+        <h2>Node Info</h2>
+        <div id="node-info">
+            <p style="color:#666; font-style:italic;">Click on a node to see details</p>
+        </div>
+    </div>
+    <div id="info">Scroll to zoom - Drag to pan - Click nodes for details</div>
+    <script>
+        const dotSrc = "digraph ECEF_to_LLA_Latitude {\n  rankdir=BT;\n  splines=ortho;\n  node [shape=box, style=\"rounded,filled\", fontname=\"Helvetica\"];\n  edge [color=\"#666666\", arrowsize=0.7];\n\n  labelloc=\"t\";\n  label=\"ECEF_to_LLA_Latitude\";\n  fontsize=16;\n\n  node_0 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_0\"];\n  node_1 -> node_0;\n  node_1 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_1\"];\n  node_6 -> node_1;\n  node_2 -> node_1;\n  node_2 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_2\"];\n  node_8 -> node_2;\n  node_3 -> node_2;\n  node_3 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_3\"];\n  node_4 -> node_3;\n  node_4 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_4\"];\n  node_7 -> node_4;\n  node_5 -> node_4;\n  node_5 [label=\"sq\", fillcolor=\"#87CEEB\", shape=box, id=\"node_5\"];\n  node_6 -> node_5;\n  node_6 [label=\"z\", fillcolor=\"#90EE90\", shape=ellipse, id=\"node_6\"];\n  node_7 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_7\"];\n  node_8 -> node_7;\n  node_8 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_8\"];\n  node_66 -> node_8;\n  node_9 -> node_8;\n  node_9 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_9\"];\n  node_65 -> node_9;\n  node_10 -> node_9;\n  node_10 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_10\"];\n  node_61 -> node_10;\n  node_11 -> node_10;\n  node_11 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_11\"];\n  node_57 -> node_11;\n  node_12 -> node_11;\n  node_12 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_12\"];\n  node_13 -> node_12;\n  node_13 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_13\"];\n  node_14 -> node_13;\n  node_14 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_14\"];\n  node_22 -> node_14;\n  node_15 -> node_14;\n  node_15 [label=\"(4.48147e-05*(((0.993306*z)...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_15\"];\n  node_21 -> node_15;\n  node_16 -> node_15;\n  node_16 [label=\"(((0.993306*z)*z)/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_16\"];\n  node_18 -> node_16;\n  node_17 -> node_16;\n  node_17 [label=\"40680631590769\", fillcolor=\"#FFE4B5\", shape=ellipse, id=\"node_17\"];\n  node_18 [label=\"((0.993306*z)*z)\", fillcolor=\"#87CEEB\", shape=box, id=\"node_18\"];\n  node_19 -> node_18;\n  node_6 -> node_18;\n  node_19 [label=\"(0.993306*z)\", fillcolor=\"#87CEEB\", shape=box, id=\"node_19\"];\n  node_20 -> node_19;\n  node_6 -> node_19;\n  node_20 [label=\"0.993306\", fillcolor=\"#FFE4B5\", shape=ellipse, id=\"node_20\"];\n  node_21 [label=\"4.48147e-05\", fillcolor=\"#FFE4B5\", shape=ellipse, id=\"node_21\"];\n  node_22 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_22\"];\n  node_23 -> node_22;\n  node_23 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_23\"];\n  node_35 -> node_23;\n  node_24 -> node_23;\n  node_24 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_24\"];\n  node_55 -> node_24;\n  node_25 -> node_24;\n  node_25 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_25\"];\n  node_26 -> node_25;\n  node_26 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_26\"];\n  node_28 -> node_26;\n  node_27 -> node_26;\n  node_27 [label=\"0.333333\", fillcolor=\"#FFE4B5\", shape=ellipse, id=\"node_27\"];\n  node_28 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_28\"];\n  node_53 -> node_28;\n  node_29 -> node_28;\n  node_29 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_29\"];\n  node_30 -> node_29;\n  node_30 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_30\"];\n  node_32 -> node_30;\n  node_31 -> node_30;\n  node_31 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_31\"];\n  node_52 -> node_31;\n  node_32 -> node_31;\n  node_32 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_32\"];\n  node_49 -> node_32;\n  node_33 -> node_32;\n  node_33 [label=\"@1=(((((sq(x)+sq(y))/406806...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_33\"];\n  node_48 -> node_33;\n  node_34 -> node_33;\n  node_34 [label=\"@1=(((((sq(x)+sq(y))/406806...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_34\"];\n  node_47 -> node_34;\n  node_35 -> node_34;\n  node_35 [label=\"(((((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_35\"];\n  node_37 -> node_35;\n  node_36 -> node_35;\n  node_36 [label=\"6\", fillcolor=\"#FFE4B5\", shape=ellipse, id=\"node_36\"];\n  node_37 [label=\"((((sq(x)+sq(y))/4068063159...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_37\"];\n  node_39 -> node_37;\n  node_38 -> node_37;\n  node_38 [label=\"4.48147e-05\", fillcolor=\"#FFE4B5\", shape=ellipse, id=\"node_38\"];\n  node_39 [label=\"(((sq(x)+sq(y))/40680631590...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_39\"];\n  node_40 -> node_39;\n  node_16 -> node_39;\n  node_40 [label=\"((sq(x)+sq(y))/40680631590769)\", fillcolor=\"#87CEEB\", shape=box, id=\"node_40\"];\n  node_42 -> node_40;\n  node_41 -> node_40;\n  node_41 [label=\"40680631590769\", fillcolor=\"#FFE4B5\", shape=ellipse, id=\"node_41\"];\n  node_42 [label=\"(sq(x)+sq(y))\", fillcolor=\"#87CEEB\", shape=box, id=\"node_42\"];\n  node_45 -> node_42;\n  node_43 -> node_42;\n  node_43 [label=\"sq\", fillcolor=\"#87CEEB\", shape=box, id=\"node_43\"];\n  node_44 -> node_43;\n  node_44 [label=\"y\", fillcolor=\"#90EE90\", shape=ellipse, id=\"node_44\"];\n  node_45 [label=\"sq\", fillcolor=\"#87CEEB\", shape=box, id=\"node_45\"];\n  node_46 -> node_45;\n  node_46 [label=\"x\", fillcolor=\"#90EE90\", shape=ellipse, id=\"node_46\"];\n  node_47 [label=\"sq\", fillcolor=\"#87CEEB\", shape=box, id=\"node_47\"];\n  node_35 -> node_47;\n  node_48 [label=\"4\", fillcolor=\"#FFE4B5\", shape=ellipse, id=\"node_48\"];\n  node_49 [label=\"((4.48147e-05*((sq(x)+sq(y)...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_49\"];\n  node_50 -> node_49;\n  node_16 -> node_49;\n  node_50 [label=\"(4.48147e-05*((sq(x)+sq(y))...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_50\"];\n  node_51 -> node_50;\n  node_40 -> node_50;\n  node_51 [label=\"4.48147e-05\", fillcolor=\"#FFE4B5\", shape=ellipse, id=\"node_51\"];\n  node_52 [label=\"2\", fillcolor=\"#FFE4B5\", shape=ellipse, id=\"node_52\"];\n  node_53 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_53\"];\n  node_54 -> node_53;\n  node_32 -> node_53;\n  node_54 [label=\"1\", fillcolor=\"#FFE4B5\", shape=ellipse, id=\"node_54\"];\n  node_55 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_55\"];\n  node_56 -> node_55;\n  node_26 -> node_55;\n  node_56 [label=\"1\", fillcolor=\"#FFE4B5\", shape=ellipse, id=\"node_56\"];\n  node_57 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_57\"];\n  node_60 -> node_57;\n  node_58 -> node_57;\n  node_58 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_58\"];\n  node_59 -> node_58;\n  node_16 -> node_58;\n  node_59 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_59\"];\n  node_23 -> node_59;\n  node_13 -> node_59;\n  node_60 [label=\"0.00669438\", fillcolor=\"#FFE4B5\", shape=ellipse, id=\"node_60\"];\n  node_61 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_61\"];\n  node_62 -> node_61;\n  node_62 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_62\"];\n  node_64 -> node_62;\n  node_63 -> node_62;\n  node_63 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_63\"];\n  node_11 -> node_63;\n  node_64 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_64\"];\n  node_23 -> node_64;\n  node_13 -> node_64;\n  node_65 [label=\"0.00669438\", fillcolor=\"#FFE4B5\", shape=ellipse, id=\"node_65\"];\n  node_66 [label=\"@1=((sq(x)+sq(y))/406806315...\", fillcolor=\"#87CEEB\", shape=box, id=\"node_66\"];\n  node_10 -> node_66;\n  node_67 -> node_66;\n  node_67 [label=\"sqrt\", fillcolor=\"#87CEEB\", shape=box, id=\"node_67\"];\n  node_68 -> node_67;\n  node_68 [label=\"(sq(x)+sq(y))\", fillcolor=\"#87CEEB\", shape=box, id=\"node_68\"];\n  node_70 -> node_68;\n  node_69 -> node_68;\n  node_69 [label=\"sq\", fillcolor=\"#87CEEB\", shape=box, id=\"node_69\"];\n  node_44 -> node_69;\n  node_70 [label=\"sq\", fillcolor=\"#87CEEB\", shape=box, id=\"node_70\"];\n  node_46 -> node_70;\n\n  output [label=\"Output\", shape=doublecircle, fillcolor=\"#FFD700\", id=\"output\"];\n  node_0 -> output;\n}\n";
+        const nodeData = {"node_0":{"id":0,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), @4=(((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3))), @5=pow(((1+@4)+sqrt((@4*(2+@4)))),0.333333), @6=(@3*((1+@5)+(1./@5))), @7=sqrt((sq(@6)+(4.48147e-05*@2))), @8=((0.00669438*((@6+@7)-@2))/(2.*@7)), @9=(sqrt(((@6+@7)+sq(@8)))-@8), @10=((@9*sqrt((sq(x)+sq(y))))/(0.00669438+@9)), (2.*atan2(z,(@10+sqrt((sq(@10)+sq(z))))))","type":"operation","deps":[1]},"node_1":{"id":1,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), @4=(((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3))), @5=pow(((1+@4)+sqrt((@4*(2+@4)))),0.333333), @6=(@3*((1+@5)+(1./@5))), @7=sqrt((sq(@6)+(4.48147e-05*@2))), @8=((0.00669438*((@6+@7)-@2))/(2.*@7)), @9=(sqrt(((@6+@7)+sq(@8)))-@8), @10=((@9*sqrt((sq(x)+sq(y))))/(0.00669438+@9)), atan2(z,(@10+sqrt((sq(@10)+sq(z)))))","type":"operation","deps":[6,2]},"node_2":{"id":2,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), @4=(((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3))), @5=pow(((1+@4)+sqrt((@4*(2+@4)))),0.333333), @6=(@3*((1+@5)+(1./@5))), @7=sqrt((sq(@6)+(4.48147e-05*@2))), @8=((0.00669438*((@6+@7)-@2))/(2.*@7)), @9=(sqrt(((@6+@7)+sq(@8)))-@8), @10=((@9*sqrt((sq(x)+sq(y))))/(0.00669438+@9)), (@10+sqrt((sq(@10)+sq(z))))","type":"operation","deps":[8,3]},"node_3":{"id":3,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), @4=(((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3))), @5=pow(((1+@4)+sqrt((@4*(2+@4)))),0.333333), @6=(@3*((1+@5)+(1./@5))), @7=sqrt((sq(@6)+(4.48147e-05*@2))), @8=((0.00669438*((@6+@7)-@2))/(2.*@7)), @9=(sqrt(((@6+@7)+sq(@8)))-@8), sqrt((sq(((@9*sqrt((sq(x)+sq(y))))/(0.00669438+@9)))+sq(z)))","type":"operation","deps":[4]},"node_4":{"id":4,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), @4=(((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3))), @5=pow(((1+@4)+sqrt((@4*(2+@4)))),0.333333), @6=(@3*((1+@5)+(1./@5))), @7=sqrt((sq(@6)+(4.48147e-05*@2))), @8=((0.00669438*((@6+@7)-@2))/(2.*@7)), @9=(sqrt(((@6+@7)+sq(@8)))-@8), (sq(((@9*sqrt((sq(x)+sq(y))))/(0.00669438+@9)))+sq(z))","type":"operation","deps":[7,5]},"node_5":{"id":5,"short":"sq","full":"sq(z)","type":"operation","deps":[6]},"node_6":{"id":6,"short":"z","full":"z","type":"input","deps":[]},"node_7":{"id":7,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), @4=(((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3))), @5=pow(((1+@4)+sqrt((@4*(2+@4)))),0.333333), @6=(@3*((1+@5)+(1./@5))), @7=sqrt((sq(@6)+(4.48147e-05*@2))), @8=((0.00669438*((@6+@7)-@2))/(2.*@7)), @9=(sqrt(((@6+@7)+sq(@8)))-@8), sq(((@9*sqrt((sq(x)+sq(y))))/(0.00669438+@9)))","type":"operation","deps":[8]},"node_8":{"id":8,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), @4=(((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3))), @5=pow(((1+@4)+sqrt((@4*(2+@4)))),0.333333), @6=(@3*((1+@5)+(1./@5))), @7=sqrt((sq(@6)+(4.48147e-05*@2))), @8=((0.00669438*((@6+@7)-@2))/(2.*@7)), @9=(sqrt(((@6+@7)+sq(@8)))-@8), ((@9*sqrt((sq(x)+sq(y))))/(0.00669438+@9))","type":"operation","deps":[66,9]},"node_9":{"id":9,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), @4=(((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3))), @5=pow(((1+@4)+sqrt((@4*(2+@4)))),0.333333), @6=(@3*((1+@5)+(1./@5))), @7=sqrt((sq(@6)+(4.48147e-05*@2))), @8=((0.00669438*((@6+@7)-@2))/(2.*@7)), (0.00669438+(sqrt(((@6+@7)+sq(@8)))-@8))","type":"operation","deps":[65,10]},"node_10":{"id":10,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), @4=(((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3))), @5=pow(((1+@4)+sqrt((@4*(2+@4)))),0.333333), @6=(@3*((1+@5)+(1./@5))), @7=sqrt((sq(@6)+(4.48147e-05*@2))), @8=((0.00669438*((@6+@7)-@2))/(2.*@7)), (sqrt(((@6+@7)+sq(@8)))-@8)","type":"operation","deps":[61,11]},"node_11":{"id":11,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), @4=(((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3))), @5=pow(((1+@4)+sqrt((@4*(2+@4)))),0.333333), @6=(@3*((1+@5)+(1./@5))), @7=sqrt((sq(@6)+(4.48147e-05*@2))), ((0.00669438*((@6+@7)-@2))/(2.*@7))","type":"operation","deps":[57,12]},"node_12":{"id":12,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), @4=(((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3))), @5=pow(((1+@4)+sqrt((@4*(2+@4)))),0.333333), (2.*sqrt((sq((@3*((1+@5)+(1./@5))))+(4.48147e-05*@2))))","type":"operation","deps":[13]},"node_13":{"id":13,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), @4=(((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3))), @5=pow(((1+@4)+sqrt((@4*(2+@4)))),0.333333), sqrt((sq((@3*((1+@5)+(1./@5))))+(4.48147e-05*@2)))","type":"operation","deps":[14]},"node_14":{"id":14,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), @4=(((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3))), @5=pow(((1+@4)+sqrt((@4*(2+@4)))),0.333333), (sq((@3*((1+@5)+(1./@5))))+(4.48147e-05*@2))","type":"operation","deps":[22,15]},"node_15":{"id":15,"short":"(4.48147e-05*(((0.993306*z)...","full":"(4.48147e-05*(((0.993306*z)*z)/40680631590769))","type":"operation","deps":[21,16]},"node_16":{"id":16,"short":"(((0.993306*z)*z)/406806315...","full":"(((0.993306*z)*z)/40680631590769)","type":"operation","deps":[18,17]},"node_17":{"id":17,"short":"40680631590769","full":"40680631590769","type":"constant","deps":[]},"node_18":{"id":18,"short":"((0.993306*z)*z)","full":"((0.993306*z)*z)","type":"operation","deps":[19,6]},"node_19":{"id":19,"short":"(0.993306*z)","full":"(0.993306*z)","type":"operation","deps":[20,6]},"node_20":{"id":20,"short":"0.993306","full":"0.993306","type":"constant","deps":[]},"node_21":{"id":21,"short":"4.48147e-05","full":"4.48147e-05","type":"constant","deps":[]},"node_22":{"id":22,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), @4=(((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3))), @5=pow(((1+@4)+sqrt((@4*(2+@4)))),0.333333), sq((@3*((1+@5)+(1./@5))))","type":"operation","deps":[23]},"node_23":{"id":23,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), @4=(((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3))), @5=pow(((1+@4)+sqrt((@4*(2+@4)))),0.333333), (@3*((1+@5)+(1./@5)))","type":"operation","deps":[35,24]},"node_24":{"id":24,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), @4=(((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3))), @5=pow(((1+@4)+sqrt((@4*(2+@4)))),0.333333), ((1+@5)+(1./@5))","type":"operation","deps":[55,25]},"node_25":{"id":25,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), @4=(((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3))), (1./pow(((1+@4)+sqrt((@4*(2+@4)))),0.333333))","type":"operation","deps":[26]},"node_26":{"id":26,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), @4=(((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3))), pow(((1+@4)+sqrt((@4*(2+@4)))),0.333333)","type":"operation","deps":[28,27]},"node_27":{"id":27,"short":"0.333333","full":"0.333333","type":"constant","deps":[]},"node_28":{"id":28,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), @4=(((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3))), ((1+@4)+sqrt((@4*(2+@4))))","type":"operation","deps":[53,29]},"node_29":{"id":29,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), @4=(((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3))), sqrt((@4*(2+@4)))","type":"operation","deps":[30]},"node_30":{"id":30,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), @4=(((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3))), (@4*(2+@4))","type":"operation","deps":[32,31]},"node_31":{"id":31,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), (2+(((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3))))","type":"operation","deps":[52,32]},"node_32":{"id":32,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), (((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3)))","type":"operation","deps":[49,33]},"node_33":{"id":33,"short":"@1=(((((sq(x)+sq(y))/406806...","full":"@1=(((((sq(x)+sq(y))/40680631590769)+(((0.993306*z)*z)/40680631590769))-4.48147e-05)/6), (4*(sq(@1)*@1))","type":"operation","deps":[48,34]},"node_34":{"id":34,"short":"@1=(((((sq(x)+sq(y))/406806...","full":"@1=(((((sq(x)+sq(y))/40680631590769)+(((0.993306*z)*z)/40680631590769))-4.48147e-05)/6), (sq(@1)*@1)","type":"operation","deps":[47,35]},"node_35":{"id":35,"short":"(((((sq(x)+sq(y))/406806315...","full":"(((((sq(x)+sq(y))/40680631590769)+(((0.993306*z)*z)/40680631590769))-4.48147e-05)/6)","type":"operation","deps":[37,36]},"node_36":{"id":36,"short":"6","full":"6","type":"constant","deps":[]},"node_37":{"id":37,"short":"((((sq(x)+sq(y))/4068063159...","full":"((((sq(x)+sq(y))/40680631590769)+(((0.993306*z)*z)/40680631590769))-4.48147e-05)","type":"operation","deps":[39,38]},"node_38":{"id":38,"short":"4.48147e-05","full":"4.48147e-05","type":"constant","deps":[]},"node_39":{"id":39,"short":"(((sq(x)+sq(y))/40680631590...","full":"(((sq(x)+sq(y))/40680631590769)+(((0.993306*z)*z)/40680631590769))","type":"operation","deps":[40,16]},"node_40":{"id":40,"short":"((sq(x)+sq(y))/40680631590769)","full":"((sq(x)+sq(y))/40680631590769)","type":"operation","deps":[42,41]},"node_41":{"id":41,"short":"40680631590769","full":"40680631590769","type":"constant","deps":[]},"node_42":{"id":42,"short":"(sq(x)+sq(y))","full":"(sq(x)+sq(y))","type":"operation","deps":[45,43]},"node_43":{"id":43,"short":"sq","full":"sq(y)","type":"operation","deps":[44]},"node_44":{"id":44,"short":"y","full":"y","type":"input","deps":[]},"node_45":{"id":45,"short":"sq","full":"sq(x)","type":"operation","deps":[46]},"node_46":{"id":46,"short":"x","full":"x","type":"input","deps":[]},"node_47":{"id":47,"short":"sq","full":"sq((((((sq(x)+sq(y))/40680631590769)+(((0.993306*z)*z)/40680631590769))-4.48147e-05)/6))","type":"operation","deps":[35]},"node_48":{"id":48,"short":"4","full":"4","type":"constant","deps":[]},"node_49":{"id":49,"short":"((4.48147e-05*((sq(x)+sq(y)...","full":"((4.48147e-05*((sq(x)+sq(y))/40680631590769))*(((0.993306*z)*z)/40680631590769))","type":"operation","deps":[50,16]},"node_50":{"id":50,"short":"(4.48147e-05*((sq(x)+sq(y))...","full":"(4.48147e-05*((sq(x)+sq(y))/40680631590769))","type":"operation","deps":[51,40]},"node_51":{"id":51,"short":"4.48147e-05","full":"4.48147e-05","type":"constant","deps":[]},"node_52":{"id":52,"short":"2","full":"2","type":"constant","deps":[]},"node_53":{"id":53,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), (1+(((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3))))","type":"operation","deps":[54,32]},"node_54":{"id":54,"short":"1","full":"1","type":"constant","deps":[]},"node_55":{"id":55,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), @4=(((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3))), (1+pow(((1+@4)+sqrt((@4*(2+@4)))),0.333333))","type":"operation","deps":[56,26]},"node_56":{"id":56,"short":"1","full":"1","type":"constant","deps":[]},"node_57":{"id":57,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), @4=(((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3))), @5=pow(((1+@4)+sqrt((@4*(2+@4)))),0.333333), @6=(@3*((1+@5)+(1./@5))), (0.00669438*((@6+sqrt((sq(@6)+(4.48147e-05*@2))))-@2))","type":"operation","deps":[60,58]},"node_58":{"id":58,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), @4=(((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3))), @5=pow(((1+@4)+sqrt((@4*(2+@4)))),0.333333), @6=(@3*((1+@5)+(1./@5))), ((@6+sqrt((sq(@6)+(4.48147e-05*@2))))-@2)","type":"operation","deps":[59,16]},"node_59":{"id":59,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), @4=(((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3))), @5=pow(((1+@4)+sqrt((@4*(2+@4)))),0.333333), @6=(@3*((1+@5)+(1./@5))), (@6+sqrt((sq(@6)+(4.48147e-05*@2))))","type":"operation","deps":[23,13]},"node_60":{"id":60,"short":"0.00669438","full":"0.00669438","type":"constant","deps":[]},"node_61":{"id":61,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), @4=(((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3))), @5=pow(((1+@4)+sqrt((@4*(2+@4)))),0.333333), @6=(@3*((1+@5)+(1./@5))), @7=sqrt((sq(@6)+(4.48147e-05*@2))), sqrt(((@6+@7)+sq(((0.00669438*((@6+@7)-@2))/(2.*@7)))))","type":"operation","deps":[62]},"node_62":{"id":62,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), @4=(((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3))), @5=pow(((1+@4)+sqrt((@4*(2+@4)))),0.333333), @6=(@3*((1+@5)+(1./@5))), @7=sqrt((sq(@6)+(4.48147e-05*@2))), ((@6+@7)+sq(((0.00669438*((@6+@7)-@2))/(2.*@7))))","type":"operation","deps":[64,63]},"node_63":{"id":63,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), @4=(((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3))), @5=pow(((1+@4)+sqrt((@4*(2+@4)))),0.333333), @6=(@3*((1+@5)+(1./@5))), @7=sqrt((sq(@6)+(4.48147e-05*@2))), sq(((0.00669438*((@6+@7)-@2))/(2.*@7)))","type":"operation","deps":[11]},"node_64":{"id":64,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), @4=(((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3))), @5=pow(((1+@4)+sqrt((@4*(2+@4)))),0.333333), @6=(@3*((1+@5)+(1./@5))), (@6+sqrt((sq(@6)+(4.48147e-05*@2))))","type":"operation","deps":[23,13]},"node_65":{"id":65,"short":"0.00669438","full":"0.00669438","type":"constant","deps":[]},"node_66":{"id":66,"short":"@1=((sq(x)+sq(y))/406806315...","full":"@1=((sq(x)+sq(y))/40680631590769), @2=(((0.993306*z)*z)/40680631590769), @3=(((@1+@2)-4.48147e-05)/6), @4=(((4.48147e-05*@1)*@2)/(4*(sq(@3)*@3))), @5=pow(((1+@4)+sqrt((@4*(2+@4)))),0.333333), @6=(@3*((1+@5)+(1./@5))), @7=sqrt((sq(@6)+(4.48147e-05*@2))), @8=((0.00669438*((@6+@7)-@2))/(2.*@7)), ((sqrt(((@6+@7)+sq(@8)))-@8)*sqrt((sq(x)+sq(y))))","type":"operation","deps":[10,67]},"node_67":{"id":67,"short":"sqrt","full":"sqrt((sq(x)+sq(y)))","type":"operation","deps":[68]},"node_68":{"id":68,"short":"(sq(x)+sq(y))","full":"(sq(x)+sq(y))","type":"operation","deps":[70,69]},"node_69":{"id":69,"short":"sq","full":"sq(y)","type":"operation","deps":[44]},"node_70":{"id":70,"short":"sq","full":"sq(x)","type":"operation","deps":[46]}};
+        const edges = [[1,0],[6,1],[2,1],[8,2],[3,2],[4,3],[7,4],[5,4],[6,5],[8,7],[66,8],[9,8],[65,9],[10,9],[61,10],[11,10],[57,11],[12,11],[13,12],[14,13],[22,14],[15,14],[21,15],[16,15],[18,16],[17,16],[19,18],[6,18],[20,19],[6,19],[23,22],[35,23],[24,23],[55,24],[25,24],[26,25],[28,26],[27,26],[53,28],[29,28],[30,29],[32,30],[31,30],[52,31],[32,31],[49,32],[33,32],[48,33],[34,33],[47,34],[35,34],[37,35],[36,35],[39,37],[38,37],[40,39],[16,39],[42,40],[41,40],[45,42],[43,42],[44,43],[46,45],[35,47],[50,49],[16,49],[51,50],[40,50],[54,53],[32,53],[56,55],[26,55],[60,57],[58,57],[59,58],[16,58],[23,59],[13,59],[62,61],[64,62],[63,62],[11,63],[23,64],[13,64],[10,66],[67,66],[68,67],[70,68],[69,68],[44,69],[46,70],[0,-1]];
+        
+        let scale = 1, panX = 0, panY = 0, isDragging = false, startX, startY;
+        let selectedNode = null;
+        const container = document.getElementById('graph');
+        const sidebar = document.getElementById('node-info');
+
+        new Viz().renderSVGElement(dotSrc).then(svg => {
+            container.appendChild(svg);
+            svg.style.transformOrigin = '0 0';
+            fitToScreen();
+            setupPanZoom(svg);
+            setupNodeInteraction(svg);
+        });
+
+        function updateTransform(svg) {
+            svg.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+        }
+        function zoomIn() { scale *= 1.3; updateTransform(container.querySelector('svg')); }
+        function zoomOut() { scale /= 1.3; updateTransform(container.querySelector('svg')); }
+        function resetView() { scale = 1; panX = 0; panY = 0; updateTransform(container.querySelector('svg')); }
+        function fitToScreen() {
+            const svg = container.querySelector('svg');
+            if (!svg) return;
+            const bbox = svg.getBBox();
+            const availWidth = window.innerWidth - 320;
+            const scaleX = (availWidth - 40) / (bbox.width + 40);
+            const scaleY = (window.innerHeight - 40) / (bbox.height + 40);
+            scale = Math.min(scaleX, scaleY);
+            panX = (availWidth - bbox.width * scale) / 2;
+            panY = (window.innerHeight - bbox.height * scale) / 2;
+            updateTransform(svg);
+        }
+        
+        function setupPanZoom(svg) {
+            container.addEventListener('wheel', e => {
+                e.preventDefault();
+                const rect = container.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left, mouseY = e.clientY - rect.top;
+                const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+                panX = mouseX - (mouseX - panX) * zoomFactor;
+                panY = mouseY - (mouseY - panY) * zoomFactor;
+                scale *= zoomFactor;
+                updateTransform(svg);
+            });
+            container.addEventListener('mousedown', e => { 
+                if (e.target.closest('.node')) return;
+                isDragging = true; startX = e.clientX - panX; startY = e.clientY - panY; 
+            });
+            container.addEventListener('mousemove', e => { if (isDragging) { panX = e.clientX - startX; panY = e.clientY - startY; updateTransform(svg); } });
+            container.addEventListener('mouseup', () => isDragging = false);
+            container.addEventListener('mouseleave', () => isDragging = false);
+        }
+        
+        function setupNodeInteraction(svg) {
+            const nodes = svg.querySelectorAll('.node');
+            nodes.forEach(node => {
+                const nodeId = node.id;
+                node.addEventListener('click', e => {
+                    e.stopPropagation();
+                    selectNode(svg, nodeId);
+                });
+            });
+        }
+        
+        function selectNode(svg, nodeId) {
+            // Clear previous highlights
+            svg.querySelectorAll('.node-highlighted').forEach(n => n.classList.remove('node-highlighted'));
+            svg.querySelectorAll('.edge-highlighted').forEach(e => e.classList.remove('edge-highlighted'));
+            
+            const node = svg.getElementById(nodeId);
+            if (!node) return;
+            
+            node.classList.add('node-highlighted');
+            selectedNode = nodeId;
+            
+            // Highlight connected edges
+            const nodeNum = parseInt(nodeId.replace('node_', ''));
+            edges.forEach(([from, to]) => {
+                if (from === nodeNum || to === nodeNum) {
+                    // Find the edge - edges are in g.edge elements
+                    svg.querySelectorAll('.edge').forEach(edge => {
+                        const title = edge.querySelector('title');
+                        if (title) {
+                            const edgeStr = title.textContent;
+                            if (edgeStr.includes(`node_${from}`) && edgeStr.includes(`node_${to === -1 ? 'output' : to}`)) {
+                                edge.classList.add('edge-highlighted');
+                            }
+                        }
+                    });
+                }
+            });
+            
+            // Update sidebar
+            const data = nodeData[nodeId];
+            if (data) {
+                sidebar.innerHTML = `
+                    <div class="section">
+                        <div class="label">Node ID</div>
+                        <div class="value">${data.id} <span class="type-badge type-${data.type}">${data.type}</span></div>
+                    </div>
+                    <div class="section">
+                        <div class="label">Short Label</div>
+                        <div class="value">${escapeHtml(data.short)}</div>
+                    </div>
+                    <div class="section">
+                        <div class="label">Full Expression</div>
+                        <div class="value">${escapeHtml(data.full)}</div>
+                    </div>
+                    <div class="section">
+                        <div class="label">Dependencies (${data.deps.length})</div>
+                        <div class="value">${data.deps.length > 0 ? data.deps.map(d => `node_${d}`).join(', ') : 'None'}</div>
+                    </div>
+                `;
+            } else if (nodeId === 'output') {
+                sidebar.innerHTML = `
+                    <div class="section">
+                        <div class="label">Node</div>
+                        <div class="value">Output <span class="type-badge" style="background:#FFD700;color:#000;">output</span></div>
+                    </div>
+                    <div class="section">
+                        <div class="label">Description</div>
+                        <div class="value">Final output of the expression graph</div>
+                    </div>
+                `;
+            }
+        }
+        
+        function escapeHtml(str) {
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+    </script>
+</body>
+</html>
