@@ -1376,10 +1376,10 @@ IndentWidth: 4
 - [x] Spherical harmonic expansion (future)
 
 ### Phase 7: Aerodynamic Utilities
-- [ ] Dynamic pressure computation
-- [ ] Mach number / speed of sound
-- [ ] Reynolds number
-- [ ] AoA/sideslip from body velocity
+- [x] Dynamic pressure computation
+- [x] Mach number / speed of sound
+- [x] Reynolds number
+- [x] AoA/sideslip from body velocity
 
 ### Phase 8: Sensor Noise Models
 - [ ] Gaussian white noise
