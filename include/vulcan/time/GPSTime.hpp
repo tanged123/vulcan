@@ -1,10 +1,10 @@
 #pragma once
 
-#include <vulcan/time/TimeConstants.hpp>
-#include <vulcan/time/JulianDate.hpp>
-#include <vulcan/time/TimeScales.hpp>
-#include <janus/janus.hpp>
 #include <cmath>
+#include <janus/janus.hpp>
+#include <vulcan/time/JulianDate.hpp>
+#include <vulcan/time/TimeConstants.hpp>
+#include <vulcan/time/TimeScales.hpp>
 
 namespace vulcan::time {
 
@@ -36,7 +36,8 @@ inline constexpr int GPS_CURRENT_ROLLOVER = 2;
  * @param rollover_count Which rollover epoch (0, 1, 2, ...)
  * @return Full GPS week number
  */
-[[nodiscard]] inline constexpr int full_gps_week(int week_mod, int rollover_count = GPS_CURRENT_ROLLOVER) {
+[[nodiscard]] inline constexpr int
+full_gps_week(int week_mod, int rollover_count = GPS_CURRENT_ROLLOVER) {
     return week_mod + rollover_count * GPS_WEEK_ROLLOVER;
 }
 
@@ -49,7 +50,8 @@ inline constexpr int GPS_CURRENT_ROLLOVER = 2;
  * @return Julian Date in UTC scale
  */
 template <typename Scalar>
-[[nodiscard]] Scalar gps_week_to_utc_jd(int week, const Scalar& seconds_of_week, int delta_at = 37) {
+[[nodiscard]] Scalar gps_week_to_utc_jd(int week, const Scalar &seconds_of_week,
+                                        int delta_at = 37) {
     // GPS time as JD
     Scalar gps_jd = constants::time::JD_GPS_EPOCH +
                     static_cast<double>(week) * 7.0 +
@@ -63,7 +65,8 @@ template <typename Scalar>
  * @brief Convert GPS week/seconds to TAI Julian Date
  */
 template <typename Scalar>
-[[nodiscard]] Scalar gps_week_to_tai_jd(int week, const Scalar& seconds_of_week) {
+[[nodiscard]] Scalar gps_week_to_tai_jd(int week,
+                                        const Scalar &seconds_of_week) {
     Scalar gps_jd = constants::time::JD_GPS_EPOCH +
                     static_cast<double>(week) * 7.0 +
                     seconds_of_week / constants::time::SECONDS_PER_DAY;
@@ -78,7 +81,8 @@ template <typename Scalar>
  * @param delta_at TAI - UTC offset
  * @return Pair of (week, seconds_of_week)
  */
-[[nodiscard]] inline std::pair<int, double> utc_jd_to_gps_week(double utc_jd, int delta_at) {
+[[nodiscard]] inline std::pair<int, double> utc_jd_to_gps_week(double utc_jd,
+                                                               int delta_at) {
     double gps_jd = utc_to_gps(utc_jd, delta_at);
     double days_since_epoch = gps_jd - constants::time::JD_GPS_EPOCH;
 
@@ -90,9 +94,11 @@ template <typename Scalar>
 }
 
 /**
- * @brief Convert UTC Julian Date to GPS week and seconds (auto leap second lookup)
+ * @brief Convert UTC Julian Date to GPS week and seconds (auto leap second
+ * lookup)
  */
-[[nodiscard]] inline std::pair<int, double> utc_jd_to_gps_week_auto(double utc_jd) {
+[[nodiscard]] inline std::pair<int, double>
+utc_jd_to_gps_week_auto(double utc_jd) {
     int delta_at = leap_seconds_at_utc(utc_jd);
     return utc_jd_to_gps_week(utc_jd, delta_at);
 }
@@ -145,7 +151,8 @@ enum class GpsDayOfWeek {
  * @brief Get GPS day of week from seconds into the week
  */
 [[nodiscard]] inline GpsDayOfWeek gps_day_of_week(double seconds_of_week) {
-    int day = static_cast<int>(std::floor(seconds_of_week / constants::time::SECONDS_PER_DAY));
+    int day = static_cast<int>(
+        std::floor(seconds_of_week / constants::time::SECONDS_PER_DAY));
     return static_cast<GpsDayOfWeek>(day % 7);
 }
 
@@ -159,4 +166,4 @@ enum class GpsDayOfWeek {
     return std::fmod(seconds_of_week, constants::time::SECONDS_PER_DAY);
 }
 
-}  // namespace vulcan::time
+} // namespace vulcan::time

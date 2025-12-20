@@ -1,9 +1,9 @@
 #pragma once
 
-#include <vulcan/time/TimeConstants.hpp>
-#include <janus/janus.hpp>
 #include <cmath>
+#include <janus/janus.hpp>
 #include <tuple>
+#include <vulcan/time/TimeConstants.hpp>
 
 namespace vulcan::time {
 
@@ -14,27 +14,27 @@ namespace vulcan::time {
 /**
  * @brief Convert calendar date/time to Julian Date
  *
- * Uses the algorithm from Vallado's "Fundamentals of Astrodynamics and Applications"
- * Valid for dates from 4713 BCE to far future.
+ * Uses the algorithm from Vallado's "Fundamentals of Astrodynamics and
+ * Applications" Valid for dates from 4713 BCE to far future.
  *
  * @note This is numeric-only as calendar conversions are I/O operations.
  *       For symbolic computations, create an Epoch from numeric calendar
  *       then use templated arithmetic.
  */
-[[nodiscard]] inline double calendar_to_jd(
-    int year, int month, int day,
-    int hour = 0, int min = 0, double sec = 0.0) {
+[[nodiscard]] inline double calendar_to_jd(int year, int month, int day,
+                                           int hour = 0, int min = 0,
+                                           double sec = 0.0) {
 
-    // Algorithm from Vallado, "Fundamentals of Astrodynamics", 4th Ed., Eq. 3-14
-    // JD = 367*Y - floor(7*(Y + floor((M+9)/12))/4) + floor(275*M/9) + D + 1721013.5
+    // Algorithm from Vallado, "Fundamentals of Astrodynamics", 4th Ed., Eq.
+    // 3-14 JD = 367*Y - floor(7*(Y + floor((M+9)/12))/4) + floor(275*M/9) + D +
+    // 1721013.5
     //      + ((sec/60 + min)/60 + hour)/24
-    
-    double jd = 367.0 * year
-              - std::floor(7.0 * (year + std::floor((month + 9.0) / 12.0)) / 4.0)
-              + std::floor(275.0 * month / 9.0)
-              + day
-              + 1721013.5
-              + ((sec / 60.0 + min) / 60.0 + hour) / 24.0;
+
+    double jd =
+        367.0 * year -
+        std::floor(7.0 * (year + std::floor((month + 9.0) / 12.0)) / 4.0) +
+        std::floor(275.0 * month / 9.0) + day + 1721013.5 +
+        ((sec / 60.0 + min) / 60.0 + hour) / 24.0;
 
     return jd;
 }
@@ -42,7 +42,8 @@ namespace vulcan::time {
 /**
  * @brief Convert Julian Date to calendar date/time (numeric only)
  */
-[[nodiscard]] inline std::tuple<int, int, int, int, int, double> jd_to_calendar(double jd) {
+[[nodiscard]] inline std::tuple<int, int, int, int, int, double>
+jd_to_calendar(double jd) {
     double jd_plus = jd + 0.5;
     int Z = static_cast<int>(std::floor(jd_plus));
     double F = jd_plus - Z;
@@ -74,9 +75,18 @@ namespace vulcan::time {
     double sec = (mins_total - min) * 60.0;
 
     // Handle numerical edge cases
-    if (sec >= 60.0 - 1e-10) { sec = 0.0; min += 1; }
-    if (min >= 60) { min = 0; hour += 1; }
-    if (hour >= 24) { hour = 0; day += 1; }
+    if (sec >= 60.0 - 1e-10) {
+        sec = 0.0;
+        min += 1;
+    }
+    if (min >= 60) {
+        min = 0;
+        hour += 1;
+    }
+    if (hour >= 24) {
+        hour = 0;
+        day += 1;
+    }
 
     return {year, month, day, hour, min, sec};
 }
@@ -90,7 +100,7 @@ namespace vulcan::time {
  * @tparam Scalar Numeric or symbolic type
  */
 template <typename Scalar>
-[[nodiscard]] constexpr Scalar jd_to_mjd(const Scalar& jd) {
+[[nodiscard]] constexpr Scalar jd_to_mjd(const Scalar &jd) {
     return jd - constants::time::MJD_OFFSET;
 }
 
@@ -98,7 +108,7 @@ template <typename Scalar>
  * @brief Convert Modified Julian Date to Julian Date
  */
 template <typename Scalar>
-[[nodiscard]] constexpr Scalar mjd_to_jd(const Scalar& mjd) {
+[[nodiscard]] constexpr Scalar mjd_to_jd(const Scalar &mjd) {
     return mjd + constants::time::MJD_OFFSET;
 }
 
@@ -111,7 +121,7 @@ template <typename Scalar>
  * @tparam Scalar Numeric or symbolic type
  */
 template <typename Scalar>
-[[nodiscard]] constexpr Scalar jd_to_j2000_seconds(const Scalar& jd) {
+[[nodiscard]] constexpr Scalar jd_to_j2000_seconds(const Scalar &jd) {
     return (jd - constants::time::JD_J2000) * constants::time::SECONDS_PER_DAY;
 }
 
@@ -119,7 +129,7 @@ template <typename Scalar>
  * @brief Convert seconds since J2000.0 to Julian Date
  */
 template <typename Scalar>
-[[nodiscard]] constexpr Scalar j2000_seconds_to_jd(const Scalar& sec) {
+[[nodiscard]] constexpr Scalar j2000_seconds_to_jd(const Scalar &sec) {
     return constants::time::JD_J2000 + sec / constants::time::SECONDS_PER_DAY;
 }
 
@@ -127,7 +137,7 @@ template <typename Scalar>
  * @brief Convert Julian Date to Julian centuries since J2000.0
  */
 template <typename Scalar>
-[[nodiscard]] constexpr Scalar jd_to_j2000_centuries(const Scalar& jd) {
+[[nodiscard]] constexpr Scalar jd_to_j2000_centuries(const Scalar &jd) {
     return (jd - constants::time::JD_J2000) / constants::time::DAYS_PER_CENTURY;
 }
 
@@ -135,7 +145,7 @@ template <typename Scalar>
  * @brief Convert Julian centuries since J2000.0 to Julian Date
  */
 template <typename Scalar>
-[[nodiscard]] constexpr Scalar j2000_centuries_to_jd(const Scalar& T) {
+[[nodiscard]] constexpr Scalar j2000_centuries_to_jd(const Scalar &T) {
     return constants::time::JD_J2000 + T * constants::time::DAYS_PER_CENTURY;
 }
 
@@ -148,7 +158,8 @@ template <typename Scalar>
 }
 
 [[nodiscard]] inline int day_of_year(int year, int month, int day) {
-    constexpr int days_before_month[] = {0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334};
+    constexpr int days_before_month[] = {0,   31,  59,  90,  120, 151,
+                                         181, 212, 243, 273, 304, 334};
     int doy = days_before_month[month - 1] + day;
     if (month > 2 && is_leap_year(year)) {
         doy += 1;
@@ -157,15 +168,18 @@ template <typename Scalar>
 }
 
 [[nodiscard]] inline std::tuple<int, int> doy_to_month_day(int year, int doy) {
-    constexpr int days_in_month[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    constexpr int days_in_month[] = {31, 28, 31, 30, 31, 30,
+                                     31, 31, 30, 31, 30, 31};
     int remaining = doy;
     for (int m = 1; m <= 12; ++m) {
         int days = days_in_month[m - 1];
-        if (m == 2 && is_leap_year(year)) days = 29;
-        if (remaining <= days) return {m, remaining};
+        if (m == 2 && is_leap_year(year))
+            days = 29;
+        if (remaining <= days)
+            return {m, remaining};
         remaining -= days;
     }
     return {12, 31};
 }
 
-}  // namespace vulcan::time
+} // namespace vulcan::time

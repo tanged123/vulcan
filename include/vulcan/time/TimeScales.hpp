@@ -1,10 +1,10 @@
 #pragma once
 
-#include <vulcan/time/TimeConstants.hpp>
+#include <cmath>
+#include <janus/janus.hpp>
 #include <vulcan/time/JulianDate.hpp>
 #include <vulcan/time/LeapSeconds.hpp>
-#include <janus/janus.hpp>
-#include <cmath>
+#include <vulcan/time/TimeConstants.hpp>
 
 namespace vulcan::time {
 
@@ -13,12 +13,12 @@ namespace vulcan::time {
 // =============================================================================
 
 enum class TimeScale {
-    UTC,  ///< Coordinated Universal Time (civil time, has leap seconds)
-    TAI,  ///< International Atomic Time (continuous SI seconds)
-    TT,   ///< Terrestrial Time (TT = TAI + 32.184s)
-    TDB,  ///< Barycentric Dynamical Time (for solar system dynamics)
-    GPS,  ///< GPS Time (GPS = TAI - 19s, continuous since 1980)
-    UT1   ///< Universal Time 1 (Earth rotation, requires IERS data)
+    UTC, ///< Coordinated Universal Time (civil time, has leap seconds)
+    TAI, ///< International Atomic Time (continuous SI seconds)
+    TT,  ///< Terrestrial Time (TT = TAI + 32.184s)
+    TDB, ///< Barycentric Dynamical Time (for solar system dynamics)
+    GPS, ///< GPS Time (GPS = TAI - 19s, continuous since 1980)
+    UT1  ///< Universal Time 1 (Earth rotation, requires IERS data)
 };
 
 // =============================================================================
@@ -33,16 +33,18 @@ enum class TimeScale {
  * @tparam Scalar Numeric or symbolic type
  */
 template <typename Scalar>
-[[nodiscard]] constexpr Scalar tai_to_tt(const Scalar& tai_jd) {
-    return tai_jd + constants::time::TT_TAI_OFFSET / constants::time::SECONDS_PER_DAY;
+[[nodiscard]] constexpr Scalar tai_to_tt(const Scalar &tai_jd) {
+    return tai_jd +
+           constants::time::TT_TAI_OFFSET / constants::time::SECONDS_PER_DAY;
 }
 
 /**
  * @brief Convert TT Julian Date to TAI Julian Date
  */
 template <typename Scalar>
-[[nodiscard]] constexpr Scalar tt_to_tai(const Scalar& tt_jd) {
-    return tt_jd - constants::time::TT_TAI_OFFSET / constants::time::SECONDS_PER_DAY;
+[[nodiscard]] constexpr Scalar tt_to_tai(const Scalar &tt_jd) {
+    return tt_jd -
+           constants::time::TT_TAI_OFFSET / constants::time::SECONDS_PER_DAY;
 }
 
 // =============================================================================
@@ -55,16 +57,18 @@ template <typename Scalar>
  * GPS = TAI - 19 seconds (exact, GPS was synchronized with TAI at epoch)
  */
 template <typename Scalar>
-[[nodiscard]] constexpr Scalar tai_to_gps(const Scalar& tai_jd) {
-    return tai_jd + constants::time::GPS_TAI_OFFSET / constants::time::SECONDS_PER_DAY;
+[[nodiscard]] constexpr Scalar tai_to_gps(const Scalar &tai_jd) {
+    return tai_jd +
+           constants::time::GPS_TAI_OFFSET / constants::time::SECONDS_PER_DAY;
 }
 
 /**
  * @brief Convert GPS Julian Date to TAI Julian Date
  */
 template <typename Scalar>
-[[nodiscard]] constexpr Scalar gps_to_tai(const Scalar& gps_jd) {
-    return gps_jd + constants::time::TAI_GPS_OFFSET / constants::time::SECONDS_PER_DAY;
+[[nodiscard]] constexpr Scalar gps_to_tai(const Scalar &gps_jd) {
+    return gps_jd +
+           constants::time::TAI_GPS_OFFSET / constants::time::SECONDS_PER_DAY;
 }
 
 // =============================================================================
@@ -82,8 +86,9 @@ template <typename Scalar>
  * @note For symbolic mode, user provides delta_at as constant for their epoch
  */
 template <typename Scalar>
-[[nodiscard]] constexpr Scalar utc_to_tai(const Scalar& utc_jd, int delta_at) {
-    return utc_jd + static_cast<double>(delta_at) / constants::time::SECONDS_PER_DAY;
+[[nodiscard]] constexpr Scalar utc_to_tai(const Scalar &utc_jd, int delta_at) {
+    return utc_jd +
+           static_cast<double>(delta_at) / constants::time::SECONDS_PER_DAY;
 }
 
 /**
@@ -95,8 +100,9 @@ template <typename Scalar>
  * @return Julian Date in UTC scale
  */
 template <typename Scalar>
-[[nodiscard]] constexpr Scalar tai_to_utc(const Scalar& tai_jd, int delta_at) {
-    return tai_jd - static_cast<double>(delta_at) / constants::time::SECONDS_PER_DAY;
+[[nodiscard]] constexpr Scalar tai_to_utc(const Scalar &tai_jd, int delta_at) {
+    return tai_jd -
+           static_cast<double>(delta_at) / constants::time::SECONDS_PER_DAY;
 }
 
 // =============================================================================
@@ -131,7 +137,7 @@ template <typename Scalar>
  * GPS = TAI - 19s, so GPS = UTC + (delta_at - 19)
  */
 template <typename Scalar>
-[[nodiscard]] constexpr Scalar utc_to_gps(const Scalar& utc_jd, int delta_at) {
+[[nodiscard]] constexpr Scalar utc_to_gps(const Scalar &utc_jd, int delta_at) {
     Scalar tai_jd = utc_to_tai(utc_jd, delta_at);
     return tai_to_gps(tai_jd);
 }
@@ -140,7 +146,7 @@ template <typename Scalar>
  * @brief Convert GPS Julian Date to UTC Julian Date (templated)
  */
 template <typename Scalar>
-[[nodiscard]] constexpr Scalar gps_to_utc(const Scalar& gps_jd, int delta_at) {
+[[nodiscard]] constexpr Scalar gps_to_utc(const Scalar &gps_jd, int delta_at) {
     Scalar tai_jd = gps_to_tai(gps_jd);
     return tai_to_utc(tai_jd, delta_at);
 }
@@ -179,8 +185,7 @@ template <typename Scalar>
  *
  * @tparam Scalar Numeric or symbolic type
  */
-template <typename Scalar>
-[[nodiscard]] Scalar tt_to_tdb(const Scalar& tt_jd) {
+template <typename Scalar> [[nodiscard]] Scalar tt_to_tdb(const Scalar &tt_jd) {
     // Julian centuries since J2000.0 TT
     Scalar T = jd_to_j2000_centuries(tt_jd);
 
@@ -201,7 +206,7 @@ template <typename Scalar>
  * a single iteration is sufficient.
  */
 template <typename Scalar>
-[[nodiscard]] Scalar tdb_to_tt(const Scalar& tdb_jd) {
+[[nodiscard]] Scalar tdb_to_tt(const Scalar &tdb_jd) {
     // First approximation: TT ≈ TDB
     Scalar T = jd_to_j2000_centuries(tdb_jd);
 
@@ -229,7 +234,7 @@ template <typename Scalar>
  * @return Julian Date in TAI scale (with smooth leap second approximation)
  */
 template <typename Scalar>
-[[nodiscard]] Scalar utc_to_tai_symbolic(const Scalar& utc_jd) {
+[[nodiscard]] Scalar utc_to_tai_symbolic(const Scalar &utc_jd) {
     Scalar delta_at = leap_seconds_symbolic(utc_jd);
     return utc_jd + delta_at / constants::time::SECONDS_PER_DAY;
 }
@@ -242,11 +247,11 @@ template <typename Scalar>
  * in the interpolator (small error during leap second transitions).
  */
 template <typename Scalar>
-[[nodiscard]] Scalar tai_to_utc_symbolic(const Scalar& tai_jd) {
+[[nodiscard]] Scalar tai_to_utc_symbolic(const Scalar &tai_jd) {
     // Approximate: use TAI JD in interpolator (error < 37 seconds offset)
     // This is acceptable for smooth optimization purposes
     Scalar delta_at = leap_seconds_symbolic(tai_jd);
     return tai_jd - delta_at / constants::time::SECONDS_PER_DAY;
 }
 
-}  // namespace vulcan::time
+} // namespace vulcan::time

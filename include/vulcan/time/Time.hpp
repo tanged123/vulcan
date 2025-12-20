@@ -13,9 +13,9 @@
  * - GPS time utilities
  */
 
-#include <vulcan/time/TimeConstants.hpp>
-#include <vulcan/time/JulianDate.hpp>
-#include <vulcan/time/LeapSeconds.hpp>
-#include <vulcan/time/TimeScales.hpp>
 #include <vulcan/time/Epoch.hpp>
 #include <vulcan/time/GPSTime.hpp>
+#include <vulcan/time/JulianDate.hpp>
+#include <vulcan/time/LeapSeconds.hpp>
+#include <vulcan/time/TimeConstants.hpp>
+#include <vulcan/time/TimeScales.hpp>

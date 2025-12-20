@@ -66,4 +66,4 @@ inline constexpr double JD_TOLERANCE = 1.0e-11;
 /// Tolerance for time comparisons [seconds] (~1 nanosecond)
 inline constexpr double TIME_TOLERANCE = 1.0e-9;
 
-}  // namespace vulcan::constants::time
+} // namespace vulcan::constants::time

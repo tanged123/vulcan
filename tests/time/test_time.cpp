@@ -1,7 +1,7 @@
-#include <gtest/gtest.h>
-#include <vulcan/time/Time.hpp>
-#include <janus/janus.hpp>
 #include <cmath>
+#include <gtest/gtest.h>
+#include <janus/janus.hpp>
+#include <vulcan/time/Time.hpp>
 
 using namespace vulcan::time;
 using namespace vulcan::constants::time;
@@ -79,7 +79,7 @@ TEST(JulianDateTest, CalendarRoundtrip) {
         {2050, 3, 1, 0, 0, 0.0},
     };
 
-    for (const auto& [y, m, d, h, mi, s] : test_dates) {
+    for (const auto &[y, m, d, h, mi, s] : test_dates) {
         double jd = calendar_to_jd(y, m, d, h, mi, s);
         auto [y2, m2, d2, h2, mi2, s2] = jd_to_calendar(jd);
         EXPECT_EQ(y, y2) << "Year mismatch for " << y << "-" << m << "-" << d;
@@ -87,7 +87,8 @@ TEST(JulianDateTest, CalendarRoundtrip) {
         EXPECT_EQ(d, d2) << "Day mismatch";
         EXPECT_EQ(h, h2) << "Hour mismatch";
         EXPECT_EQ(mi, mi2) << "Minute mismatch";
-        EXPECT_NEAR(s, s2, 1e-4) << "Second mismatch";  // ~0.1 ms precision due to JD representation
+        EXPECT_NEAR(s, s2, 1e-4)
+            << "Second mismatch"; // ~0.1 ms precision due to JD representation
     }
 }
 
@@ -120,9 +121,9 @@ TEST(JulianDateTest, J2000CenturiesConversions) {
 }
 
 TEST(JulianDateTest, LeapYearDetection) {
-    EXPECT_TRUE(is_leap_year(2000));   // Century year divisible by 400
+    EXPECT_TRUE(is_leap_year(2000));  // Century year divisible by 400
     EXPECT_FALSE(is_leap_year(1900)); // Century year not divisible by 400
-    EXPECT_TRUE(is_leap_year(2004));   // Divisible by 4
+    EXPECT_TRUE(is_leap_year(2004));  // Divisible by 4
     EXPECT_FALSE(is_leap_year(2001)); // Not divisible by 4
     EXPECT_TRUE(is_leap_year(2024));
 }
@@ -142,9 +143,7 @@ TEST(JulianDateTest, DayOfYear) {
 // LeapSeconds Tests
 // =============================================================================
 
-TEST(LeapSecondsTest, TableSize) {
-    EXPECT_EQ(LEAP_SECOND_TABLE.size(), 28);
-}
+TEST(LeapSecondsTest, TableSize) { EXPECT_EQ(LEAP_SECOND_TABLE.size(), 28); }
 
 TEST(LeapSecondsTest, TableBoundaries) {
     // First entry: 1972-01-01, delta_at = 10
@@ -224,7 +223,7 @@ TEST(TimeScalesTest, TT_TDB_Conversions) {
 
     // At J2000.0, the difference should be small
     double diff_ms = (tdb_jd - tt_jd) * SECONDS_PER_DAY * 1000.0;
-    EXPECT_LT(std::abs(diff_ms), 2.0);  // Should be < 2 ms
+    EXPECT_LT(std::abs(diff_ms), 2.0); // Should be < 2 ms
 
     // Roundtrip (approximate)
     EXPECT_NEAR(tdb_to_tt(tdb_jd), tt_jd, 1e-8);
@@ -248,7 +247,7 @@ TEST(EpochTest, FromUTC) {
     EXPECT_EQ(d, 15);
     EXPECT_EQ(h, 12);
     EXPECT_EQ(mi, 30);
-    EXPECT_NEAR(s, 0.0, 1e-4);  // ~0.1ms precision due to JD representation
+    EXPECT_NEAR(s, 0.0, 1e-4); // ~0.1ms precision due to JD representation
 }
 
 TEST(EpochTest, TimeScaleAccessors) {
@@ -262,14 +261,15 @@ TEST(EpochTest, TimeScaleAccessors) {
 }
 
 TEST(EpochTest, Arithmetic) {
-    auto epoch1 = NumericEpoch::from_utc(2024, 7, 15, 10, 30, 0.0);  // Use 10:30 to avoid edge cases
-    auto epoch2 = epoch1 + 3600.0;  // Add one hour
+    auto epoch1 = NumericEpoch::from_utc(2024, 7, 15, 10, 30,
+                                         0.0); // Use 10:30 to avoid edge cases
+    auto epoch2 = epoch1 + 3600.0;             // Add one hour
 
     double diff = epoch2 - epoch1;
     EXPECT_NEAR(diff, 3600.0, 1e-9);
 
     auto [y, m, d, h, mi, s] = epoch2.to_utc_calendar();
-    EXPECT_EQ(h, 11) << "Expected hour 11, got " << h;  // Should be 11:30:00
+    EXPECT_EQ(h, 11) << "Expected hour 11, got " << h; // Should be 11:30:00
 
     // In-place subtraction
     epoch2 -= 3600.0;
@@ -286,12 +286,13 @@ TEST(EpochTest, GPSWeek) {
     // GPS epoch itself: 1980-01-06 00:00:00 UTC
     auto gps_epoch = NumericEpoch::from_utc(1980, 1, 6, 0, 0, 0.0);
     EXPECT_EQ(gps_epoch.gps_week(), 0);
-    EXPECT_NEAR(gps_epoch.gps_seconds_of_week(), 0.0, 1.0);  // Allow 1s tolerance for leap seconds
+    EXPECT_NEAR(gps_epoch.gps_seconds_of_week(), 0.0,
+                1.0); // Allow 1s tolerance for leap seconds
 
     // A date in 2024
     auto epoch_2024 = NumericEpoch::from_utc(2024, 7, 15, 12, 0, 0.0);
     int week = epoch_2024.gps_week();
-    EXPECT_GT(week, 2300);  // Should be > 2300 by 2024
+    EXPECT_GT(week, 2300); // Should be > 2300 by 2024
 }
 
 // =============================================================================
@@ -306,7 +307,7 @@ TEST(GPSTimeTest, FullGPSWeek) {
 
 TEST(GPSTimeTest, GPSWeekToUTC) {
     // GPS week 0, second 0 should be close to GPS epoch
-    double utc_jd = gps_week_to_utc_jd(0, 0.0, 19);  // 19 leap seconds in 1980
+    double utc_jd = gps_week_to_utc_jd(0, 0.0, 19); // 19 leap seconds in 1980
     double expected = calendar_to_jd(1980, 1, 6, 0, 0, 0.0);
     EXPECT_NEAR(utc_jd, expected, 1e-6);
 }
@@ -359,7 +360,8 @@ TEST(SymbolicTimeTest, TimeScaleConversions) {
 
     double tai_test = JD_J2000;
     auto result = f_tt({tai_test});
-    EXPECT_NEAR(result[0](0, 0), tai_test + TT_TAI_OFFSET / SECONDS_PER_DAY, 1e-10);
+    EXPECT_NEAR(result[0](0, 0), tai_test + TT_TAI_OFFSET / SECONDS_PER_DAY,
+                1e-10);
 }
 
 TEST(SymbolicTimeTest, SymbolicLeapSecondLookup) {
@@ -374,7 +376,8 @@ TEST(SymbolicTimeTest, SymbolicLeapSecondLookup) {
     double utc_test = calendar_to_jd(2024, 7, 15, 12, 0, 0.0);
     auto result = f({utc_test});
     double expected = utc_test + 37.0 / SECONDS_PER_DAY;
-    EXPECT_NEAR(result[0](0, 0), expected, 1e-6);  // Interpolation has some error
+    EXPECT_NEAR(result[0](0, 0), expected,
+                1e-6); // Interpolation has some error
 }
 
 TEST(SymbolicTimeTest, DualModeConsistency) {
