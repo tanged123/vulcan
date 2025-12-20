@@ -61,7 +61,11 @@ cmake-build-*/
 *.png
 *.dot
 *.json
+*.html
 
-# Preserve doc images
+# Ignore 
 !docs/images/*.png
+!docs/examples/*.html
+
+# Preserve taos documentation
 !refs/taos_documentation.pdf

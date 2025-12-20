@@ -33,6 +33,13 @@ add_executable(test_gravity
 target_link_libraries(test_gravity PRIVATE vulcan GTest::gtest_main)
 gtest_discover_tests(test_gravity)
 
+# Time tests
+add_executable(test_time
+    time/test_time.cpp
+)
+target_link_libraries(test_time PRIVATE vulcan GTest::gtest_main)
+gtest_discover_tests(test_time)
+
 # Rotations tests
 add_executable(test_rotations
     rotations/test_euler_sequences.cpp

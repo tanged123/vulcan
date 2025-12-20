@@ -18,4 +18,10 @@ fi
 echo "Generating documentation..."
 mkdir -p build/docs
 doxygen Doxyfile
+
+# Copy interactive HTML examples and user guides
+echo "Copying interactive examples..."
+cp -r docs/examples build/docs/html/examples 2>/dev/null || true
+cp -r docs/user_guides build/docs/html/user_guides 2>/dev/null || true
+
 echo "Documentation generated in build/docs/html"

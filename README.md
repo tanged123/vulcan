@@ -67,15 +67,28 @@ int main() {
 
 ```
 vulcan/
+├── docs/
+│   └── user_guides/        # Walkthroughs and guides
+│       ├── atmosphere_models_walkthrough.md
+│       ├── coordinate_systems_walkthrough.md
+│       ├── rotations.md
+│       └── time_systems.md
+├── examples/
+│   ├── atmosphere/         # Atmospheric model usage
+│   ├── coordinates/        # Coordinate frame transformations
+│   ├── intro/              # Getting started
+│   ├── rotations/          # Rotation and attitude examples
+│   └── time/               # Time systems and Julian dates
 ├── include/vulcan/
-│   ├── core/           # Constants, Units, Types
-│   ├── atmosphere/     # Atmospheric models
-│   ├── coordinates/    # Coordinate systems (TODO)
-│   └── gravity/        # Gravity models (TODO)
-├── tests/              # GoogleTest suite
-├── examples/           # Usage examples
-├── scripts/            # Build/test scripts
-└── docs/               # Documentation
+│   ├── atmosphere/         # Atmospheric models (US76, Exponential)
+│   ├── coordinates/        # ECEF, LLA, NED transformations
+│   ├── core/               # Math utilities and constants
+│   ├── rotations/          # Quaternions, Euler angles, DCMs
+│   ├── time/               # GPS, UTC, TAI, Julian Dates
+│   └── vulcan.hpp          # Main umbrella header
+├── scripts/                # Build, test, and dev utilities
+├── tests/                  # GoogleTest suite mirroring include/
+└── reference/              # Reference data and lookups
 ```
 
 ## The Janus Paradigm
