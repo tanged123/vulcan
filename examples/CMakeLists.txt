@@ -44,6 +44,12 @@ add_executable(wind_optimization wind/wind_optimization.cpp)
 target_link_libraries(wind_optimization PRIVATE vulcan)
 
 # =============================================================================
+# Aerodynamics Examples
+# =============================================================================
+add_executable(aerodynamics_demo aerodynamics/aerodynamics_demo.cpp)
+target_link_libraries(aerodynamics_demo PRIVATE vulcan)
+
+# =============================================================================
 # Integration with Janus Optimization
 # =============================================================================
 # add_executable(trajectory_opt integration/trajectory_optimization.cpp)

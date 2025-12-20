@@ -38,3 +38,6 @@
 
 // Gravity models
 #include <vulcan/gravity/Gravity.hpp>
+
+// Aerodynamics
+#include <vulcan/aerodynamics/Aerodynamics.hpp>
