@@ -30,6 +30,9 @@ gtest_discover_tests(test_atmosphere)
 # Gravity tests
 add_executable(test_gravity
     gravity/test_point_mass.cpp
+    gravity/test_j2.cpp
+    gravity/test_j2j4.cpp
+    gravity/test_spherical_harmonics.cpp
 )
 target_link_libraries(test_gravity PRIVATE vulcan GTest::gtest_main)
 gtest_discover_tests(test_gravity)
