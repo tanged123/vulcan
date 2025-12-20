@@ -1389,10 +1389,10 @@ IndentWidth: 4
 - [ ] Allan variance parameterized noise
 
 ### Phase 9: Time Systems
-- [ ] Julian date utilities
-- [ ] UTC ↔ TAI conversions
-- [ ] GPS time
-- [ ] Leap second handling
+- [x] Julian date utilities
+- [x] UTC ↔ TAI conversions
+- [x] GPS time
+- [x] Leap second handling
 
 ### Phase 10: Data I/O
 - [ ] HDF5Writer (frame-by-frame logging)

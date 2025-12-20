@@ -29,6 +29,13 @@
 // Time systems
 #include <vulcan/time/Time.hpp>
 
+// Wind models
+#include <vulcan/wind/ConstantWind.hpp>
+#include <vulcan/wind/DrydenTurbulence.hpp>
+#include <vulcan/wind/VonKarmanTurbulence.hpp>
+#include <vulcan/wind/WindShear.hpp>
+#include <vulcan/wind/WindTypes.hpp>
+
 // Gravity models - TODO
 // #include <vulcan/gravity/PointMass.hpp>
 // #include <vulcan/gravity/J2.hpp>

@@ -49,3 +49,13 @@ add_executable(test_rotations
 )
 target_link_libraries(test_rotations PRIVATE vulcan GTest::gtest_main)
 gtest_discover_tests(test_rotations)
+
+# Wind tests
+add_executable(test_wind
+    wind/test_constant_wind.cpp
+    wind/test_wind_shear.cpp
+    wind/test_dryden.cpp
+    wind/test_von_karman.cpp
+)
+target_link_libraries(test_wind PRIVATE vulcan GTest::gtest_main)
+gtest_discover_tests(test_wind)
