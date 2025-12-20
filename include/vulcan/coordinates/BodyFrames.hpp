@@ -5,6 +5,7 @@
 #include <vulcan/coordinates/CoordinateFrame.hpp>
 #include <vulcan/coordinates/Geodetic.hpp>
 #include <vulcan/coordinates/LocalFrames.hpp>
+#include <vulcan/rotations/EulerSequences.hpp>
 
 #include <janus/math/Linalg.hpp>
 #include <janus/math/Quaternion.hpp>
@@ -103,18 +104,15 @@ CoordinateFrame<Scalar> body_from_euler(const CoordinateFrame<Scalar> &ned,
 }
 
 // =============================================================================
-// Euler Angle Extraction (Custom DCM-based with Gimbal Lock Handling)
+// Euler Angle Extraction (Using Rotations Library)
 // =============================================================================
 
 /// Extract Euler angles from body frame relative to NED
 ///
 /// Returns [yaw, pitch, roll] in the Yaw-Pitch-Roll (Z-Y'-X'') sequence.
 ///
-/// Uses direct DCM extraction with proper gimbal lock handling:
-/// - Near singularity (|sin(pitch)| ≈ 1): sets roll = 0
-/// - Computes yaw from DCM elements with sign adjustment based on pitch sign
-///
-/// This is compatible with symbolic mode via janus::where.
+/// Uses the unified rotations library for DCM-to-Euler conversion with
+/// proper gimbal lock handling. This is compatible with symbolic mode.
 ///
 /// @tparam Scalar Scalar type (double for numeric, SymbolicScalar for symbolic)
 /// @param body Body-fixed frame
@@ -123,61 +121,15 @@ CoordinateFrame<Scalar> body_from_euler(const CoordinateFrame<Scalar> &ned,
 template <typename Scalar>
 Vec3<Scalar> euler_from_body(const CoordinateFrame<Scalar> &body,
                              const CoordinateFrame<Scalar> &ned) {
-    // Get body axes in NED coordinates (columns of DCM: v_ned = R * v_body)
-    Vec3<Scalar> x_body_ned = ned.from_ecef(body.x_axis); // R[:,0]
-    Vec3<Scalar> y_body_ned = ned.from_ecef(body.y_axis); // R[:,1]
-    Vec3<Scalar> z_body_ned = ned.from_ecef(body.z_axis); // R[:,2]
+    // Build DCM: columns are body axes in NED coordinates
+    // v_ned = DCM * v_body
+    Mat3<Scalar> dcm;
+    dcm.col(0) = ned.from_ecef(body.x_axis);
+    dcm.col(1) = ned.from_ecef(body.y_axis);
+    dcm.col(2) = ned.from_ecef(body.z_axis);
 
-    // DCM elements for Yaw-Pitch-Roll (ZYX) sequence:
-    // R = Rz(yaw) * Ry(pitch) * Rx(roll)
-    //
-    // R[2,0] = -sin(pitch)
-    // R[0,0] = cos(yaw)*cos(pitch)
-    // R[1,0] = sin(yaw)*cos(pitch)
-    // R[2,1] = cos(pitch)*sin(roll)
-    // R[2,2] = cos(pitch)*cos(roll)
-    //
-    // DCM elements (0-indexed, column-major - our columns are body axes):
-    Scalar dcm00 = x_body_ned(0); // R[0,0]
-    Scalar dcm10 = x_body_ned(1); // R[1,0]
-    Scalar dcm20 = x_body_ned(2); // R[2,0] = -sin(pitch)
-    Scalar dcm21 = y_body_ned(2); // R[2,1] = cos(pitch)*sin(roll)
-    Scalar dcm22 = z_body_ned(2); // R[2,2] = cos(pitch)*cos(roll)
-
-    // Pitch from R[2,0] = -sin(pitch)
-    Scalar sin_pitch = -dcm20;
-    Scalar pitch = janus::asin(sin_pitch);
-
-    // Gimbal lock threshold
-    Scalar eps = Scalar(1e-6);
-    Scalar cos_pitch = janus::cos(pitch);
-    Scalar is_gimbal_lock = janus::abs(cos_pitch) < eps;
-
-    // Normal case: cos(pitch) != 0
-    // yaw = atan2(R[1,0], R[0,0]) = atan2(sin(yaw)*cos(pitch),
-    // cos(yaw)*cos(pitch)) roll = atan2(R[2,1], R[2,2]) =
-    // atan2(cos(pitch)*sin(roll), cos(pitch)*cos(roll))
-    Scalar yaw_normal = janus::atan2(dcm10, dcm00);
-    Scalar roll_normal = janus::atan2(dcm21, dcm22);
-
-    // Gimbal lock case: set roll = 0, compute yaw from y-body axis
-    // When pitch = +90° (sin_pitch > 0):
-    //   yaw = atan2(dcm21, dcm20) = atan2(R[2,1], R[2,0])
-    // When pitch = -90° (sin_pitch < 0):
-    //   yaw = atan2(-dcm21, -dcm20)
-    Scalar yaw_gimbal_pos = janus::atan2(dcm21, dcm20);
-    Scalar yaw_gimbal_neg = janus::atan2(-dcm21, -dcm20);
-    Scalar yaw_gimbal =
-        janus::where(sin_pitch > Scalar(0), yaw_gimbal_pos, yaw_gimbal_neg);
-    Scalar roll_gimbal = Scalar(0);
-
-    // Select based on gimbal lock condition
-    Scalar yaw = janus::where(is_gimbal_lock, yaw_gimbal, yaw_normal);
-    Scalar roll = janus::where(is_gimbal_lock, roll_gimbal, roll_normal);
-
-    Vec3<Scalar> euler;
-    euler << yaw, pitch, roll;
-    return euler;
+    // Use unified Euler extraction with gimbal lock handling
+    return euler_from_dcm(dcm, EulerSequence::ZYX);
 }
 
 // =============================================================================
