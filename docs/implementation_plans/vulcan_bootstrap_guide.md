@@ -1358,10 +1358,10 @@ IndentWidth: 4
 - [x] Transformation matrices (templated)
 
 ### Phase 4: Rotations
-- [ ] DCM utilities (extend Janus quaternions)
-- [ ] Euler angle sequences (all 12)
-- [ ] Axis-angle conversions
-- [ ] Rotation composition
+- [x] DCM utilities (extend Janus quaternions)
+- [x] Euler angle sequences (all 12)
+- [x] Axis-angle conversions
+- [x] Rotation composition
 
 ### Phase 5: Wind Models
 - [ ] Constant wind field
@@ -1389,10 +1389,10 @@ IndentWidth: 4
 - [ ] Allan variance parameterized noise
 
 ### Phase 9: Time Systems
-- [ ] Julian date utilities
-- [ ] UTC ↔ TAI conversions
-- [ ] GPS time
-- [ ] Leap second handling
+- [x] Julian date utilities
+- [x] UTC ↔ TAI conversions
+- [x] GPS time
+- [x] Leap second handling
 
 ### Phase 10: Data I/O
 - [ ] HDF5Writer (frame-by-frame logging)

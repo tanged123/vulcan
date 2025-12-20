@@ -38,6 +38,12 @@ target_link_libraries(rotations_demo PRIVATE vulcan)
 # target_link_libraries(gravity_comparison PRIVATE vulcan)
 
 # =============================================================================
+# Wind Examples
+# =============================================================================
+add_executable(wind_optimization wind/wind_optimization.cpp)
+target_link_libraries(wind_optimization PRIVATE vulcan)
+
+# =============================================================================
 # Integration with Janus Optimization
 # =============================================================================
 # add_executable(trajectory_opt integration/trajectory_optimization.cpp)
