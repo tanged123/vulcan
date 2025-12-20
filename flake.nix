@@ -42,7 +42,7 @@
       {
         packages.default = stdenv.mkDerivation {
           pname = "vulcan";
-          version = "0.1.0";
+          version = "0.4.0";
           src = ./.;
 
           nativeBuildInputs = [

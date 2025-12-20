@@ -2,6 +2,7 @@
 // Body-fixed frames, Euler angles, and velocity frame utilities
 #pragma once
 
+#include <vulcan/aerodynamics/Aerodynamics.hpp>
 #include <vulcan/coordinates/CoordinateFrame.hpp>
 #include <vulcan/coordinates/Geodetic.hpp>
 #include <vulcan/coordinates/LocalFrames.hpp>
@@ -255,38 +256,9 @@ Vec2<Scalar> flight_path_angles(const Vec3<Scalar> &velocity_ecef,
 // Aerodynamic Angles
 // =============================================================================
 
-/// Compute aerodynamic angles from velocity in body frame
-///
-/// @tparam Scalar Scalar type
-/// @param velocity_body Velocity vector in body frame [m/s]
-/// @return [alpha, beta] where:
-///         alpha = angle of attack (body X in XZ plane), positive nose up [rad]
-///         beta = sideslip angle, positive wind from right [rad]
-template <typename Scalar>
-Vec2<Scalar> aero_angles(const Vec3<Scalar> &velocity_body) {
-    Scalar vx = velocity_body(0); // Forward component
-    Scalar vy = velocity_body(1); // Right component
-    Scalar vz = velocity_body(2); // Down component
-
-    // Total speed
-    Scalar v_total = janus::norm(velocity_body);
-    Scalar eps = Scalar(1e-10);
-    Scalar is_zero = v_total < eps;
-
-    // Angle of attack: alpha = atan2(vz, vx)
-    // Positive when flow comes from below (nose up relative to velocity)
-    Scalar alpha = janus::atan2(vz, vx);
-    alpha = janus::where(is_zero, Scalar(0), alpha);
-
-    // Sideslip angle: beta = asin(vy / v_total)
-    // Positive when flow comes from right
-    Scalar beta = janus::asin(vy / v_total);
-    beta = janus::where(is_zero, Scalar(0), beta);
-
-    Vec2<Scalar> angles;
-    angles << alpha, beta;
-    return angles;
-}
+// Core aero_angles implementation is in vulcan::aero namespace
+// Re-export for backwards compatibility
+using aero::aero_angles;
 
 /// Compute aerodynamic angles from ECEF velocity and body frame
 ///

@@ -13,10 +13,14 @@ Vulcan is an aerospace engineering utilities library that provides model-agnosti
 
 - 🌍 **Coordinate Systems**: ECI, ECEF, NED, Body frames; geodetic utilities
 - 🌤️ **Atmospheric Models**: US Standard Atmosphere 1976, exponential models
-- 🌑 **Gravity Models**: Point mass, J2/J4 perturbations
-- ✈️ **Aerodynamic Utilities**: Mach, dynamic pressure, Reynolds number
-- 📐 **Unit Conversions**: SI, imperial, angular
-- 📊 **Physical Constants**: WGS84, Earth parameters, atmospheric constants
+- 🌑 **Gravity Models**: Point mass, J2/J4 perturbations, spherical harmonics
+- 💨 **Wind Models**: Constant wind, wind shear (linear/power-law/log), Dryden & von Kármán turbulence
+- ✈️ **Aerodynamics**: Dynamic pressure, Mach, Reynolds number, angle of attack/sideslip
+- ⏱️ **Time Systems**: UTC, TAI, GPS, TT, TDB; Julian date conversions; leap seconds
+- 📐 **Rotations**: Quaternions, DCMs, all 12 Euler sequences, axis-angle, SLERP
+- 📊 **Units & Constants**: SI/imperial conversions, WGS84, Earth parameters
+
+> **Note**: Vulcan uses **SI units** throughout (meters, kilograms, seconds, radians) unless explicitly stated otherwise.
 
 ## Quick Start
 
@@ -68,23 +72,33 @@ int main() {
 ```
 vulcan/
 ├── docs/
-│   └── user_guides/        # Walkthroughs and guides
-│       ├── atmosphere_models_walkthrough.md
-│       ├── coordinate_systems_walkthrough.md
+│   ├── implementation_plans/ # Design documents
+│   └── user_guides/          # Module documentation
+│       ├── aerodynamics.md
+│       ├── atmosphere.md
+│       ├── coordinates.md
+│       ├── gravity.md
 │       ├── rotations.md
-│       └── time_systems.md
+│       ├── time.md
+│       └── wind.md
 ├── examples/
+│   ├── aerodynamics/       # Aero calculations demo
 │   ├── atmosphere/         # Atmospheric model usage
 │   ├── coordinates/        # Coordinate frame transformations
+│   ├── gravity/            # Gravity models demo
 │   ├── intro/              # Getting started
 │   ├── rotations/          # Rotation and attitude examples
-│   └── time/               # Time systems and Julian dates
+│   ├── time/               # Time systems and Julian dates
+│   └── wind/               # Wind model optimization
 ├── include/vulcan/
-│   ├── atmosphere/         # Atmospheric models (US76, Exponential)
-│   ├── coordinates/        # ECEF, LLA, NED transformations
-│   ├── core/               # Math utilities and constants
-│   ├── rotations/          # Quaternions, Euler angles, DCMs
-│   ├── time/               # GPS, UTC, TAI, Julian Dates
+│   ├── aerodynamics/       # Dynamic pressure, Mach, Reynolds, AoA
+│   ├── atmosphere/         # US76, Exponential atmosphere
+│   ├── coordinates/        # ECEF, LLA, NED, body frames
+│   ├── core/               # Types, constants, interpolation
+│   ├── gravity/            # Point mass, J2/J4, spherical harmonics
+│   ├── rotations/          # Quaternions, Euler, DCM, axis-angle
+│   ├── time/               # GPS, UTC, TAI, TT, TDB, Julian dates
+│   ├── wind/               # Shear profiles, Dryden, von Kármán
 │   └── vulcan.hpp          # Main umbrella header
 ├── scripts/                # Build, test, and dev utilities
 ├── tests/                  # GoogleTest suite mirroring include/

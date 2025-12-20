@@ -62,3 +62,10 @@ add_executable(test_wind
 )
 target_link_libraries(test_wind PRIVATE vulcan GTest::gtest_main)
 gtest_discover_tests(test_wind)
+
+# Aerodynamics tests
+add_executable(test_aerodynamics
+    aerodynamics/test_aerodynamics.cpp
+)
+target_link_libraries(test_aerodynamics PRIVATE vulcan GTest::gtest_main)
+gtest_discover_tests(test_aerodynamics)
