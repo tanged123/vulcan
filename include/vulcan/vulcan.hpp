@@ -14,6 +14,9 @@
 // Atmospheric models
 #include <vulcan/atmosphere/USSA1976.hpp>
 
+// Rotations (before coordinates, as coordinates may depend on rotation utils)
+#include <vulcan/rotations/Rotations.hpp>
+
 // Coordinate systems
 #include <vulcan/coordinates/BodyFrames.hpp>
 #include <vulcan/coordinates/CoordinateFrame.hpp>
