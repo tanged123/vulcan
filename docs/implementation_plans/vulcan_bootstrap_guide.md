@@ -1370,10 +1370,10 @@ IndentWidth: 4
 - [x] von Kármán turbulence model
 
 ### Phase 6: Gravity Models
-- [ ] Point mass gravity
-- [ ] J2 perturbation
-- [ ] J2-J4 perturbations
-- [ ] Spherical harmonic expansion (future)
+- [x] Point mass gravity
+- [x] J2 perturbation
+- [x] J2-J4 perturbations
+- [x] Spherical harmonic expansion (future)
 
 ### Phase 7: Aerodynamic Utilities
 - [ ] Dynamic pressure computation
