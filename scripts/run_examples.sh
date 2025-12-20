@@ -14,21 +14,20 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 echo "Running examples..."
 
-# List of examples to run (path relative to build directory)
-EXAMPLES=(
-    "examples/getting_started"
-    "examples/atmosphere_profile"
-)
+# Find and run all examples in the build directory
+EXAMPLES_DIR="$PROJECT_ROOT/build/examples"
 
-for exe in "${EXAMPLES[@]}"; do
-    if [ -f "$PROJECT_ROOT/build/$exe" ]; then
+if [ -d "$EXAMPLES_DIR" ]; then
+    # Find all executable files in the examples directory
+    # Sort them to ensure deterministic run order
+    for exe in $(find "$EXAMPLES_DIR" -maxdepth 1 -type f -executable | sort); do
         echo ""
-        echo "=== Running $(basename $exe) ==="
-        "$PROJECT_ROOT/build/$exe"
-    else
-        echo "Skipping $exe (not built)"
-    fi
-done
+        echo "=== Running $(basename "$exe") ==="
+        "$exe"
+    done
+else
+    echo "Examples directory not found at $EXAMPLES_DIR. Did you build the project?"
+fi
 
 echo ""
 echo "All examples completed."

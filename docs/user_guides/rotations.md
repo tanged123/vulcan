@@ -289,11 +289,11 @@ janus::export_graph_html(R(0, 0), "graph_dcm_r00", "DCM_R00_ZYX");
 
 > [!TIP]
 > **Interactive Examples** - Explore the computational graphs:
-> - [🔍 DCM R[0,0] = cos(yaw)·cos(pitch)](../examples/graph_dcm_00.html)
-> - [🔍 DCM R[2,0] = -sin(pitch)](../examples/graph_dcm_20.html)
-> - [🔍 Rodrigues Formula](../examples/graph_rodrigues.html)
-> - [🔍 LLA to ECEF (X coordinate)](../examples/graph_lla_to_ecef_x.html)
-> - [🔍 ECEF to LLA (Vermeille algorithm)](../examples/graph_ecef_to_lla_lat.html)
+> - [🔍 DCM R[0,0] = cos(yaw)·cos(pitch)](examples/graph_dcm_00.html)
+> - [🔍 DCM R[2,0] = -sin(pitch)](examples/graph_dcm_20.html)
+> - [🔍 Rodrigues Formula](examples/graph_rodrigues.html)
+> - [🔍 LLA to ECEF (X coordinate)](examples/graph_lla_to_ecef_x.html)
+> - [🔍 ECEF to LLA (Vermeille algorithm)](examples/graph_ecef_to_lla_lat.html)
 
 The generated HTML files are self-contained and can be:
 - Opened in any web browser

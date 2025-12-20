@@ -185,7 +185,12 @@ janus::Function f("ecef_to_lla",
 
 Janus can visualize the resulting computational graph. Below is the graph for the **Vermeille algorithm** used in `ecef_to_lla`, showing the flow from Cartesian inputs (bottom) to Geodetic outputs (top).
 
-![Vermeille Algorithm Graph](../images/vermeille_algorithm_graph.png)
+> [!TIP]
+> **Interactive Examples** - Explore the computational graphs:
+> 
+> - [🔍 LLA to ECEF (X coordinate)](examples/graph_lla_to_ecef_x.html)
+> - [🔍 ECEF to LLA (Vermeille algorithm)](examples/graph_ecef_to_lla_lat.html)
+
 
 ## Summary
 
