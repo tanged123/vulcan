@@ -23,6 +23,9 @@
 #include <vulcan/coordinates/QuaternionUtils.hpp>
 #include <vulcan/coordinates/Transforms.hpp>
 
+// Time systems
+#include <vulcan/time/Time.hpp>
+
 // Gravity models - TODO
 // #include <vulcan/gravity/PointMass.hpp>
 // #include <vulcan/gravity/J2.hpp>

@@ -17,6 +17,12 @@ add_executable(atmosphere_profile atmosphere/atmosphere_profile.cpp)
 target_link_libraries(atmosphere_profile PRIVATE vulcan)
 
 # =============================================================================
+# Time Examples
+# =============================================================================
+add_executable(time_optimization time/time_optimization.cpp)
+target_link_libraries(time_optimization PRIVATE vulcan)
+
+# =============================================================================
 # Gravity Examples
 # =============================================================================
 # add_executable(gravity_comparison gravity/gravity_comparison.cpp)
