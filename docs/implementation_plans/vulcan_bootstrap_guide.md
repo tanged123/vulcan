@@ -1346,16 +1346,16 @@ IndentWidth: 4
 - [x] Create initial documentation
 
 ### Phase 2: Atmospheric Models
-- [ ] US Standard Atmosphere 1976
-- [ ] Exponential atmosphere
-- [ ] Custom tabulated atmosphere
+- [x] US Standard Atmosphere 1976
+- [x] Exponential atmosphere
+- [x] Custom tabulated atmosphere
 
 ### Phase 3: Coordinate Systems
-- [ ] WGS84 ellipsoid constants
-- [ ] ECI/ECEF frames
-- [ ] NED/ENU local frames
-- [ ] Body frame definitions
-- [ ] Transformation matrices (templated)
+- [x] WGS84 ellipsoid constants
+- [x] ECI/ECEF frames
+- [x] NED/ENU local frames
+- [x] Body frame definitions
+- [x] Transformation matrices (templated)
 
 ### Phase 4: Rotations
 - [ ] DCM utilities (extend Janus quaternions)
