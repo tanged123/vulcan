@@ -12,6 +12,7 @@ add_executable(test_coordinates
     coordinates/test_frames.cpp
     coordinates/test_geodetic.cpp
     coordinates/test_transforms.cpp
+    coordinates/test_benchmarks.cpp
 )
 target_link_libraries(test_coordinates PRIVATE vulcan GTest::gtest_main)
 
