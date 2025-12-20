@@ -35,6 +35,9 @@ struct GravityCoefficients {
             C[static_cast<size_t>(n)].resize(static_cast<size_t>(n + 1), 0.0);
             S[static_cast<size_t>(n)].resize(static_cast<size_t>(n + 1), 0.0);
         }
+        // Monopole (point mass) term
+        C[0][0] = 1.0;
+
         // J2, J3, J4 as zonal harmonics (m=0)
         if (n_max >= 2)
             C[2][0] = -constants::earth::J2;
@@ -112,10 +115,6 @@ template <typename Scalar> Scalar legendre_Pnm(int n, int m, const Scalar &x) {
  * @return Acceleration in ECEF [m/s²]
  *
  * @note For symbolic mode, n_max must be fixed at trace time (structural loop).
- *
- * @todo The gradient computation in this function needs refinement.
- *       For production use, prefer j2::acceleration() or j2j4::acceleration()
- *       which use the closed-form formulas.
  */
 template <typename Scalar>
 Vec3<Scalar>
@@ -171,8 +170,7 @@ acceleration(const Vec3<Scalar> &r_ecef,
                 static_cast<double>(m) * (-C_nm * sin_m_lon + S_nm * cos_m_lon);
 
             // Accumulate partial derivatives
-            dU_dr +=
-                -static_cast<double>(n + 1) * Re_r_n / r * trig_term * P_nm;
+            dU_dr += static_cast<double>(n + 1) * Re_r_n / r * trig_term * P_nm;
             dU_dlat += Re_r_n * trig_term * dP_dlat;
             dU_dlon += Re_r_n * dtrig_dlon * P_nm;
         }
