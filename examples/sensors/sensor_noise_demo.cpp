@@ -2,7 +2,6 @@
 // Demonstrates IMU noise simulation using Allan variance parameters
 #include <iomanip>
 #include <iostream>
-#include <random>
 #include <vulcan/vulcan.hpp>
 
 int main() {
@@ -43,9 +42,8 @@ int main() {
     double dt = 0.01; // 100 Hz
     int num_steps = 1000;
 
-    // Initialize random number generator
-    std::mt19937 rng(42);
-    std::normal_distribution<double> dist(0.0, 1.0);
+    // Initialize random number generator using Vulcan RNG
+    vulcan::rng::RNG rng(42);
 
     // Create consumer-grade IMU noise model
     auto state = vulcan::allan::init_state<double>();
@@ -55,16 +53,8 @@ int main() {
     std::cout << "  Time[s]  Gyro_X[rad/s]  Gyro_Y[rad/s]  Gyro_Z[rad/s]\n";
 
     for (int i = 0; i < num_steps; ++i) {
-        // Generate noise input
-        vulcan::allan::IMUNoiseInput<double> input;
-        for (int j = 0; j < 3; ++j) {
-            input.gyro_arw(j) = dist(rng);
-            input.gyro_bias(j) = dist(rng);
-            input.gyro_rrw(j) = dist(rng);
-            input.accel_arw(j) = dist(rng);
-            input.accel_bias(j) = dist(rng);
-            input.accel_rrw(j) = dist(rng);
-        }
+        // Generate noise input using Vulcan RNG utilities
+        auto input = vulcan::rng::generate_imu_noise(rng);
 
         // Step the noise model
         auto noise = vulcan::allan::step(state, coeffs, input);
@@ -100,8 +90,8 @@ int main() {
 
     double max_bias = 0.0;
     for (int i = 0; i < 10000; ++i) {
-        double bias =
-            vulcan::bias_instability::step(bias_state, bias_coeffs, dist(rng));
+        double bias = vulcan::bias_instability::step(bias_state, bias_coeffs,
+                                                     rng.gaussian());
         if (std::abs(bias) > std::abs(max_bias)) {
             max_bias = bias;
         }
@@ -134,7 +124,7 @@ int main() {
         // Reset and run to this time
         auto temp_state = vulcan::random_walk::init_state<double>();
         for (int j = 0; j < i; ++j) {
-            vulcan::random_walk::step(temp_state, rw_coeffs, dist(rng));
+            vulcan::random_walk::step(temp_state, rw_coeffs, rng.gaussian());
         }
 
         double t = i * dt;

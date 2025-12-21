@@ -80,3 +80,12 @@ add_executable(test_sensors
 )
 target_link_libraries(test_sensors PRIVATE vulcan GTest::gtest_main)
 gtest_discover_tests(test_sensors)
+
+# RNG tests
+add_executable(test_rng
+    rng/test_rng.cpp
+    rng/test_distributions.cpp
+)
+target_link_libraries(test_rng PRIVATE vulcan GTest::gtest_main)
+gtest_discover_tests(test_rng)
+

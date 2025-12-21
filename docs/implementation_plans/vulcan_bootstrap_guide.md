@@ -1382,11 +1382,11 @@ IndentWidth: 4
 - [x] AoA/sideslip from body velocity
 
 ### Phase 8: Sensor Noise Models
-- [ ] Gaussian white noise
-- [ ] Random walk (integrated white noise)
-- [ ] Bias instability
-- [ ] First-order Markov processes
-- [ ] Allan variance parameterized noise
+- [x] Gaussian white noise
+- [x] Random walk (integrated white noise)
+- [x] Bias instability
+- [x] First-order Markov processes
+- [x] Allan variance parameterized noise
 
 ### Phase 9: Time Systems
 - [x] Julian date utilities

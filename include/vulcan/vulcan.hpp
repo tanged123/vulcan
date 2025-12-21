@@ -49,3 +49,8 @@
 #include <vulcan/sensors/MarkovProcess.hpp>
 #include <vulcan/sensors/NoiseTypes.hpp>
 #include <vulcan/sensors/RandomWalk.hpp>
+
+// Random number generation
+#include <vulcan/rng/Distributions.hpp>
+#include <vulcan/rng/RNG.hpp>
+#include <vulcan/rng/Seeding.hpp>

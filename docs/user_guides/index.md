@@ -14,6 +14,7 @@ Welcome to the Vulcan user guides. These documents provide detailed usage instru
 | [Gravity](gravity.md) | Point mass, J2, J2-J4 gravity models |
 | [Aerodynamics](aerodynamics.md) | Dynamic pressure, Mach, Reynolds number |
 | [Sensors](sensors.md) | IMU noise models - Allan variance, Markov, random walk |
+| [RNG](rng.md) | Random number generation utilities for Monte Carlo |
 
 ## Quick Links
 
