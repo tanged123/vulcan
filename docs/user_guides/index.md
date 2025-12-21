@@ -11,6 +11,10 @@ Welcome to the Vulcan user guides. These documents provide detailed usage instru
 | [Rotations](rotations.md) | Euler angles, quaternions, DCMs, axis-angle |
 | [Time](time.md) | Epochs, time scales (TAI, TT, UTC, GPS), leap seconds |
 | [Wind](wind.md) | Wind shear, Dryden and von Kármán turbulence models |
+| [Gravity](gravity.md) | Point mass, J2, J2-J4 gravity models |
+| [Aerodynamics](aerodynamics.md) | Dynamic pressure, Mach, Reynolds number |
+| [Sensors](sensors.md) | IMU noise models - Allan variance, Markov, random walk |
+| [RNG](rng.md) | Random number generation utilities for Monte Carlo |
 
 ## Quick Links
 
@@ -25,6 +29,9 @@ All examples are in the `examples/` directory:
 ./build/examples/rotations_demo
 ./build/examples/time_optimization
 ./build/examples/wind_optimization
+./build/examples/gravity_demo
+./build/examples/aerodynamics_demo
+./build/examples/sensor_noise_demo
 ```
 
 ### Interactive Graphs

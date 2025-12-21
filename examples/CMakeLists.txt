@@ -50,6 +50,12 @@ add_executable(aerodynamics_demo aerodynamics/aerodynamics_demo.cpp)
 target_link_libraries(aerodynamics_demo PRIVATE vulcan)
 
 # =============================================================================
+# Sensor Noise Examples
+# =============================================================================
+add_executable(sensor_noise_demo sensors/sensor_noise_demo.cpp)
+target_link_libraries(sensor_noise_demo PRIVATE vulcan)
+
+# =============================================================================
 # Integration with Janus Optimization
 # =============================================================================
 # add_executable(trajectory_opt integration/trajectory_optimization.cpp)

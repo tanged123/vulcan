@@ -69,3 +69,23 @@ add_executable(test_aerodynamics
 )
 target_link_libraries(test_aerodynamics PRIVATE vulcan GTest::gtest_main)
 gtest_discover_tests(test_aerodynamics)
+
+# Sensor noise tests
+add_executable(test_sensors
+    sensors/test_gaussian_noise.cpp
+    sensors/test_random_walk.cpp
+    sensors/test_bias_instability.cpp
+    sensors/test_markov_process.cpp
+    sensors/test_allan_variance.cpp
+)
+target_link_libraries(test_sensors PRIVATE vulcan GTest::gtest_main)
+gtest_discover_tests(test_sensors)
+
+# RNG tests
+add_executable(test_rng
+    rng/test_rng.cpp
+    rng/test_distributions.cpp
+)
+target_link_libraries(test_rng PRIVATE vulcan GTest::gtest_main)
+gtest_discover_tests(test_rng)
+
