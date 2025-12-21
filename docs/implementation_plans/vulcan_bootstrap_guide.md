@@ -1398,7 +1398,7 @@ IndentWidth: 4
 - [ ] HDF5Writer (frame-by-frame logging)
 - [ ] HDF5Reader (post-simulation analysis)
 - [ ] CSVExport (HDF5 → CSV conversion)
-- [ ] Standardized 6-DOF telemetry schema
+- [ ] Adaptable telemetry schema (arbitrary signals out of the simulation)
 
 ### Phase 11: Environmental Utilities
 - [ ] Solar position (approximate ephemeris)

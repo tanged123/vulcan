@@ -56,7 +56,14 @@ add_executable(sensor_noise_demo sensors/sensor_noise_demo.cpp)
 target_link_libraries(sensor_noise_demo PRIVATE vulcan)
 
 # =============================================================================
+# Data I/O Examples
+# =============================================================================
+add_executable(telemetry_demo io/telemetry_demo.cpp)
+target_link_libraries(telemetry_demo PRIVATE vulcan)
+
+# =============================================================================
 # Integration with Janus Optimization
 # =============================================================================
 # add_executable(trajectory_opt integration/trajectory_optimization.cpp)
 # target_link_libraries(trajectory_opt PRIVATE vulcan)
+
