@@ -41,3 +41,11 @@
 
 // Aerodynamics
 #include <vulcan/aerodynamics/Aerodynamics.hpp>
+
+// Sensor noise models
+#include <vulcan/sensors/AllanVarianceNoise.hpp>
+#include <vulcan/sensors/BiasInstability.hpp>
+#include <vulcan/sensors/GaussianNoise.hpp>
+#include <vulcan/sensors/MarkovProcess.hpp>
+#include <vulcan/sensors/NoiseTypes.hpp>
+#include <vulcan/sensors/RandomWalk.hpp>
