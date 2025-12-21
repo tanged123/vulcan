@@ -61,4 +61,5 @@
 #include <vulcan/io/FrameSerializer.hpp>
 #include <vulcan/io/HDF5Reader.hpp>
 #include <vulcan/io/HDF5Writer.hpp>
+#include <vulcan/io/Signal.hpp>
 #include <vulcan/io/TelemetrySchema.hpp>
