@@ -62,6 +62,12 @@ add_executable(telemetry_demo io/telemetry_demo.cpp)
 target_link_libraries(telemetry_demo PRIVATE vulcan)
 
 # =============================================================================
+# Environment Examples
+# =============================================================================
+add_executable(environment_demo environment/environment_demo.cpp)
+target_link_libraries(environment_demo PRIVATE vulcan)
+
+# =============================================================================
 # Integration with Janus Optimization
 # =============================================================================
 # add_executable(trajectory_opt integration/trajectory_optimization.cpp)
