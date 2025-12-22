@@ -16,6 +16,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include <vulcan/core/VulcanError.hpp>
 #include <vulcan/io/Signal.hpp>
 
 namespace vulcan::io {
@@ -158,7 +159,7 @@ class TelemetrySchema {
     const SignalDescriptor &signal(const std::string &name) const {
         auto it = index_.find(name);
         if (it == index_.end()) {
-            throw std::runtime_error("Signal not found: " + name);
+            throw vulcan::SignalError("Signal not found: " + name);
         }
         return signals_[it->second];
     }
@@ -175,7 +176,7 @@ class TelemetrySchema {
     size_t index(const std::string &name) const {
         auto it = index_.find(name);
         if (it == index_.end()) {
-            throw std::runtime_error("Signal not found: " + name);
+            throw vulcan::SignalError("Signal not found: " + name);
         }
         return it->second;
     }
@@ -226,7 +227,7 @@ class TelemetrySchema {
     void validate() const {
         // Check for empty schema
         if (signals_.empty()) {
-            throw std::runtime_error("Schema has no signals");
+            throw vulcan::SignalError("Schema has no signals");
         }
         // Duplicate names are already caught during add_signal
     }
@@ -275,7 +276,7 @@ class TelemetrySchema {
 
     void add_signal(SignalDescriptor desc) {
         if (index_.find(desc.name) != index_.end()) {
-            throw std::runtime_error("Duplicate signal name: " + desc.name);
+            throw vulcan::SignalError("Duplicate signal name: " + desc.name);
         }
         desc.offset = next_offset_;
         next_offset_ += 8; // All signals are 8-byte aligned
