@@ -14,10 +14,16 @@ Vulcan is an aerospace engineering utilities library that provides model-agnosti
 - 🌍 **Coordinate Systems**: ECI, ECEF, NED, Body frames; geodetic utilities
 - 🌤️ **Atmospheric Models**: US Standard Atmosphere 1976, exponential models
 - 🌑 **Gravity Models**: Point mass, J2/J4 perturbations, spherical harmonics
+- 🚀 **Orbital Mechanics**: Keplerian elements, state vector propagation, anomaly conversions
+- 📐 **Geometry**: Primitives (Sphere, Cylinder, Cone, Box) with symbolic support
+- 📡 **Sensors**: IMU noise models (Random Walk, Bias Instability), Gaussian noise, Markov processes
+- 🎲 **RNG**: Reproducible random number generation with stream splitting
+- 💾 **Data I/O**: HDF5 reading/writing, telemetry schemas, CSV export
 - 💨 **Wind Models**: Constant wind, wind shear (linear/power-law/log), Dryden & von Kármán turbulence
 - ✈️ **Aerodynamics**: Dynamic pressure, Mach, Reynolds number, angle of attack/sideslip
 - ⏱️ **Time Systems**: UTC, TAI, GPS, TT, TDB; Julian date conversions; leap seconds
-- 📐 **Rotations**: Quaternions, DCMs, all 12 Euler sequences, axis-angle, SLERP
+- 🔄 **Rotations**: Quaternions, DCMs, all 12 Euler sequences, axis-angle, SLERP
+- 🌌 **Environment**: Space environment constants, solar flux (placeholder)
 - 📊 **Units & Constants**: SI/imperial conversions, WGS84, Earth parameters
 
 > **Note**: Vulcan uses **SI units** throughout (meters, kilograms, seconds, radians) unless explicitly stated otherwise.
@@ -74,20 +80,19 @@ vulcan/
 ├── docs/
 │   ├── implementation_plans/ # Design documents
 │   └── user_guides/          # Module documentation
-│       ├── aerodynamics.md
-│       ├── atmosphere.md
-│       ├── coordinates.md
-│       ├── gravity.md
-│       ├── rotations.md
-│       ├── time.md
-│       └── wind.md
 ├── examples/
 │   ├── aerodynamics/       # Aero calculations demo
 │   ├── atmosphere/         # Atmospheric model usage
 │   ├── coordinates/        # Coordinate frame transformations
+│   ├── environment/        # Space environment
+│   ├── geodetic/           # Geodetic conversions
+│   ├── geometry/           # Geometric primitives
 │   ├── gravity/            # Gravity models demo
 │   ├── intro/              # Getting started
+│   ├── io/                 # HDF5 and telemetry I/O
+│   ├── orbital/            # Orbital mechanics & optimization
 │   ├── rotations/          # Rotation and attitude examples
+│   ├── sensors/            # Sensor noise simulation
 │   ├── time/               # Time systems and Julian dates
 │   └── wind/               # Wind model optimization
 ├── include/vulcan/
@@ -95,8 +100,15 @@ vulcan/
 │   ├── atmosphere/         # US76, Exponential atmosphere
 │   ├── coordinates/        # ECEF, LLA, NED, body frames
 │   ├── core/               # Types, constants, interpolation
+│   ├── environment/        # Space environment utilities
+│   ├── geodetic/           # Geodesic utils
+│   ├── geometry/           # Geometric primitives
 │   ├── gravity/            # Point mass, J2/J4, spherical harmonics
+│   ├── io/                 # HDF5, CSV, Signal, Telemetry
+│   ├── orbital/            # Keplerian, anomaly, ephemeris
+│   ├── rng/                # Random number generation
 │   ├── rotations/          # Quaternions, Euler, DCM, axis-angle
+│   ├── sensors/            # Noise models (Allan variance, etc.)
 │   ├── time/               # GPS, UTC, TAI, TT, TDB, Julian dates
 │   ├── wind/               # Shear profiles, Dryden, von Kármán
 │   └── vulcan.hpp          # Main umbrella header

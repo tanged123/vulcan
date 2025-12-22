@@ -6,10 +6,13 @@
 
 ### Core Capabilities
 
-- **Coordinate Systems & Geodetics**: ECI, ECEF, NED, Body frames; LLA↔ECEF conversions
+- **Coordinate Systems & Geodetics**: ECI, ECEF, NED, CDA, Body frames; LLA↔ECEF conversions
 - **Atmospheric Models**: US Standard Atmosphere 1976, exponential models
-- **Gravity Models**: Point mass, J2/J4 perturbations
+- **Gravity Models**: Point mass, J2/J4 perturbations, spherical harmonics
+- **Orbital Mechanics**: Keplerian elements, propagators, anomaly conversions
 - **Aerodynamic Utilities**: Mach, dynamic pressure, Reynolds number
+- **Time Systems**: High-precision time conversions (TAI, UTC, GPS, TT, TDB)
+- **Geometry**: Symbolic-compatible geometric primitives
 - **Unit Conversions**: SI, imperial, angular
 - **Physical Constants**: Consolidated library (WGS84, Earth parameters)
 
@@ -29,9 +32,10 @@ All Vulcan utilities are **templated on a generic `Scalar` type** to maintain co
 ```
 vulcan/
 ├── include/vulcan/
-│   ├── core/           # Constants, Units, Types
+│   ├── core/           # Constants, Utils, Types
 │   ├── atmosphere/     # Atmospheric models
 │   ├── coordinates/    # Coordinate systems
+│   ├── orbital/        # Orbital mechanics
 │   ├── gravity/        # Gravity models
 │   └── ...
 ├── tests/              # GoogleTest suite
@@ -54,16 +58,23 @@ These constraints ensure Janus compatibility:
 
 ## 4. Current Status
 
-### Phase 1: Core Infrastructure ✅
-- Nix flake with Janus dependency
-- CMake configuration
-- CI/CD workflows
-- Core constants and units
+### Implemented Modules ✅
 
-### Future Phases
-- Phase 2: Coordinate Systems
-- Phase 3: Rotations
-- Phase 4: Atmospheric Models (extended)
-- Phase 5: Wind Models
-- Phase 6: Gravity Models
-- Phase 7-11: Advanced utilities
+- **Core**: Constants, Units, Interpolation, Error Handling
+- **Coordinates**: ECEF, LLA, NED, Body frames, Transforms
+- **Rotations**: Quaternions, DCMs, Euler angles, SLERP
+- **Atmosphere**: US Standard Atmosphere 1976
+- **Gravity**: Point Mass, J2/J4, Spherical Harmonics
+- **Orbital**: Keplerian elements, propagators, anomalies
+- **Time**: Time scales, Julian dates, Leap seconds
+- **Wind**: Shear models, Turbulence (Dryden, Von Kármán)
+- **Aerodynamics**: Dynamic pressure, Mach, Reynolds #
+- **Sensors**: IMU noise models (Random Walk, Bias Instability)
+- **Geometry**: Basic primitives (Sphere, Cone, Cylinder)
+- **RNG**: Reproducible random number generation
+- **I/O**: HDF5, CSV, Telemetry support
+
+### In Refinement 🚧
+
+- **Environment**: Solar flux models, space weather
+- **Advanced Navigation**: Kalman filtering utilities (planned)
