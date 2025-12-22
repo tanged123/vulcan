@@ -2,6 +2,8 @@
 // Altitude-dependent wind profiles for boundary layer and low-level wind shear
 #pragma once
 
+#include <type_traits>
+#include <vulcan/core/VulcanError.hpp>
 #include <vulcan/wind/WindTypes.hpp>
 
 namespace vulcan::wind_shear {
@@ -97,6 +99,9 @@ linear_vector(const Scalar &altitude, const wind::WindVector<double> &base_wind,
 template <typename Scalar>
 Scalar power_law(const Scalar &altitude, double ref_wind,
                  double ref_altitude = 10.0, double exponent = 1.0 / 7.0) {
+    if (ref_altitude <= 0.0) {
+        throw WindError("power_law: ref_altitude must be positive");
+    }
     // V = V_ref * (h / h_ref)^alpha
     // Use janus::pow for symbolic compatibility
     return ref_wind * janus::pow(altitude / ref_altitude, exponent);
@@ -161,8 +166,19 @@ power_law_vector(const Scalar &altitude,
 template <typename Scalar>
 Scalar logarithmic(const Scalar &altitude, double friction_velocity,
                    double roughness_length, double displacement = 0.0) {
+    if (roughness_length <= 0.0) {
+        throw WindError("logarithmic: roughness_length must be positive");
+    }
     // V = (u* / κ) * ln((h - d) / z_0)
     Scalar effective_height = altitude - displacement;
+    // Note: effective_height <= roughness_length check deferred to runtime
+    // for numeric types since altitude is templated (may be symbolic)
+    if constexpr (std::is_same_v<Scalar, double>) {
+        if (effective_height <= roughness_length) {
+            throw WindError(
+                "logarithmic: effective altitude must exceed roughness_length");
+        }
+    }
     return (friction_velocity / VON_KARMAN_CONSTANT) *
            janus::log(effective_height / roughness_length);
 }
@@ -184,7 +200,15 @@ Scalar logarithmic(const Scalar &altitude, double friction_velocity,
 inline double friction_velocity_from_ref(double ref_wind, double ref_altitude,
                                          double roughness_length,
                                          double displacement = 0.0) {
+    if (roughness_length <= 0.0) {
+        throw WindError(
+            "friction_velocity_from_ref: roughness_length must be positive");
+    }
     double effective_height = ref_altitude - displacement;
+    if (effective_height <= roughness_length) {
+        throw WindError("friction_velocity_from_ref: effective altitude must "
+                        "exceed roughness_length");
+    }
     return VON_KARMAN_CONSTANT * ref_wind /
            std::log(effective_height / roughness_length);
 }
