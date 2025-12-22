@@ -68,8 +68,16 @@ add_executable(environment_demo environment/environment_demo.cpp)
 target_link_libraries(environment_demo PRIVATE vulcan)
 
 # =============================================================================
+# Geodetic Examples
+# =============================================================================
+add_executable(geodetic_demo geodetic/geodetic_demo.cpp)
+target_link_libraries(geodetic_demo PRIVATE vulcan)
+
+
+# =============================================================================
 # Integration with Janus Optimization
 # =============================================================================
 # add_executable(trajectory_opt integration/trajectory_optimization.cpp)
 # target_link_libraries(trajectory_opt PRIVATE vulcan)
+
 

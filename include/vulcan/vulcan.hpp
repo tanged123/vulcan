@@ -27,6 +27,9 @@
 #include <vulcan/coordinates/QuaternionUtils.hpp>
 #include <vulcan/coordinates/Transforms.hpp>
 
+// Geodetic utilities
+#include <vulcan/geodetic/GeodesicUtils.hpp>
+
 // Time systems
 #include <vulcan/time/Time.hpp>
 
