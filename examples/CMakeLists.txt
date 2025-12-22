@@ -124,6 +124,13 @@ target_link_libraries(transfer_functions_demo PRIVATE vulcan)
 target_precompile_headers(transfer_functions_demo REUSE_FROM getting_started)
 
 # =============================================================================
+# State Estimation Examples
+# =============================================================================
+add_executable(estimation_demo estimation/estimation_demo.cpp)
+target_link_libraries(estimation_demo PRIVATE vulcan)
+target_precompile_headers(estimation_demo REUSE_FROM getting_started)
+
+# =============================================================================
 # Integration with Janus Optimization
 # =============================================================================
 # add_executable(trajectory_opt integration/trajectory_optimization.cpp)
