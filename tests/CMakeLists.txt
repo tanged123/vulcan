@@ -186,4 +186,15 @@ target_link_libraries(test_transfer_functions PRIVATE vulcan GTest::gtest_main)
 target_precompile_headers(test_transfer_functions REUSE_FROM test_core)
 gtest_discover_tests(test_transfer_functions)
 
+# Estimation tests
+add_executable(test_estimation
+    estimation/test_kalman_filter.cpp
+    estimation/test_ekf.cpp
+    estimation/test_ukf.cpp
+    estimation/test_utils.cpp
+)
+target_link_libraries(test_estimation PRIVATE vulcan GTest::gtest_main)
+target_precompile_headers(test_estimation REUSE_FROM test_core)
+gtest_discover_tests(test_estimation)
+
 
