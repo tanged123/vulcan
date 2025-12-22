@@ -3,7 +3,6 @@ find_package(GTest REQUIRED)
 # Core tests
 add_executable(test_core
     core/test_table_interpolator.cpp
-    core/test_vulcan_error.cpp
 )
 target_link_libraries(test_core PRIVATE vulcan GTest::gtest_main)
 gtest_discover_tests(test_core)

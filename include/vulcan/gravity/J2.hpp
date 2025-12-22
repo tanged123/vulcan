@@ -2,9 +2,6 @@
 // Accounts for Earth's oblateness (equatorial bulge)
 #pragma once
 
-#include <type_traits>
-#include <vulcan/core/VulcanError.hpp>
-
 #include <janus/janus.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
@@ -40,15 +37,6 @@ Vec3<Scalar> acceleration(const Vec3<Scalar> &r_ecef,
 
     const Scalar r2 = x * x + y * y + z * z;
     const Scalar r = janus::sqrt(r2);
-
-    // Singularity check: position inside Earth's center
-    if constexpr (std::is_same_v<Scalar, double>) {
-        if (r < 1.0) {
-            throw GravityError(
-                "j2::acceleration: position magnitude < 1m (singularity)");
-        }
-    }
-
     const Scalar r3 = r2 * r;
 
     // Precompute common terms
@@ -95,14 +83,6 @@ Scalar potential(const Vec3<Scalar> &r_ecef, double mu = constants::earth::mu,
 
     const Scalar r2 = x * x + y * y + z * z;
     const Scalar r = janus::sqrt(r2);
-
-    // Singularity check
-    if constexpr (std::is_same_v<Scalar, double>) {
-        if (r < 1.0) {
-            throw GravityError(
-                "j2::potential: position magnitude < 1m (singularity)");
-        }
-    }
 
     // sin(φ) = z/r (geocentric latitude)
     const Scalar sin_phi = z / r;

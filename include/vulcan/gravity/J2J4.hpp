@@ -2,9 +2,6 @@
 // Includes J2, J3, and J4 zonal harmonic perturbations
 #pragma once
 
-#include <type_traits>
-#include <vulcan/core/VulcanError.hpp>
-
 #include <janus/janus.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
@@ -41,15 +38,6 @@ Vec3<Scalar> acceleration(const Vec3<Scalar> &r_ecef,
 
     const Scalar r2 = x * x + y * y + z * z;
     const Scalar r = janus::sqrt(r2);
-
-    // Singularity check: position inside Earth's center
-    if constexpr (std::is_same_v<Scalar, double>) {
-        if (r < 1.0) {
-            throw GravityError(
-                "j2j4::acceleration: position magnitude < 1m (singularity)");
-        }
-    }
-
     const Scalar r3 = r2 * r;
 
     // Normalized z coordinate
@@ -128,14 +116,6 @@ Scalar potential(const Vec3<Scalar> &r_ecef, double mu = constants::earth::mu,
 
     const Scalar r2 = x * x + y * y + z * z;
     const Scalar r = janus::sqrt(r2);
-
-    // Singularity check
-    if constexpr (std::is_same_v<Scalar, double>) {
-        if (r < 1.0) {
-            throw GravityError(
-                "j2j4::potential: position magnitude < 1m (singularity)");
-        }
-    }
 
     // sin(φ) = z/r
     const Scalar sin_phi = z / r;

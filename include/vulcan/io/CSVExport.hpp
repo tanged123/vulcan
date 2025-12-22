@@ -14,7 +14,6 @@
 #include <string>
 #include <vector>
 
-#include <vulcan/core/VulcanError.hpp>
 #include <vulcan/io/HDF5Reader.hpp>
 
 namespace vulcan::io {
@@ -92,7 +91,7 @@ inline void export_to_csv(const std::string &hdf5_path,
     HDF5Reader reader(hdf5_path);
     std::ofstream ofs(csv_path);
     if (!ofs) {
-        throw vulcan::IOError("Failed to open CSV file: " + csv_path);
+        throw std::runtime_error("Failed to open CSV file: " + csv_path);
     }
     export_to_csv(reader, ofs, options);
 }

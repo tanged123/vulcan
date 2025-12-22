@@ -14,7 +14,6 @@
 #include <span>
 #include <vector>
 
-#include <vulcan/core/VulcanError.hpp>
 #include <vulcan/io/Frame.hpp>
 #include <vulcan/io/TelemetrySchema.hpp>
 
@@ -121,7 +120,7 @@ class FrameSerializer {
      */
     void deserialize(std::span<const std::byte> data, Frame &frame) {
         if (data.size() < 8) {
-            throw vulcan::SignalError("Invalid frame data: too small");
+            throw std::runtime_error("Invalid frame data: too small");
         }
 
         // Read time
@@ -132,7 +131,7 @@ class FrameSerializer {
         // Read dynamic signals
         for (const auto &[src_offset, dst_offset] : dynamic_offsets_) {
             if (dst_offset + 8 > data.size()) {
-                throw vulcan::SignalError(
+                throw std::runtime_error(
                     "Invalid frame data: incomplete signal data");
             }
             std::memcpy(frame.data() + src_offset, data.data() + dst_offset, 8);
@@ -148,7 +147,7 @@ class FrameSerializer {
     void deserialize_statics(std::span<const std::byte> data, Frame &frame) {
         for (const auto &[src_offset, dst_offset] : static_offsets_) {
             if (dst_offset + 8 > data.size()) {
-                throw vulcan::SignalError(
+                throw std::runtime_error(
                     "Invalid static data: incomplete signal data");
             }
             std::memcpy(frame.data() + src_offset, data.data() + dst_offset, 8);

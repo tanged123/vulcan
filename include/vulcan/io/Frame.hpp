@@ -15,7 +15,6 @@
 #include <stdexcept>
 #include <vector>
 
-#include <vulcan/core/VulcanError.hpp>
 #include <vulcan/io/TelemetrySchema.hpp>
 
 namespace vulcan::io {
@@ -64,7 +63,7 @@ class Frame {
     void set(const std::string &signal, double value) {
         const auto &desc = schema_->signal(signal);
         if (desc.type != SignalType::Double) {
-            throw vulcan::SignalError("Type mismatch for signal: " + signal);
+            throw std::runtime_error("Type mismatch for signal: " + signal);
         }
         write_at<double>(desc.offset, value);
     }
@@ -73,7 +72,7 @@ class Frame {
     void set(const std::string &signal, int32_t value) {
         const auto &desc = schema_->signal(signal);
         if (desc.type != SignalType::Int32) {
-            throw vulcan::SignalError("Type mismatch for signal: " + signal);
+            throw std::runtime_error("Type mismatch for signal: " + signal);
         }
         // Store as int32 in 8-byte slot (4 bytes value + 4 bytes padding)
         write_at<int64_t>(desc.offset, static_cast<int64_t>(value));
@@ -83,7 +82,7 @@ class Frame {
     void set(const std::string &signal, int64_t value) {
         const auto &desc = schema_->signal(signal);
         if (desc.type != SignalType::Int64) {
-            throw vulcan::SignalError("Type mismatch for signal: " + signal);
+            throw std::runtime_error("Type mismatch for signal: " + signal);
         }
         write_at<int64_t>(desc.offset, value);
     }
@@ -124,7 +123,7 @@ class Frame {
     double get_double(const std::string &signal) const {
         const auto &desc = schema_->signal(signal);
         if (desc.type != SignalType::Double) {
-            throw vulcan::SignalError("Type mismatch for signal: " + signal);
+            throw std::runtime_error("Type mismatch for signal: " + signal);
         }
         return read_at<double>(desc.offset);
     }
@@ -133,7 +132,7 @@ class Frame {
     int32_t get_int32(const std::string &signal) const {
         const auto &desc = schema_->signal(signal);
         if (desc.type != SignalType::Int32) {
-            throw vulcan::SignalError("Type mismatch for signal: " + signal);
+            throw std::runtime_error("Type mismatch for signal: " + signal);
         }
         return static_cast<int32_t>(read_at<int64_t>(desc.offset));
     }
@@ -142,7 +141,7 @@ class Frame {
     int64_t get_int64(const std::string &signal) const {
         const auto &desc = schema_->signal(signal);
         if (desc.type != SignalType::Int64) {
-            throw vulcan::SignalError("Type mismatch for signal: " + signal);
+            throw std::runtime_error("Type mismatch for signal: " + signal);
         }
         return read_at<int64_t>(desc.offset);
     }
