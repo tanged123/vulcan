@@ -118,6 +118,34 @@ inline constexpr double g0 = 9.80665;
 } // namespace physics
 
 // =============================================================================
+// Sun Constants
+// =============================================================================
+namespace sun {
+/// Astronomical Unit [m] - exact IAU 2012 definition
+inline constexpr double AU = 149597870700.0;
+
+/// Gravitational parameter (GM) [m³/s²]
+inline constexpr double mu = 1.32712440018e20;
+
+/// Mean radius [m]
+inline constexpr double radius = 6.96e8;
+} // namespace sun
+
+// =============================================================================
+// Moon Constants
+// =============================================================================
+namespace moon {
+/// Gravitational parameter (GM) [m³/s²]
+inline constexpr double mu = 4.9028695e12;
+
+/// Mean radius [m]
+inline constexpr double radius = 1.7374e6;
+
+/// Mean Earth-Moon distance [m]
+inline constexpr double mean_distance = 3.844e8;
+} // namespace moon
+
+// =============================================================================
 // Angular Conversion Constants
 // =============================================================================
 namespace angle {

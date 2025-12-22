@@ -68,5 +68,8 @@
 #include <vulcan/io/Signal.hpp>
 #include <vulcan/io/TelemetrySchema.hpp>
 
+// Orbital mechanics
+#include <vulcan/orbital/Orbital.hpp>
+
 // Environment utilities (space environment)
 #include <vulcan/environment/Environment.hpp>

@@ -91,11 +91,20 @@ add_executable(geodetic_demo geodetic/geodetic_demo.cpp)
 target_link_libraries(geodetic_demo PRIVATE vulcan)
 target_precompile_headers(geodetic_demo REUSE_FROM getting_started)
 
+# =============================================================================
+# Orbital Mechanics Examples
+# =============================================================================
+add_executable(orbital_demo orbital/orbital_demo.cpp)
+target_link_libraries(orbital_demo PRIVATE vulcan)
+target_precompile_headers(orbital_demo REUSE_FROM getting_started)
+
+add_executable(orbital_optimization orbital/orbital_optimization.cpp)
+target_link_libraries(orbital_optimization PRIVATE vulcan)
+target_precompile_headers(orbital_optimization REUSE_FROM getting_started)
 
 # =============================================================================
 # Integration with Janus Optimization
 # =============================================================================
 # add_executable(trajectory_opt integration/trajectory_optimization.cpp)
 # target_link_libraries(trajectory_opt PRIVATE vulcan)
-
 
