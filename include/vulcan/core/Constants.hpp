@@ -5,13 +5,14 @@
 namespace vulcan::constants {
 
 // =============================================================================
+// =============================================================================
 // Earth Constants
 // =============================================================================
 namespace earth {
 /// Gravitational parameter (GM) [m^3/s^2]
 inline constexpr double mu = 3.986004418e14;
 
-/// Equatorial radius [m]
+/// Equatorial radius [m] (WGS84)
 inline constexpr double R_eq = 6378137.0;
 
 /// Polar radius [m]
@@ -19,6 +20,9 @@ inline constexpr double R_pol = 6356752.3142;
 
 /// Mean radius [m]
 inline constexpr double R_mean = 6371008.8;
+
+/// Flattening (WGS84)
+inline constexpr double f = 1.0 / 298.257223563;
 
 /// J2 zonal harmonic coefficient
 inline constexpr double J2 = 1.08263e-3;
@@ -30,7 +34,7 @@ inline constexpr double J3 = -2.54e-6;
 inline constexpr double J4 = -1.61e-6;
 
 /// Angular velocity [rad/s]
-inline constexpr double omega = 7.292115e-5;
+inline constexpr double omega = 7.2921159e-5;
 } // namespace earth
 
 // =============================================================================
@@ -38,10 +42,10 @@ inline constexpr double omega = 7.292115e-5;
 // =============================================================================
 namespace wgs84 {
 /// Semi-major axis (equatorial radius) [m]
-inline constexpr double a = 6378137.0;
+inline constexpr double a = earth::R_eq;
 
 /// Flattening
-inline constexpr double f = 1.0 / 298.257223563;
+inline constexpr double f = earth::f;
 
 /// Semi-minor axis (polar radius) [m]
 inline constexpr double b = a * (1.0 - f);
@@ -53,10 +57,10 @@ inline constexpr double e2 = 2.0 * f - f * f;
 inline constexpr double e_prime2 = e2 / (1.0 - e2);
 
 /// Gravitational parameter [m^3/s^2]
-inline constexpr double mu = 3.986004418e14;
+inline constexpr double mu = earth::mu;
 
 /// Angular velocity [rad/s]
-inline constexpr double omega = 7.292115e-5;
+inline constexpr double omega = earth::omega;
 } // namespace wgs84
 
 // =============================================================================
@@ -82,7 +86,9 @@ inline constexpr double h_tropopause = 11000.0;
 inline constexpr double M = 0.0289644;
 
 /// Gas constant for air [J/(kg·K)]
-inline constexpr double R = 287.058;
+inline constexpr double R_air = 287.05287;
+// Alias for backward compatibility if needed, but R_air is more explicit
+inline constexpr double R = R_air;
 
 /// Universal gas constant [J/(mol·K)]
 inline constexpr double R_universal = 8.31447;
@@ -95,16 +101,16 @@ inline constexpr double gamma = 1.4;
 // Physics Constants
 // =============================================================================
 namespace physics {
-/// Speed of light in vacuum [m/s]
+/// Speed of light in vacuum [m/s] (Exact)
 inline constexpr double c = 299792458.0;
 
-/// Gravitational constant [m^3/(kg·s^2)]
+/// Gravitational constant [m^3/(kg·s^2)] (CODATA 2018)
 inline constexpr double G = 6.67430e-11;
 
-/// Boltzmann constant [J/K]
+/// Boltzmann constant [J/K] (Exact)
 inline constexpr double k_B = 1.380649e-23;
 
-/// Stefan-Boltzmann constant [W/(m^2·K^4)]
+/// Stefan-Boltzmann constant [W/(m^2·K^4)] (CODATA 2018)
 inline constexpr double sigma = 5.670374e-8;
 
 /// Standard gravity [m/s^2]
