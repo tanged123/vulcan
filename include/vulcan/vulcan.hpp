@@ -67,3 +67,6 @@
 #include <vulcan/io/HDF5Writer.hpp>
 #include <vulcan/io/Signal.hpp>
 #include <vulcan/io/TelemetrySchema.hpp>
+
+// Environment utilities (space environment)
+#include <vulcan/environment/Environment.hpp>

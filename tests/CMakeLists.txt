@@ -101,6 +101,15 @@ add_executable(test_io
 target_link_libraries(test_io PRIVATE vulcan GTest::gtest_main)
 gtest_discover_tests(test_io)
 
+# Environment tests
+add_executable(test_environment
+    environment/test_solar_position.cpp
+    environment/test_eclipse.cpp
+    environment/test_magnetic_field.cpp
+)
+target_link_libraries(test_environment PRIVATE vulcan GTest::gtest_main)
+gtest_discover_tests(test_environment)
+
 # Geodetic utilities tests
 add_executable(test_geodetic_utils
     geodetic/test_geodetic_utils.cpp
