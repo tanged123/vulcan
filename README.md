@@ -14,13 +14,17 @@ Vulcan is an aerospace engineering utilities library that provides model-agnosti
 - 🌍 **Coordinate Systems**: ECI, ECEF, NED, Body frames; geodetic utilities
 - 🌤️ **Atmospheric Models**: US Standard Atmosphere 1976, exponential models
 - 🌑 **Gravity Models**: Point mass, J2/J4 perturbations, spherical harmonics
-- 🚀 **Orbital Mechanics**: Keplerian elements, state vector propagation, anomaly conversions
+- 🛰️ **Orbital Mechanics**: Keplerian elements, state vector propagation, anomaly conversions
 - 📐 **Geometry**: Primitives (Sphere, Cylinder, Cone, Box) with symbolic support
 - 📡 **Sensors**: IMU noise models (Random Walk, Bias Instability), Gaussian noise, Markov processes
 - 🎲 **RNG**: Reproducible random number generation with stream splitting
 - 💾 **Data I/O**: HDF5 reading/writing, telemetry schemas, CSV export
 - 💨 **Wind Models**: Constant wind, wind shear (linear/power-law/log), Dryden & von Kármán turbulence
 - ✈️ **Aerodynamics**: Dynamic pressure, Mach, Reynolds number, angle of attack/sideslip
+- 🎮 **Transfer Functions**: Transfer functions (1st/2nd order), discretization, PID control
+- 📉 **Estimation**: Kalman Filter, EKF, UKF, estimation utilities
+- 🚀 **Propulsion**: Rocket, Electric, Air-breathing, Altitude-compensated thrust
+
 - ⏱️ **Time Systems**: UTC, TAI, GPS, TT, TDB; Julian date conversions; leap seconds
 - 🔄 **Rotations**: Quaternions, DCMs, all 12 Euler sequences, axis-angle, SLERP
 - 🌌 **Environment**: Space environment constants, solar flux (placeholder)
@@ -101,15 +105,19 @@ vulcan/
 │   ├── coordinates/        # ECEF, LLA, NED, body frames
 │   ├── core/               # Types, constants, interpolation
 │   ├── environment/        # Space environment utilities
+│   ├── estimation/         # Kalman filters (Linear, EKF, UKF)
 │   ├── geodetic/           # Geodesic utils
 │   ├── geometry/           # Geometric primitives
 │   ├── gravity/            # Point mass, J2/J4, spherical harmonics
 │   ├── io/                 # HDF5, CSV, Signal, Telemetry
+
 │   ├── orbital/            # Keplerian, anomaly, ephemeris
+│   ├── propulsion/         # Rocket, electric, air-breathing
 │   ├── rng/                # Random number generation
 │   ├── rotations/          # Quaternions, Euler, DCM, axis-angle
 │   ├── sensors/            # Noise models (Allan variance, etc.)
 │   ├── time/               # GPS, UTC, TAI, TT, TDB, Julian dates
+│   ├── transfer_functions/ # Dynamics, discretization, PID
 │   ├── wind/               # Shear profiles, Dryden, von Kármán
 │   └── vulcan.hpp          # Main umbrella header
 ├── scripts/                # Build, test, and dev utilities

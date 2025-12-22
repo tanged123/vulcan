@@ -11,6 +11,9 @@
 - **Gravity Models**: Point mass, J2/J4 perturbations, spherical harmonics
 - **Orbital Mechanics**: Keplerian elements, propagators, anomaly conversions
 - **Aerodynamic Utilities**: Mach, dynamic pressure, Reynolds number
+- **Propulsion**: Rockets, electric, air-breathing, altitude compensation
+- **Control & Dynamics**: Transfer functions, PID, discretization
+- **Estimation**: Kalman Filters (Linear, EKF, UKF)
 - **Time Systems**: High-precision time conversions (TAI, UTC, GPS, TT, TDB)
 - **Geometry**: Symbolic-compatible geometric primitives
 - **Unit Conversions**: SI, imperial, angular
@@ -70,6 +73,9 @@ These constraints ensure Janus compatibility:
 - **Wind**: Shear models, Turbulence (Dryden, Von Kármán)
 - **Aerodynamics**: Dynamic pressure, Mach, Reynolds #
 - **Sensors**: IMU noise models (Random Walk, Bias Instability)
+- **Propulsion**: Rocket, Electric, Air-breathing, Altitude-compensation
+- **Control**: Transfer functions, Discretization, PID
+- **Estimation**: Kalman Filter, EKF, UKF
 - **Geometry**: Basic primitives (Sphere, Cone, Cylinder)
 - **RNG**: Reproducible random number generation
 - **I/O**: HDF5, CSV, Telemetry support
@@ -77,4 +83,3 @@ These constraints ensure Janus compatibility:
 ### In Refinement 🚧
 
 - **Environment**: Solar flux models, space weather
-- **Advanced Navigation**: Kalman filtering utilities (planned)
