@@ -16,7 +16,7 @@ TEST(MassPropertiesTest, FromMass) {
     EXPECT_DOUBLE_EQ(props.inertia(0, 0), 100.0);
     EXPECT_DOUBLE_EQ(props.inertia(1, 1), 100.0);
     EXPECT_DOUBLE_EQ(props.inertia(2, 2), 100.0);
-    EXPECT_DOUBLE_EQ(props.cg_offset.norm(), 0.0);
+    EXPECT_DOUBLE_EQ(props.cg.norm(), 0.0);
 }
 
 TEST(MassPropertiesTest, Diagonal) {

@@ -199,7 +199,10 @@ gtest_discover_tests(test_estimation)
 
 # Rigid body dynamics tests
 add_executable(test_dynamics
+    dynamics/test_mass_properties.cpp
     dynamics/test_rigid_body.cpp
+    dynamics/test_point_mass.cpp
+    dynamics/test_guided_5dof.cpp
     dynamics/test_oscillator_1dof.cpp
     dynamics/test_rail_launch.cpp
     dynamics/test_planar_2dof.cpp
