@@ -110,6 +110,13 @@ target_link_libraries(orbital_optimization PRIVATE vulcan)
 target_precompile_headers(orbital_optimization REUSE_FROM getting_started)
 
 # =============================================================================
+# Propulsion Examples
+# =============================================================================
+add_executable(propulsion_demo propulsion/propulsion_demo.cpp)
+target_link_libraries(propulsion_demo PRIVATE vulcan)
+target_precompile_headers(propulsion_demo REUSE_FROM getting_started)
+
+# =============================================================================
 # Integration with Janus Optimization
 # =============================================================================
 # add_executable(trajectory_opt integration/trajectory_optimization.cpp)

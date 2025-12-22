@@ -163,3 +163,14 @@ add_executable(test_orbital
 target_link_libraries(test_orbital PRIVATE vulcan GTest::gtest_main)
 target_precompile_headers(test_orbital REUSE_FROM test_core)
 gtest_discover_tests(test_orbital)
+
+# Propulsion tests
+add_executable(test_propulsion
+    propulsion/test_rocket.cpp
+    propulsion/test_altitude_thrust.cpp
+    propulsion/test_air_breathing.cpp
+    propulsion/test_electric.cpp
+)
+target_link_libraries(test_propulsion PRIVATE vulcan GTest::gtest_main)
+target_precompile_headers(test_propulsion REUSE_FROM test_core)
+gtest_discover_tests(test_propulsion)
