@@ -117,8 +117,16 @@ target_link_libraries(propulsion_demo PRIVATE vulcan)
 target_precompile_headers(propulsion_demo REUSE_FROM getting_started)
 
 # =============================================================================
+# Transfer Functions Examples
+# =============================================================================
+add_executable(transfer_functions_demo transfer_functions/transfer_functions_demo.cpp)
+target_link_libraries(transfer_functions_demo PRIVATE vulcan)
+target_precompile_headers(transfer_functions_demo REUSE_FROM getting_started)
+
+# =============================================================================
 # Integration with Janus Optimization
 # =============================================================================
 # add_executable(trajectory_opt integration/trajectory_optimization.cpp)
 # target_link_libraries(trajectory_opt PRIVATE vulcan)
+
 

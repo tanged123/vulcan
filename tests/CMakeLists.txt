@@ -174,3 +174,16 @@ add_executable(test_propulsion
 target_link_libraries(test_propulsion PRIVATE vulcan GTest::gtest_main)
 target_precompile_headers(test_propulsion REUSE_FROM test_core)
 gtest_discover_tests(test_propulsion)
+
+# Transfer functions tests
+add_executable(test_transfer_functions
+    transfer_functions/test_first_order.cpp
+    transfer_functions/test_second_order.cpp
+    transfer_functions/test_nonlinear.cpp
+    transfer_functions/test_discretize.cpp
+)
+target_link_libraries(test_transfer_functions PRIVATE vulcan GTest::gtest_main)
+target_precompile_headers(test_transfer_functions REUSE_FROM test_core)
+gtest_discover_tests(test_transfer_functions)
+
+
