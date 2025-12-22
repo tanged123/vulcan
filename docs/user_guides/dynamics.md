@@ -115,22 +115,76 @@ auto a_ecef = translational_dynamics_ecef(
 Implements: `a_⊕ = F/m - 2(ω_⊕ × v_⊕) - ω_⊕ × (ω_⊕ × r)`
 
 ## Symbolic Usage (Trajectory Optimization)
+ 
+All functions work with `casadi::MX` for Janus optimization, allowing you to solve optimal control problems directly using the dynamics equations.
 
-All functions work with `casadi::MX` for Janus optimization:
+### Example: Max Sustained Turn Rate
+
+The following example demonstrates how to use `janus::Opti` to find the optimal control inputs (Lift, Bank, Thrust) for a guided vehicle to maximize its turn rate while maintaining altitude and speed.
 
 ```cpp
 using MX = casadi::MX;
+janus::Opti opti;
 
+// 1. Define Variables
+auto lift   = opti.variable(10000.0); // Lift [N]
+auto bank   = opti.variable(0.5);     // Bank angle [rad]
+auto thrust = opti.variable(5000.0);  // Thrust [N]
+
+// 2. Define Parameters & State
+auto velocity = MX(300.0);     // 300 m/s
+auto gamma    = MX(0.0);       // Level flight
+auto mass     = MX(1000.0);    // 1000 kg
+auto weight   = mass * 9.81;
+
+// 3. Define Constraints
+// Maintain Altitude: Vertical lift component must equal weight
+// L * cos(phi) = W
+opti.subject_to(lift * janus::cos(bank) == weight);
+
+// Maintain Speed: Thrust must equal Drag
+// T = D (assuming small angle of attack for drag calc)
+// CD = CD0 + k * CL^2
+auto rho = 0.736; // Density at 5km
+auto S = 20.0;    // Wing area
+auto q = 0.5 * rho * velocity * velocity;
+auto CL = lift / (q * S);
+auto CD = 0.02 + 0.05 * CL * CL;
+auto drag = q * S * CD;
+
+opti.subject_to(thrust == drag);
+
+// Physical Limits
+opti.subject_to(thrust <= 30000.0);
+opti.subject_to(bank >= 0.0);
+opti.subject_to(bank <= 1.5708); // Max 90 deg
+
+// 4. Define Objective
+// Maximize Turn Rate: chi_dot = (L * sin(phi)) / (m * v * cos(gamma))
+auto chi_dot = vulcan::dynamics::chi_dot_btt(lift, mass, velocity, gamma, bank);
+
+opti.minimize(-chi_dot); // Minimize negative turn rate
+
+// 5. Solve
+auto sol = opti.solve();
+std::cout << "Optimal Bank: " << sol.value(bank) * 180.0 / M_PI << " deg\n";
+```
+ 
+### General Symbolic Workflow
+ 
+```cpp
+using MX = casadi::MX;
+ 
 auto mass = opti.variable();
 auto mass_props = MassProperties<MX>::diagonal(mass, Ixx, Iyy, Izz);
-
+ 
 RigidBodyState<MX> state{
     .position = r_sym,
     .velocity_body = v_sym,
     .attitude = q_sym,
     .omega_body = omega_sym
 };
-
+ 
 auto derivs = compute_6dof_derivatives<MX>(state, F_sym, M_sym, mass_props);
 opti.subject_to(v_next == v + derivs.velocity_dot * dt);
 ```

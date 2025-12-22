@@ -146,6 +146,104 @@ void run_6dof_numeric() {
               << "\n";
 }
 
+// =============================================================================
+// 4. Optimization: Max Sustained Turn Rate (Symbolic)
+// =============================================================================
+void run_5dof_optimization() {
+    std::cout << "\n=== Optimization: Max Sustained Turn Rate (Symbolic) ===\n";
+    using MX = casadi::MX;
+
+    // Fixed Parameters
+    double m = 1000.0;           // Mass [kg]
+    double v_tgt = 300.0;        // Velocity [m/s]
+    double alt = 5000.0;         // Altitude [m]
+    double g = 9.80665;          // Gravity [m/s^2]
+    double S = 20.0;             // Wing Area [m^2]
+    double rho = 0.736;          // Density at 5km [kg/m^3]
+    double max_thrust = 30000.0; // Max Thrust [N]
+
+    // Aerodynamics (Drag Polar: CD = CD0 + k*CL^2)
+    double CD0 = 0.02;
+    double k = 0.05;
+
+    // Initialize Optimizer
+    janus::Opti opti;
+
+    // Decision Variables
+    auto lift = opti.variable(10000.0);  // Lift Force [N] (Guess approx Weight)
+    auto bank = opti.variable(0.5);      // Bank Angle [rad] (Guess ~30 deg)
+    auto thrust = opti.variable(5000.0); // Thrust Force [N] (Guess drag)
+
+    // Derived States (Fixed for this point mass optimization)
+    auto velocity = MX(v_tgt);
+    auto gamma = MX(0.0); // Level flight
+    auto chi = MX(0.0);   // Arbitrary heading
+    auto mass = MX(m);
+    auto gravity = MX(g);
+
+    // Aerodynamic Limit Constraints
+    auto q = 0.5 * rho * velocity * velocity; // Dynamic pressure
+    auto CL = lift / (q * S);
+    auto CD = CD0 + k * CL * CL;
+    auto drag = q * S * CD;
+
+    // Dynamics from Library
+    auto weight = mass * gravity;
+
+    // 1. Altitude constraint: gamma_dot = 0 (Sustained altitude)
+    // gamma_dot = (L*cos(phi) - W) / (mV)
+    // Constraint: L*cos(phi) == W  (Vertical equilibrium)
+    opti.subject_to(lift * janus::cos(bank) == weight);
+
+    // 2. Speed constraint: v_dot = 0 (Sustained speed)
+    // Along velocity vector: T - D - W*sin(gamma) = m*v_dot
+    // Since gamma=0, sin(gamma)=0. So T == D.
+    opti.subject_to(thrust == drag);
+
+    // 3. Physical Constraints
+    opti.subject_to(thrust <= max_thrust);
+    opti.subject_to(thrust >= 0.0);
+    opti.subject_to(lift >= 0.0);
+    opti.subject_to(bank >= 0.0);
+    opti.subject_to(bank <= 1.5708); // Max 90 deg
+
+    // Objective: Maximize Turn Rate (Chi_dot)
+    // chi_dot = (L*sin(phi)) / (mV*cos(gamma))
+    // We minimize negative chi_dot
+    auto chi_dot_val = chi_dot_btt(lift, mass, velocity, gamma, bank);
+    opti.minimize(-chi_dot_val);
+
+    std::cout << "Problem Setup:\n";
+    std::cout << "  Maximize: Turn Rate (Chi_dot)\n";
+    std::cout
+        << "  Subject to: Level Flight (Gamma_dot=0), Const Speed (V_dot=0)\n";
+    std::cout << "  Variables: Lift, Bank, Thrust\n";
+
+    // Solve
+    try {
+        auto sol = opti.solve({.verbose = false});
+
+        double lift_opt = sol.value(lift);
+        double bank_opt = sol.value(bank);
+        double thrust_opt = sol.value(thrust);
+        double turn_rate_opt = sol.value(chi_dot_val);
+        double load_factor = lift_opt / (m * g);
+
+        std::cout << "Results:\n";
+        std::cout << "  Turn Rate:    " << (turn_rate_opt * 180.0 / 3.14159)
+                  << " deg/s\n";
+        std::cout << "  Bank Angle:   " << (bank_opt * 180.0 / 3.14159)
+                  << " deg\n";
+        std::cout << "  Load Factor:  " << load_factor << " g\n";
+        std::cout << "  Thrust Req:   " << thrust_opt / 1000.0 << " kN (Max "
+                  << max_thrust / 1000.0 << ")\n";
+        std::cout << "  Lift Req:     " << lift_opt / 1000.0 << " kN\n";
+
+    } catch (const std::exception &e) {
+        std::cerr << "Optimization failed: " << e.what() << "\n";
+    }
+}
+
 int main() {
     try {
         std::cout << "Vulcan Dynamics Examples\n";
@@ -154,6 +252,7 @@ int main() {
         run_3dof_numeric();
         run_5dof_symbolic();
         run_6dof_numeric();
+        run_5dof_optimization();
 
         std::cout << "\nDemo completed successfully.\n";
     } catch (const std::exception &e) {
