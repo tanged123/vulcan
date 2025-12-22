@@ -101,4 +101,13 @@ class WindError : public VulcanError {
         : VulcanError("Wind: " + what) {}
 };
 
+/**
+ * @brief Validation errors (invalid input ranges, non-finite values)
+ */
+class ValidationError : public VulcanError {
+  public:
+    explicit ValidationError(const std::string &what)
+        : VulcanError("Validation: " + what) {}
+};
+
 } // namespace vulcan

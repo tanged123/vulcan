@@ -8,6 +8,10 @@ find_package(GTest REQUIRED)
 add_executable(test_core
     core/test_table_interpolator.cpp
     core/test_vulcan_error.cpp
+    core/test_constants.cpp
+    core/test_units.cpp
+    core/test_validation.cpp
+    core/test_symbolic_validation.cpp
 )
 target_link_libraries(test_core PRIVATE vulcan GTest::gtest_main)
 # Create the PCH on the first test target
