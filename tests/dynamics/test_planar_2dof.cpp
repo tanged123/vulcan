@@ -206,4 +206,84 @@ TEST(SphericalPendulumTest, Energy) {
     EXPECT_NEAR(E, PE, 1e-10);
 }
 
+// =============================================================================
+// Symbolic Tests
+// =============================================================================
+
+TEST(PlanarSymbolicTest, Acceleration) {
+    auto fx = janus::sym("fx");
+    auto fy = janus::sym("fy");
+    auto mass = janus::sym("m");
+
+    auto accel = planar_acceleration(fx, fy, mass);
+
+    janus::Function f("planar_accel", {fx, fy, mass}, {accel(0), accel(1)});
+
+    auto result = f({10.0, 20.0, 2.0});
+
+    auto accel_num = planar_acceleration(10.0, 20.0, 2.0);
+    EXPECT_NEAR(result[0](0, 0), accel_num(0), 1e-12);
+    EXPECT_NEAR(result[1](0, 0), accel_num(1), 1e-12);
+}
+
+TEST(SimplePendulumSymbolicTest, Acceleration) {
+    auto theta = janus::sym("theta");
+    auto theta_dot = janus::sym("theta_dot");
+    auto L = janus::sym("L");
+    auto g = janus::sym("g");
+    auto zeta = janus::sym("zeta");
+
+    auto theta_ddot =
+        simple_pendulum_acceleration(theta, theta_dot, L, g, zeta);
+
+    janus::Function f("simple_pendulum", {theta, theta_dot, L, g, zeta},
+                      {theta_ddot});
+
+    auto result = f({0.3, 0.5, 2.0, 9.81, 0.1});
+
+    double theta_ddot_num =
+        simple_pendulum_acceleration(0.3, 0.5, 2.0, 9.81, 0.1);
+    EXPECT_NEAR(result[0](0, 0), theta_ddot_num, 1e-10);
+}
+
+TEST(SphericalPendulumSymbolicTest, ThetaAccel) {
+    auto theta = janus::sym("theta");
+    auto theta_dot = janus::sym("theta_dot");
+    auto phi_dot = janus::sym("phi_dot");
+    auto L = janus::sym("L");
+    auto g = janus::sym("g");
+    auto zeta = janus::sym("zeta");
+
+    auto theta_ddot =
+        spherical_pendulum_theta_ddot(theta, theta_dot, phi_dot, L, g, zeta);
+
+    janus::Function f("spherical_theta_ddot",
+                      {theta, theta_dot, phi_dot, L, g, zeta}, {theta_ddot});
+
+    auto result = f({0.5, 0.1, 0.2, 1.0, 10.0, 0.01});
+
+    double theta_ddot_num =
+        spherical_pendulum_theta_ddot(0.5, 0.1, 0.2, 1.0, 10.0, 0.01);
+    EXPECT_NEAR(result[0](0, 0), theta_ddot_num, 1e-10);
+}
+
+TEST(SphericalPendulumSymbolicTest, Energy) {
+    auto theta = janus::sym("theta");
+    auto theta_dot = janus::sym("theta_dot");
+    auto phi_dot = janus::sym("phi_dot");
+    auto L = janus::sym("L");
+    auto m = janus::sym("m");
+    auto g = janus::sym("g");
+
+    auto E = spherical_pendulum_energy(theta, theta_dot, phi_dot, L, m, g);
+
+    janus::Function f("spherical_energy", {theta, theta_dot, phi_dot, L, m, g},
+                      {E});
+
+    auto result = f({0.5, 0.2, 0.1, 1.0, 1.0, 10.0});
+
+    double E_num = spherical_pendulum_energy(0.5, 0.2, 0.1, 1.0, 1.0, 10.0);
+    EXPECT_NEAR(result[0](0, 0), E_num, 1e-10);
+}
+
 } // namespace vulcan::dynamics

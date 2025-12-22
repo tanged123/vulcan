@@ -244,4 +244,64 @@ TEST(SloshParamsTest, SloshMass) {
     EXPECT_LT(m_slosh, 900.0);
 }
 
+// =============================================================================
+// Symbolic Tests
+// =============================================================================
+
+TEST(PendulumSloshSymbolicTest, Acceleration) {
+    auto theta = janus::sym("theta");
+    auto theta_dot = janus::sym("theta_dot");
+    auto length = janus::sym("L");
+    auto zeta = janus::sym("zeta");
+    auto accel_t = janus::sym("a_t");
+    auto gravity = janus::sym("g");
+
+    auto theta_ddot = pendulum_slosh_acceleration(theta, theta_dot, length,
+                                                  zeta, accel_t, gravity);
+
+    janus::Function f("pendulum_slosh",
+                      {theta, theta_dot, length, zeta, accel_t, gravity},
+                      {theta_ddot});
+
+    auto result = f({0.1, 0.2, 0.5, 0.01, 5.0, 9.81});
+
+    double theta_ddot_num =
+        pendulum_slosh_acceleration(0.1, 0.2, 0.5, 0.01, 5.0, 9.81);
+    EXPECT_NEAR(result[0](0, 0), theta_ddot_num, 1e-10);
+}
+
+TEST(SpringSloshSymbolicTest, Acceleration) {
+    auto disp = janus::sym("disp");
+    auto vel = janus::sym("vel");
+    auto k = janus::sym("k");
+    auto c = janus::sym("c");
+    auto m = janus::sym("m");
+    auto a_veh = janus::sym("a_veh");
+
+    auto accel = spring_slosh_acceleration(disp, vel, k, c, m, a_veh);
+
+    janus::Function f("spring_slosh", {disp, vel, k, c, m, a_veh}, {accel});
+
+    auto result = f({0.1, 0.5, 1000.0, 50.0, 100.0, 0.0});
+
+    double accel_num =
+        spring_slosh_acceleration(0.1, 0.5, 1000.0, 50.0, 100.0, 0.0);
+    EXPECT_NEAR(result[0](0, 0), accel_num, 1e-10);
+}
+
+TEST(SloshParamsSymbolicTest, FrequencyCylindrical) {
+    auto R = janus::sym("R");
+    auto fill = janus::sym("fill");
+    auto g = janus::sym("g");
+
+    auto omega = slosh_frequency_cylindrical(R, fill, g);
+
+    janus::Function f("slosh_freq_cyl", {R, fill, g}, {omega});
+
+    auto result = f({1.0, 0.8, 9.81});
+
+    double omega_num = slosh_frequency_cylindrical(1.0, 0.8, 9.81);
+    EXPECT_NEAR(result[0](0, 0), omega_num, 1e-10);
+}
+
 } // namespace vulcan::dynamics

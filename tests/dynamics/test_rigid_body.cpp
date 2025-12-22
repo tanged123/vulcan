@@ -275,89 +275,130 @@ TEST(EcefDynamicsTest, CoriolisAndCentrifugal) {
 }
 
 // =============================================================================
-// Symbolic Instantiation Test
+// Symbolic Tests with janus::Function Evaluation
 // =============================================================================
 
-TEST(RigidBodySymbolicTest, Instantiation) {
+TEST(RigidBodySymbolicTest, TranslationalDynamicsFunction) {
     using MX = casadi::MX;
 
-    // Create symbolic mass properties
-    auto m = MX::sym("m");
-    auto Ixx = MX::sym("Ixx");
-    auto Iyy = MX::sym("Iyy");
-    auto Izz = MX::sym("Izz");
-    auto mass_props = MassProperties<MX>::diagonal(m, Ixx, Iyy, Izz);
+    auto vx = janus::sym("vx");
+    auto vy = janus::sym("vy");
+    auto vz = janus::sym("vz");
+    auto wx = janus::sym("wx");
+    auto wy = janus::sym("wy");
+    auto wz = janus::sym("wz");
+    auto Fx = janus::sym("Fx");
+    auto Fy = janus::sym("Fy");
+    auto Fz = janus::sym("Fz");
+    auto m = janus::sym("m");
 
-    // Create symbolic state
-    RigidBodyState<MX> state{
-        .position = Vec3<MX>::Zero(),
-        .velocity_body = Vec3<MX>{MX::sym("vx"), MX::sym("vy"), MX::sym("vz")},
-        .attitude = janus::Quaternion<MX>(), // identity
-        .omega_body = Vec3<MX>{MX::sym("wx"), MX::sym("wy"), MX::sym("wz")}};
+    Vec3<MX> v{vx, vy, vz};
+    Vec3<MX> omega{wx, wy, wz};
+    Vec3<MX> force{Fx, Fy, Fz};
 
-    // Create symbolic inputs
-    Vec3<MX> force{MX::sym("Fx"), MX::sym("Fy"), MX::sym("Fz")};
-    Vec3<MX> moment{MX::sym("Mx"), MX::sym("My"), MX::sym("Mz")};
+    auto v_dot = translational_dynamics(v, omega, force, m);
 
-    // This should NOT throw — graph builds successfully
-    auto derivs =
-        compute_6dof_derivatives<MX>(state, force, moment, mass_props);
+    janus::Function f("trans_dyn", {vx, vy, vz, wx, wy, wz, Fx, Fy, Fz, m},
+                      {v_dot(0), v_dot(1), v_dot(2)});
 
-    // Verify outputs are symbolic (non-empty graph)
-    EXPECT_FALSE(derivs.velocity_dot(0).is_empty());
-    EXPECT_FALSE(derivs.omega_dot(0).is_empty());
-    EXPECT_FALSE(derivs.position_dot(0).is_empty());
-    EXPECT_FALSE(derivs.attitude_dot.w.is_empty());
+    // Test case: v=(10,0,0), ω=(0,0,0.1), F=(0,0,0), m=1
+    auto result = f({10.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 1.0});
+
+    // Compare with numeric
+    Vec3<double> v_num{10.0, 0.0, 0.0};
+    Vec3<double> omega_num{0.0, 0.0, 0.1};
+    Vec3<double> force_num{0.0, 0.0, 0.0};
+    auto v_dot_num = translational_dynamics(v_num, omega_num, force_num, 1.0);
+
+    EXPECT_NEAR(result[0](0, 0), v_dot_num(0), 1e-12);
+    EXPECT_NEAR(result[1](0, 0), v_dot_num(1), 1e-12);
+    EXPECT_NEAR(result[2](0, 0), v_dot_num(2), 1e-12);
 }
 
-TEST(RigidBodySymbolicTest, TranslationalDynamics) {
+TEST(RigidBodySymbolicTest, RotationalDynamicsFunction) {
     using MX = casadi::MX;
 
-    Vec3<MX> v{MX::sym("vx"), MX::sym("vy"), MX::sym("vz")};
-    Vec3<MX> omega{MX::sym("wx"), MX::sym("wy"), MX::sym("wz")};
-    Vec3<MX> force{MX::sym("Fx"), MX::sym("Fy"), MX::sym("Fz")};
-    auto mass = MX::sym("m");
+    auto wx = janus::sym("wx");
+    auto wy = janus::sym("wy");
+    auto wz = janus::sym("wz");
+    auto Mx = janus::sym("Mx");
+    auto My = janus::sym("My");
+    auto Mz = janus::sym("Mz");
+    auto Ixx = janus::sym("Ixx");
+    auto Iyy = janus::sym("Iyy");
+    auto Izz = janus::sym("Izz");
 
-    auto v_dot = translational_dynamics(v, omega, force, mass);
-
-    EXPECT_FALSE(v_dot(0).is_empty());
-    EXPECT_FALSE(v_dot(1).is_empty());
-    EXPECT_FALSE(v_dot(2).is_empty());
-}
-
-TEST(RigidBodySymbolicTest, RotationalDynamics) {
-    using MX = casadi::MX;
-
-    Vec3<MX> omega{MX::sym("wx"), MX::sym("wy"), MX::sym("wz")};
-    Vec3<MX> moment{MX::sym("Mx"), MX::sym("My"), MX::sym("Mz")};
-
-    // Diagonal inertia for simplicity
+    Vec3<MX> omega{wx, wy, wz};
+    Vec3<MX> moment{Mx, My, Mz};
     Mat3<MX> I = Mat3<MX>::Zero();
-    I(0, 0) = MX::sym("Ixx");
-    I(1, 1) = MX::sym("Iyy");
-    I(2, 2) = MX::sym("Izz");
+    I(0, 0) = Ixx;
+    I(1, 1) = Iyy;
+    I(2, 2) = Izz;
 
     auto omega_dot = rotational_dynamics(omega, moment, I);
 
-    EXPECT_FALSE(omega_dot(0).is_empty());
-    EXPECT_FALSE(omega_dot(1).is_empty());
-    EXPECT_FALSE(omega_dot(2).is_empty());
+    janus::Function f("rot_dyn", {wx, wy, wz, Mx, My, Mz, Ixx, Iyy, Izz},
+                      {omega_dot(0), omega_dot(1), omega_dot(2)});
+
+    // Test case: ω=(1,2,3), M=(0,0,0), I=(2,3,4)
+    auto result = f({1.0, 2.0, 3.0, 0.0, 0.0, 0.0, 2.0, 3.0, 4.0});
+
+    // Compare with numeric calculation
+    Mat3<double> I_num = Mat3<double>::Zero();
+    I_num(0, 0) = 2.0;
+    I_num(1, 1) = 3.0;
+    I_num(2, 2) = 4.0;
+    Vec3<double> omega_num{1.0, 2.0, 3.0};
+    Vec3<double> moment_num{0.0, 0.0, 0.0};
+    auto omega_dot_num = rotational_dynamics(omega_num, moment_num, I_num);
+
+    EXPECT_NEAR(result[0](0, 0), omega_dot_num(0), 1e-12);
+    EXPECT_NEAR(result[1](0, 0), omega_dot_num(1), 1e-12);
+    EXPECT_NEAR(result[2](0, 0), omega_dot_num(2), 1e-12);
 }
 
-TEST(RigidBodySymbolicTest, EcefDynamics) {
+TEST(RigidBodySymbolicTest, EcefDynamicsFunction) {
     using MX = casadi::MX;
 
-    Vec3<MX> pos{MX::sym("rx"), MX::sym("ry"), MX::sym("rz")};
-    Vec3<MX> vel{MX::sym("vx"), MX::sym("vy"), MX::sym("vz")};
-    Vec3<MX> force{MX::sym("Fx"), MX::sym("Fy"), MX::sym("Fz")};
-    Vec3<MX> omega_e{MX(0.0), MX(0.0), MX::sym("we")};
-    auto mass = MX::sym("m");
+    auto rx = janus::sym("rx");
+    auto ry = janus::sym("ry");
+    auto rz = janus::sym("rz");
+    auto vx = janus::sym("vx");
+    auto vy = janus::sym("vy");
+    auto vz = janus::sym("vz");
+    auto Fx = janus::sym("Fx");
+    auto Fy = janus::sym("Fy");
+    auto Fz = janus::sym("Fz");
+    auto m = janus::sym("m");
+    auto we = janus::sym("we");
 
-    auto a = translational_dynamics_ecef(pos, vel, force, mass, omega_e);
+    Vec3<MX> pos{rx, ry, rz};
+    Vec3<MX> vel{vx, vy, vz};
+    Vec3<MX> force{Fx, Fy, Fz};
+    Vec3<MX> omega_earth{MX(0.0), MX(0.0), we};
 
-    EXPECT_FALSE(a(0).is_empty());
-    EXPECT_FALSE(a(1).is_empty());
-    EXPECT_FALSE(a(2).is_empty());
+    auto a = translational_dynamics_ecef(pos, vel, force, m, omega_earth);
+
+    janus::Function f("ecef_dyn", {rx, ry, rz, vx, vy, vz, Fx, Fy, Fz, m, we},
+                      {a(0), a(1), a(2)});
+
+    // Test case at equator
+    constexpr double R = 6.371e6;
+    constexpr double omega_e = 7.2921159e-5;
+    auto result =
+        f({R, 0.0, 0.0, 0.0, 100.0, 0.0, 0.0, 0.0, 0.0, 1.0, omega_e});
+
+    // Compare with numeric
+    Vec3<double> pos_num{R, 0.0, 0.0};
+    Vec3<double> vel_num{0.0, 100.0, 0.0};
+    Vec3<double> force_num{0.0, 0.0, 0.0};
+    Vec3<double> omega_e_num{0.0, 0.0, omega_e};
+    auto a_num = translational_dynamics_ecef(pos_num, vel_num, force_num, 1.0,
+                                             omega_e_num);
+
+    EXPECT_NEAR(result[0](0, 0), a_num(0), 1e-6);
+    EXPECT_NEAR(result[1](0, 0), a_num(1), 1e-10);
+    EXPECT_NEAR(result[2](0, 0), a_num(2), 1e-10);
 }
 
 } // namespace vulcan::dynamics

@@ -179,4 +179,64 @@ TEST(OscillatorEnergyTest, TotalEnergy) {
     EXPECT_NEAR(E, 2.0, 1e-12);
 }
 
+// =============================================================================
+// Symbolic Tests
+// =============================================================================
+
+TEST(OscillatorSymbolicTest, Acceleration) {
+    auto x = janus::sym("x");
+    auto x_dot = janus::sym("x_dot");
+    auto omega_n = janus::sym("omega_n");
+    auto zeta = janus::sym("zeta");
+    auto force = janus::sym("F");
+    auto mass = janus::sym("m");
+
+    auto x_ddot = oscillator_acceleration(x, x_dot, omega_n, zeta, force, mass);
+
+    janus::Function f("oscillator_accel",
+                      {x, x_dot, omega_n, zeta, force, mass}, {x_ddot});
+
+    // Test: x=1, x_dot=0.5, ω=2, ζ=0.1, F=10, m=2
+    auto result = f({1.0, 0.5, 2.0, 0.1, 10.0, 2.0});
+
+    // Compare with numeric
+    double x_ddot_num = oscillator_acceleration(1.0, 0.5, 2.0, 0.1, 10.0, 2.0);
+    EXPECT_NEAR(result[0](0, 0), x_ddot_num, 1e-12);
+}
+
+TEST(OscillatorSymbolicTest, SpringDamper) {
+    auto x = janus::sym("x");
+    auto x_dot = janus::sym("x_dot");
+    auto k = janus::sym("k");
+    auto c = janus::sym("c");
+    auto F = janus::sym("F");
+    auto m = janus::sym("m");
+
+    auto x_ddot = spring_damper_acceleration(x, x_dot, k, c, F, m);
+
+    janus::Function f("spring_damper", {x, x_dot, k, c, F, m}, {x_ddot});
+
+    auto result = f({0.5, 0.2, 100.0, 10.0, 20.0, 5.0});
+
+    double x_ddot_num =
+        spring_damper_acceleration(0.5, 0.2, 100.0, 10.0, 20.0, 5.0);
+    EXPECT_NEAR(result[0](0, 0), x_ddot_num, 1e-12);
+}
+
+TEST(OscillatorSymbolicTest, Energy) {
+    auto x = janus::sym("x");
+    auto x_dot = janus::sym("x_dot");
+    auto omega_n = janus::sym("omega_n");
+    auto mass = janus::sym("m");
+
+    auto E = oscillator_energy(x, x_dot, omega_n, mass);
+
+    janus::Function f("oscillator_energy", {x, x_dot, omega_n, mass}, {E});
+
+    auto result = f({0.5, 1.0, 2.0, 2.0});
+
+    double E_num = oscillator_energy(0.5, 1.0, 2.0, 2.0);
+    EXPECT_NEAR(result[0](0, 0), E_num, 1e-12);
+}
+
 } // namespace vulcan::dynamics

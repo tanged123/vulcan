@@ -249,4 +249,64 @@ TEST(RailReactionTest, Basic) {
     EXPECT_NEAR(reaction(2), -30.0, 1e-12);
 }
 
+// =============================================================================
+// Symbolic Tests
+// =============================================================================
+
+TEST(RailSymbolicTest, Direction) {
+    auto az = janus::sym("az");
+    auto el = janus::sym("el");
+
+    auto dir = rail_direction_ned(az, el);
+
+    janus::Function f("rail_dir", {az, el}, {dir(0), dir(1), dir(2)});
+
+    auto result = f({M_PI / 4, M_PI / 6});
+
+    auto dir_num = rail_direction_ned(M_PI / 4, M_PI / 6);
+    EXPECT_NEAR(result[0](0, 0), dir_num(0), 1e-10);
+    EXPECT_NEAR(result[1](0, 0), dir_num(1), 1e-10);
+    EXPECT_NEAR(result[2](0, 0), dir_num(2), 1e-10);
+}
+
+TEST(RailSymbolicTest, Acceleration) {
+    auto s_dot = janus::sym("s_dot");
+    auto F_along = janus::sym("F_along");
+    auto F_perp = janus::sym("F_perp");
+    auto mass = janus::sym("m");
+    auto gravity = janus::sym("g");
+    auto elevation = janus::sym("el");
+    auto friction = janus::sym("mu");
+
+    auto accel = rail_acceleration(s_dot, F_along, F_perp, mass, gravity,
+                                   elevation, friction);
+
+    janus::Function f(
+        "rail_accel",
+        {s_dot, F_along, F_perp, mass, gravity, elevation, friction}, {accel});
+
+    auto result = f({0.0, 1000.0, 500.0, 100.0, 10.0, M_PI / 6, 0.1});
+
+    double accel_num =
+        rail_acceleration(0.0, 1000.0, 500.0, 100.0, 10.0, M_PI / 6, 0.1);
+    EXPECT_NEAR(result[0](0, 0), accel_num, 1e-10);
+}
+
+TEST(RailSymbolicTest, Attitude) {
+    auto az = janus::sym("az");
+    auto el = janus::sym("el");
+
+    auto q = rail_aligned_attitude(az, el);
+
+    janus::Function f("rail_attitude", {az, el}, {q.w, q.x, q.y, q.z});
+
+    auto result = f({0.0, M_PI / 4});
+
+    auto q_num = rail_aligned_attitude(0.0, M_PI / 4);
+    EXPECT_NEAR(result[0](0, 0), q_num.w, 1e-10);
+    EXPECT_NEAR(result[1](0, 0), q_num.x, 1e-10);
+    EXPECT_NEAR(result[2](0, 0), q_num.y, 1e-10);
+    EXPECT_NEAR(result[3](0, 0), q_num.z, 1e-10);
+}
+
 } // namespace vulcan::dynamics
