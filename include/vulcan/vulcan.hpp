@@ -9,6 +9,7 @@
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/core/TableInterpolator.hpp>
 #include <vulcan/core/Units.hpp>
+#include <vulcan/core/VulcanError.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 
 // Atmospheric models
