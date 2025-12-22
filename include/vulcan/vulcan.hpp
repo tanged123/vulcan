@@ -76,3 +76,6 @@
 
 // Environment utilities (space environment)
 #include <vulcan/environment/Environment.hpp>
+
+// Transfer functions (first/second order, discretization, nonlinear)
+#include <vulcan/transfer_functions/TransferFunctions.hpp>
