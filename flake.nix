@@ -71,6 +71,7 @@
               cmake
               ninja
               pkg-config
+              ccache # For compiler caching
               eigen
               casadi
               hdf5
