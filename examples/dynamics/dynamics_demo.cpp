@@ -1,180 +1,164 @@
 // Vulcan Dynamics Demo
-// Demonstrates 6DOF rigid body dynamics for trajectory simulation
-#include <vulcan/vulcan.hpp>
+// Showcases usage of 3-DOF, Pseudo-5DOF, and 6-DOF dynamics models
+// Includes both numeric execution and symbolic graph generation
+
+#include <janus/janus.hpp>
+#include <vulcan/core/Constants.hpp>
+#include <vulcan/core/VulcanTypes.hpp>
+#include <vulcan/dynamics/Dynamics.hpp> // Aggregate header
 
 #include <iomanip>
 #include <iostream>
+#include <vector>
 
-using namespace vulcan;
 using namespace vulcan::dynamics;
+using namespace vulcan;
 
-void print_header(const std::string &title) {
-    std::cout << "\n" << std::string(60, '=') << "\n";
-    std::cout << title << "\n";
-    std::cout << std::string(60, '=') << "\n";
+// =============================================================================
+// 1. 3-DOF Point Mass Example (Numeric)
+// =============================================================================
+void run_3dof_numeric() {
+    std::cout << "\n=== 3-DOF Point Mass (Numeric) ===\n";
+
+    // Initial state (ECEF)
+    Vec3<double> r_ecef{constants::earth::R_eq + 400000.0, 0.0,
+                        0.0};              // 400km alt
+    Vec3<double> v_ecef{0.0, 7670.0, 0.0}; // Orbital velocity
+    double mass = 1000.0;
+
+    // Forces (Body frame)
+    Vec3<double> thrust_body{2000.0, 0.0, 0.0}; // Small maneuvers
+
+    // Transform force to ECEF (assuming aligned with velocity for simplicity)
+    Vec3<double> v_hat = velocity_direction(v_ecef);
+    Vec3<double> f_ecef = thrust_body(0) * v_hat; // Thrust along velocity
+
+    // Gravity
+    double mu = constants::earth::mu;
+    Vec3<double> a_grav = -mu * r_ecef / std::pow(r_ecef.norm(), 3);
+    Vec3<double> f_grav = mass * a_grav;
+
+    // Environment
+    Vec3<double> omega_earth{0.0, 0.0, constants::earth::omega};
+
+    // Compute acceleration
+    Vec3<double> accel = point_mass_acceleration_ecef(
+        r_ecef, v_ecef, Vec3<double>(f_ecef + f_grav), mass, omega_earth);
+
+    std::cout << "Position: " << r_ecef.transpose() << " m\n";
+    std::cout << "Velocity: " << v_ecef.transpose() << " m/s\n";
+    std::cout << "Accel:    " << accel.transpose() << " m/s²\n";
+
+    // Derived quantities
+    std::cout << "Speed:    " << speed(v_ecef) << " m/s\n";
+    std::cout << "Energy:   " << specific_energy(r_ecef, v_ecef, mu) / 1e6
+              << " MJ/kg\n";
 }
 
-// Example 1: Free-falling rotating body simulation
-void free_fall_rotation_demo() {
-    print_header("Free-Falling Rotating Body");
+// =============================================================================
+// 2. Pseudo-5DOF Guided Vehicle (Symbolic)
+// =============================================================================
+void run_5dof_symbolic() {
+    std::cout << "\n=== Pseudo-5DOF Guided (Symbolic) ===\n";
+    using MX = casadi::MX;
 
-    // Define mass properties (cylindrical body)
-    double mass = 100.0;         // 100 kg
-    double Ixx = 5.0, Iyy = 5.0; // Symmetric about Z
-    double Izz = 10.0;           // Spin axis
-    auto mass_props = MassProperties<double>::diagonal(mass, Ixx, Iyy, Izz);
+    // Symbolic inputs
+    auto thrust = MX::sym("thrust");
+    auto drag = MX::sym("drag");
+    auto lift = MX::sym("lift");
+    auto mass = MX::sym("mass");
 
-    // Initial state: 1000m altitude, moving at 50 m/s in body X, spinning
-    RigidBodyState<double> state{
-        .position = Vec3<double>{0.0, 0.0, 1000.0},    // 1000m up
-        .velocity_body = Vec3<double>{50.0, 0.0, 0.0}, // 50 m/s forward
-        .attitude = janus::Quaternion<double>(),       // Identity
-        .omega_body = Vec3<double>{0.0, 0.0, 1.0}      // 1 rad/s spin
-    };
+    // Flight state
+    auto gamma = MX::sym("gamma"); // Flight path angle
+    auto chi = MX::sym("chi");     // Heading
+    auto phi = MX::sym("phi");     // Bank angle
+    auto velocity = MX::sym("v");
 
-    // Gravity in reference frame (pointing down)
-    Vec3<double> gravity_ref{0.0, 0.0, -9.81};
+    // Compute dynamics (Bank-to-Turn)
+    // 1. Velocity derivative
+    auto v_dot =
+        velocity_dot_btt(thrust, drag, lift, mass, MX(9.81), gamma, chi, phi);
 
-    std::cout << std::fixed << std::setprecision(4);
-    std::cout << "Initial state:\n";
-    std::cout << "  Position: [" << state.position.transpose() << "] m\n";
-    std::cout << "  Velocity (body): [" << state.velocity_body.transpose()
-              << "] m/s\n";
-    std::cout << "  Omega (body): [" << state.omega_body.transpose()
-              << "] rad/s\n\n";
+    // 2. Flight path rate
+    auto weight = mass * 9.81;
+    auto g_dot = gamma_dot(lift, weight, mass, velocity, gamma, phi);
 
-    // Simple Euler integration for demo
-    double dt = 0.01;
-    for (int i = 0; i < 100; ++i) {
-        // Transform gravity to body frame
-        Vec3<double> gravity_body =
-            velocity_to_body_frame(gravity_ref, state.attitude);
-        Vec3<double> force_body = gravity_body * mass;
-        Vec3<double> moment_body = Vec3<double>::Zero(); // No torque
+    // 3. Heading rate
+    auto c_dot = chi_dot_btt(lift, mass, velocity, gamma, phi);
 
-        // Compute derivatives
-        auto derivs = compute_6dof_derivatives(state, force_body, moment_body,
-                                               mass_props);
+    // Create Janus Function
+    janus::Function f_dyn("guided_5dof",
+                          {thrust, drag, lift, mass, velocity, gamma, chi, phi},
+                          {v_dot, g_dot, c_dot});
 
-        // Euler step
-        state.position += derivs.position_dot * dt;
-        state.velocity_body += derivs.velocity_dot * dt;
-        state.attitude = janus::Quaternion<double>(
-            state.attitude.w + derivs.attitude_dot.w * dt,
-            state.attitude.x + derivs.attitude_dot.x * dt,
-            state.attitude.y + derivs.attitude_dot.y * dt,
-            state.attitude.z + derivs.attitude_dot.z * dt);
-        state.attitude = state.attitude.normalized();
-        state.omega_body += derivs.omega_dot * dt;
-    }
+    std::cout << "Generated symbolic graph for 5-DOF dynamics.\n";
 
-    std::cout << "After 1 second (100 steps):\n";
-    std::cout << "  Position: [" << state.position.transpose() << "] m\n";
-    std::cout << "  Velocity (body): [" << state.velocity_body.transpose()
-              << "] m/s\n";
-    std::cout << "  Omega (body): [" << state.omega_body.transpose()
-              << "] rad/s\n";
-    std::cout << "  Altitude drop: " << (1000.0 - state.position(2))
-              << " m (expected ~4.9m from 0.5*g*t^2)\n";
+    // Evaluate with concrete values
+    // 5000N thrust, 1000N drag, 10000N lift (turning), 1000kg, 200m/s, level
+    // flight, 45 deg bank
+    std::vector<double> args = {5000.0, 1000.0, 10000.0, 1000.0,
+                                200.0,  0.0,    0.0,     M_PI / 4};
+    auto res = f_dyn(args);
+
+    std::cout << "Inputs: T=5kN, D=1kN, L=10kN, m=1t, V=200m/s, Bank=45°\n";
+    std::cout << "V_dot (NED): " << res[0]
+              << "\n"; // Expect forward accel + gravity
+    std::cout << "Gamma_dot:   " << res[1] << " rad/s\n";
+    std::cout << "Chi_dot:     " << res[2] << " rad/s\n";
+
+    // Export graph visualization (if needed)
+    // f_dyn.export_graph("guided_5dof.html");
 }
 
-// Example 2: Euler's equations - torque-free motion of asymmetric body
-void torque_free_motion_demo() {
-    print_header("Torque-Free Asymmetric Body");
+// =============================================================================
+// 3. Rigid Body 6-DOF (Numeric)
+// =============================================================================
+void run_6dof_numeric() {
+    std::cout << "\n=== Rigid Body 6-DOF (Numeric) ===\n";
 
-    // Asymmetric inertia tensor (tumbling motion)
-    double Ixx = 2.0, Iyy = 3.0, Izz = 4.0;
-    Mat3<double> I = Mat3<double>::Zero();
-    I(0, 0) = Ixx;
-    I(1, 1) = Iyy;
-    I(2, 2) = Izz;
+    // Mass Properties (Cylinder: L=5m, R=0.5m, m=1000kg)
+    double m = 1000.0;
+    double r = 0.5;
+    double h = 5.0;
+    double I_axial = 0.5 * m * r * r;                        // X-axis
+    double I_trans = (1.0 / 12.0) * m * (3 * r * r + h * h); // Y/Z axes
+    auto props = MassProperties<double>::diagonal(m, I_axial, I_trans, I_trans);
 
-    // Initial spin
-    Vec3<double> omega{1.0, 0.5, 0.1};
-    Vec3<double> moment = Vec3<double>::Zero();
+    // Initial state
+    RigidBodyState<double> state;
+    state.position = Vec3<double>{0, 0, -1000};    // 1km altitude
+    state.velocity_body = Vec3<double>{100, 0, 0}; // 100 m/s forward
+    state.attitude = janus::Quaternion<double>();
+    state.omega_body = Vec3<double>{1.0, 0, 0}; // Spinning 1 rad/s roll
 
-    // Compute angular momentum (conserved)
-    Vec3<double> H_initial = I * omega;
-    double L_initial = H_initial.norm();
+    // Forces/Moments
+    Vec3<double> force_body{5000, 0, 0}; // 5kN Thrust
+    Vec3<double> moment_body{0, 100, 0}; // Small pitch moment
 
-    std::cout << std::fixed << std::setprecision(6);
-    std::cout << "Inertia: Ixx=" << Ixx << ", Iyy=" << Iyy << ", Izz=" << Izz
+    // Compute derivatives
+    auto derivs =
+        compute_6dof_derivatives(state, force_body, moment_body, props);
+
+    std::cout << "Pos Dot (NED):  " << derivs.position_dot.transpose() << "\n";
+    std::cout << "Vel Dot (Body): " << derivs.velocity_dot.transpose() << "\n";
+    std::cout << "Omega Dot:      " << derivs.omega_dot.transpose() << "\n";
+    std::cout << "Quat Dot:       " << derivs.attitude_dot.coeffs().transpose()
               << "\n";
-    std::cout << "Initial omega: [" << omega.transpose() << "]\n";
-    std::cout << "Angular momentum magnitude: " << L_initial
-              << " (conserved)\n\n";
-
-    // Integrate for 10 seconds
-    double dt = 0.001;
-    for (int i = 0; i < 10000; ++i) {
-        auto omega_dot = rotational_dynamics(omega, moment, I);
-        omega += omega_dot * dt;
-    }
-
-    // Check conservation
-    Vec3<double> H_final = I * omega;
-    double L_final = H_final.norm();
-
-    std::cout << "After 10 seconds:\n";
-    std::cout << "  Omega: [" << omega.transpose() << "]\n";
-    std::cout << "  Angular momentum: " << L_final << "\n";
-    std::cout << "  Conservation error: " << std::abs(L_final - L_initial)
-              << " (should be ~0)\n";
-}
-
-// Example 3: ECEF dynamics with Coriolis/centrifugal
-void ecef_dynamics_demo() {
-    print_header("ECEF Dynamics (Coriolis/Centrifugal)");
-
-    // Earth parameters
-    constexpr double omega_e = 7.2921159e-5; // rad/s
-    constexpr double R_earth = 6.371e6;      // m
-
-    Vec3<double> omega_earth{0.0, 0.0, omega_e};
-
-    // Object at equator, moving eastward at 100 m/s
-    Vec3<double> position{R_earth, 0.0, 0.0}; // On equator
-    Vec3<double> velocity{0.0, 100.0, 0.0};   // Eastward
-    Vec3<double> force = Vec3<double>::Zero();
-    double mass = 1.0;
-
-    auto a_ecef = translational_dynamics_ecef(position, velocity, force, mass,
-                                              omega_earth);
-
-    std::cout << std::scientific << std::setprecision(4);
-    std::cout << "Position: equator, altitude 0\n";
-    std::cout << "Velocity: 100 m/s eastward\n\n";
-
-    std::cout << "Fictitious accelerations (ECEF frame):\n";
-    std::cout << "  a_x (radial): " << a_ecef(0) << " m/s²\n";
-    std::cout << "  a_y (eastward): " << a_ecef(1) << " m/s²\n";
-    std::cout << "  a_z (polar): " << a_ecef(2) << " m/s²\n\n";
-
-    // Break down components
-    double coriolis_x = 2.0 * omega_e * velocity(1);
-    double centrifugal_x = omega_e * omega_e * position(0);
-
-    std::cout << "Component breakdown:\n";
-    std::cout << "  Coriolis (2*omega*v): " << coriolis_x
-              << " m/s² (outward)\n";
-    std::cout << "  Centrifugal (omega²*r): " << centrifugal_x
-              << " m/s² (outward)\n";
 }
 
 int main() {
-    std::cout << "Vulcan Rigid Body Dynamics Demo\n";
-    std::cout << "================================\n";
-    std::cout << "Demonstrating 6DOF equations of motion for\n";
-    std::cout << "trajectory simulation and optimization.\n";
+    try {
+        std::cout << "Vulcan Dynamics Examples\n";
+        std::cout << "========================\n";
 
-    free_fall_rotation_demo();
-    torque_free_motion_demo();
-    ecef_dynamics_demo();
+        run_3dof_numeric();
+        run_5dof_symbolic();
+        run_6dof_numeric();
 
-    print_header("Demo Complete");
-    std::cout << "All dynamics functions support both numeric (double)\n";
-    std::cout
-        << "and symbolic (casadi::MX) types for trajectory optimization.\n";
-
+        std::cout << "\nDemo completed successfully.\n";
+    } catch (const std::exception &e) {
+        std::cerr << "Error: " << e.what() << "\n";
+        return 1;
+    }
     return 0;
 }
