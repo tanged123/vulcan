@@ -89,3 +89,13 @@ add_executable(test_rng
 target_link_libraries(test_rng PRIVATE vulcan GTest::gtest_main)
 gtest_discover_tests(test_rng)
 
+# I/O tests
+add_executable(test_io
+    io/test_telemetry_schema.cpp
+    io/test_frame.cpp
+    io/test_frame_serializer.cpp
+    io/test_hdf5_roundtrip.cpp
+    io/test_csv_export.cpp
+)
+target_link_libraries(test_io PRIVATE vulcan GTest::gtest_main)
+gtest_discover_tests(test_io)
