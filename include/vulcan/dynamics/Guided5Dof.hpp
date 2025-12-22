@@ -106,7 +106,8 @@ Vec3<Scalar> lift_direction_btt(const Scalar &gamma, const Scalar &chi,
     Vec3<Scalar> up_v{sin_gamma * cos_chi, sin_gamma * sin_chi, cos_gamma};
 
     // "Right" direction (perpendicular to velocity, horizontal)
-    Vec3<Scalar> right_v{sin_chi, -cos_chi, Scalar(0)};
+    // When chi=0 (North), right = East = (0, 1, 0)
+    Vec3<Scalar> right_v{-sin_chi, cos_chi, Scalar(0)};
 
     // Lift direction rotated by bank angle
     return cos_phi * up_v + sin_phi * right_v;

@@ -138,6 +138,13 @@ target_link_libraries(dynamics_demo PRIVATE vulcan)
 target_precompile_headers(dynamics_demo REUSE_FROM getting_started)
 
 # =============================================================================
+# Mass Properties Examples
+# =============================================================================
+add_executable(mass_properties_demo mass/mass_properties_demo.cpp)
+target_link_libraries(mass_properties_demo PRIVATE vulcan)
+target_precompile_headers(mass_properties_demo REUSE_FROM getting_started)
+
+# =============================================================================
 # Integration with Janus Optimization
 # =============================================================================
 # add_executable(trajectory_opt integration/trajectory_optimization.cpp)

@@ -80,6 +80,9 @@
 // Transfer functions (first/second order, discretization, nonlinear)
 #include <vulcan/transfer_functions/TransferFunctions.hpp>
 
+// Mass properties
+#include <vulcan/mass/Mass.hpp>
+
 // Rigid body dynamics
 #include <vulcan/dynamics/Dynamics.hpp>
 

@@ -10,3 +10,4 @@
 #include <vulcan/dynamics/RigidBody.hpp>
 #include <vulcan/dynamics/RigidBodyTypes.hpp>
 #include <vulcan/dynamics/Slosh.hpp>
+#include <vulcan/mass/MassProperties.hpp>
