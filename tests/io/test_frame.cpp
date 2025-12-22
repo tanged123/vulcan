@@ -125,3 +125,90 @@ TEST_F(FrameTest, RawBufferAccess) {
     std::memcpy(&pos_x, data + schema_.offset("position.x"), sizeof(double));
     EXPECT_DOUBLE_EQ(pos_x, 1.0);
 }
+
+// =============================================================================
+// Int64 Signals
+// =============================================================================
+
+class FrameInt64Test : public ::testing::Test {
+  protected:
+    void SetUp() override {
+        schema_.add_int64("timestamp", SignalLifecycle::Static)
+            .add_int64("counter", SignalLifecycle::Dynamic)
+            .add_double("value");
+    }
+
+    TelemetrySchema schema_;
+};
+
+TEST_F(FrameInt64Test, SetGetInt64) {
+    Frame frame(schema_);
+    frame.set("timestamp", int64_t{1234567890123456789LL});
+    EXPECT_EQ(frame.get_int64("timestamp"), 1234567890123456789LL);
+}
+
+TEST_F(FrameInt64Test, Int64LargeValues) {
+    Frame frame(schema_);
+
+    // Test max int64
+    frame.set("counter", std::numeric_limits<int64_t>::max());
+    EXPECT_EQ(frame.get_int64("counter"), std::numeric_limits<int64_t>::max());
+
+    // Test min int64
+    frame.set("counter", std::numeric_limits<int64_t>::min());
+    EXPECT_EQ(frame.get_int64("counter"), std::numeric_limits<int64_t>::min());
+}
+
+TEST_F(FrameInt64Test, Int64TypeMismatchThrows) {
+    Frame frame(schema_);
+
+    // Try to set int64 signal with double
+    EXPECT_THROW(frame.set("timestamp", 1.0), std::runtime_error);
+
+    // Try to set int64 signal with int32
+    EXPECT_THROW(frame.set("timestamp", int32_t{100}), std::runtime_error);
+
+    // Try to get double as int64
+    frame.set("value", 1.0);
+    EXPECT_THROW(frame.get_int64("value"), std::runtime_error);
+
+    // Try to get int64 as double
+    frame.set("timestamp", int64_t{100});
+    EXPECT_THROW(frame.get_double("timestamp"), std::runtime_error);
+
+    // Try to get int64 as int32
+    EXPECT_THROW(frame.get_int32("timestamp"), std::runtime_error);
+}
+
+// =============================================================================
+// Additional Error Paths
+// =============================================================================
+
+TEST_F(FrameTest, GetInt32FromDoubleThrows) {
+    Frame frame(schema_);
+    frame.set("mass", 100.0);
+    EXPECT_THROW(frame.get_int32("mass"), std::runtime_error);
+}
+
+TEST_F(FrameTest, SetInt32ToDoubleThrows) {
+    Frame frame(schema_);
+    EXPECT_THROW(frame.set("mass", int32_t{100}), std::runtime_error);
+}
+
+TEST_F(FrameTest, GetDoubleFromInt32Throws) {
+    Frame frame(schema_);
+    frame.set("phase", int32_t{1});
+    EXPECT_THROW(frame.get_double("phase"), std::runtime_error);
+}
+
+TEST_F(FrameTest, SetDoubleToInt32Throws) {
+    Frame frame(schema_);
+    EXPECT_THROW(frame.set("phase", 1.0), std::runtime_error);
+}
+
+TEST_F(FrameTest, GetNonexistentSignalThrows) {
+    Frame frame(schema_);
+    EXPECT_THROW(frame.get_double("nonexistent"), std::runtime_error);
+    EXPECT_THROW(frame.get_int32("nonexistent"), std::runtime_error);
+    EXPECT_THROW(frame.get_int64("nonexistent"), std::runtime_error);
+}

@@ -149,3 +149,37 @@ TEST_F(CSVExportTest, Precision) {
     // With precision=3, we shouldn't see many decimal places
     EXPECT_FALSE(output.empty());
 }
+
+// =============================================================================
+// Error Paths
+// =============================================================================
+
+TEST_F(CSVExportTest, InvalidOutputFileThrows) {
+    // Try to write to an invalid path
+    EXPECT_THROW(export_to_csv(hdf5_file_, "/nonexistent/path/file.csv"),
+                 std::runtime_error);
+}
+
+TEST_F(CSVExportTest, EmptyHDF5File) {
+    // Create an empty HDF5 file (0 frames)
+    TelemetrySchema schema;
+    schema.add_double("value");
+
+    auto empty_hdf5 = std::filesystem::temp_directory_path() /
+                      ("test_csv_empty_" + std::to_string(std::rand()) + ".h5");
+
+    {
+        HDF5Writer writer(empty_hdf5.string(), schema);
+        // Don't write any frames
+    }
+
+    // Export should handle empty file gracefully
+    std::stringstream ss;
+    HDF5Reader reader(empty_hdf5.string());
+    EXPECT_NO_THROW(export_to_csv(reader, ss));
+
+    // Output should be empty (no data to export)
+    EXPECT_TRUE(ss.str().empty());
+
+    std::filesystem::remove(empty_hdf5);
+}

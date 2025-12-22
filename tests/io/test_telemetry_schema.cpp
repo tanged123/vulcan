@@ -161,3 +161,49 @@ TEST(TelemetrySchema, ToJsonContainsSignals) {
     EXPECT_TRUE(json.find("\"int32\"") != std::string::npos);
     EXPECT_TRUE(json.find("\"static\"") != std::string::npos);
 }
+
+TEST(TelemetrySchema, ToJsonContainsInt64) {
+    TelemetrySchema schema;
+    schema.add_int64("timestamp", SignalLifecycle::Static);
+
+    std::string json = schema.to_json();
+
+    EXPECT_TRUE(json.find("\"timestamp\"") != std::string::npos);
+    EXPECT_TRUE(json.find("\"int64\"") != std::string::npos);
+}
+
+TEST(TelemetrySchema, IndexLookup) {
+    TelemetrySchema schema;
+    schema.add_double("a").add_double("b").add_double("c");
+
+    EXPECT_EQ(schema.index("a"), 0);
+    EXPECT_EQ(schema.index("b"), 1);
+    EXPECT_EQ(schema.index("c"), 2);
+}
+
+TEST(TelemetrySchema, IndexLookupThrows) {
+    TelemetrySchema schema;
+    schema.add_double("a");
+
+    EXPECT_THROW(schema.index("nonexistent"), std::runtime_error);
+}
+
+TEST(TelemetrySchema, SignalNames) {
+    TelemetrySchema schema;
+    schema.add_double("altitude").add_int32("phase").add_int64("timestamp");
+
+    auto names = schema.signal_names();
+
+    EXPECT_EQ(names.size(), 3);
+    EXPECT_EQ(names[0], "altitude");
+    EXPECT_EQ(names[1], "phase");
+    EXPECT_EQ(names[2], "timestamp");
+}
+
+TEST(TelemetrySchema, Int64FrameSize) {
+    TelemetrySchema schema;
+    schema.add_int64("timestamp").add_int64("counter");
+
+    EXPECT_EQ(schema.frame_size_bytes(), 16);
+    EXPECT_EQ(schema.signal("timestamp").size_bytes(), 8);
+}
