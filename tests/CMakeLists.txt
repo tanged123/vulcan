@@ -144,6 +144,14 @@ target_link_libraries(test_geodetic_utils PRIVATE vulcan GTest::gtest_main)
 target_precompile_headers(test_geodetic_utils REUSE_FROM test_core)
 gtest_discover_tests(test_geodetic_utils)
 
+# Geometry primitives tests
+add_executable(test_geometry
+    geometry/test_geometry.cpp
+)
+target_link_libraries(test_geometry PRIVATE vulcan GTest::gtest_main)
+target_precompile_headers(test_geometry REUSE_FROM test_core)
+gtest_discover_tests(test_geometry)
+
 # Orbital mechanics tests
 add_executable(test_orbital
     orbital/test_orbital_quantities.cpp

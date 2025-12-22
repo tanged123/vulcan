@@ -30,6 +30,9 @@
 // Geodetic utilities
 #include <vulcan/geodetic/GeodesicUtils.hpp>
 
+// Geometry primitives
+#include <vulcan/geometry/Geometry.hpp>
+
 // Time systems
 #include <vulcan/time/Time.hpp>
 

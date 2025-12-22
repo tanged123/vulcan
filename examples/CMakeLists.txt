@@ -92,6 +92,13 @@ target_link_libraries(geodetic_demo PRIVATE vulcan)
 target_precompile_headers(geodetic_demo REUSE_FROM getting_started)
 
 # =============================================================================
+# Geometry Examples
+# =============================================================================
+add_executable(geometry_demo geometry/geometry_demo.cpp)
+target_link_libraries(geometry_demo PRIVATE vulcan)
+target_precompile_headers(geometry_demo REUSE_FROM getting_started)
+
+# =============================================================================
 # Orbital Mechanics Examples
 # =============================================================================
 add_executable(orbital_demo orbital/orbital_demo.cpp)
