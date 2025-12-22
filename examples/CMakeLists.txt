@@ -131,9 +131,15 @@ target_link_libraries(estimation_demo PRIVATE vulcan)
 target_precompile_headers(estimation_demo REUSE_FROM getting_started)
 
 # =============================================================================
+# Rigid Body Dynamics Examples
+# =============================================================================
+add_executable(dynamics_demo dynamics/dynamics_demo.cpp)
+target_link_libraries(dynamics_demo PRIVATE vulcan)
+target_precompile_headers(dynamics_demo REUSE_FROM getting_started)
+
+# =============================================================================
 # Integration with Janus Optimization
 # =============================================================================
 # add_executable(trajectory_opt integration/trajectory_optimization.cpp)
 # target_link_libraries(trajectory_opt PRIVATE vulcan)
-
 

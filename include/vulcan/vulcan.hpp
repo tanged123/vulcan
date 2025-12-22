@@ -80,5 +80,8 @@
 // Transfer functions (first/second order, discretization, nonlinear)
 #include <vulcan/transfer_functions/TransferFunctions.hpp>
 
+// Rigid body dynamics
+#include <vulcan/dynamics/Dynamics.hpp>
+
 // State estimation (Kalman filters)
 #include <vulcan/estimation/Estimation.hpp>

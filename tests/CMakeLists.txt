@@ -197,4 +197,15 @@ target_link_libraries(test_estimation PRIVATE vulcan GTest::gtest_main)
 target_precompile_headers(test_estimation REUSE_FROM test_core)
 gtest_discover_tests(test_estimation)
 
+# Rigid body dynamics tests
+add_executable(test_dynamics
+    dynamics/test_rigid_body.cpp
+    dynamics/test_oscillator_1dof.cpp
+    dynamics/test_rail_launch.cpp
+    dynamics/test_planar_2dof.cpp
+    dynamics/test_slosh.cpp
+)
+target_link_libraries(test_dynamics PRIVATE vulcan GTest::gtest_main)
+target_precompile_headers(test_dynamics REUSE_FROM test_core)
+gtest_discover_tests(test_dynamics)
 

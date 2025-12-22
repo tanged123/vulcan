@@ -146,6 +146,94 @@ local_enu_at(const Vec3<Scalar> &r_ecef,
 }
 
 // =============================================================================
+// Rail Launch Frame
+// =============================================================================
+
+/// Create Rail Launch frame at a given position
+///
+/// Rail-aligned coordinate frame for launch dynamics:
+/// - X-axis: Along rail (uprange direction, toward launch)
+/// - Y-axis: Horizontal, perpendicular to rail (right when facing uprange)
+/// - Z-axis: Completes right-hand system (normal to launch plane)
+///
+/// Constructed by rotating local NED frame:
+/// 1. Yaw by azimuth (rotation about NED Down axis)
+/// 2. Pitch by elevation (rotation about the new East axis)
+///
+/// @tparam Scalar Scalar type (double for numeric, SymbolicScalar for symbolic)
+/// @param lla_origin Launch site geodetic position
+/// @param azimuth Launch azimuth from North [rad], clockwise
+/// @param elevation Rail elevation angle from horizontal [rad]
+/// @param m Earth model (default: WGS84)
+/// @return Rail frame expressed in ECEF
+template <typename Scalar>
+CoordinateFrame<Scalar>
+local_rail(const LLA<Scalar> &lla_origin, const Scalar &azimuth,
+           const Scalar &elevation,
+           [[maybe_unused]] const EarthModel &m = EarthModel::WGS84()) {
+    // Start with NED axes at origin
+    const Scalar sin_lat = janus::sin(lla_origin.lat);
+    const Scalar cos_lat = janus::cos(lla_origin.lat);
+    const Scalar sin_lon = janus::sin(lla_origin.lon);
+    const Scalar cos_lon = janus::cos(lla_origin.lon);
+
+    // NED basis vectors in ECEF
+    Vec3<Scalar> north;
+    north << -sin_lat * cos_lon, -sin_lat * sin_lon, cos_lat;
+
+    Vec3<Scalar> east;
+    east << -sin_lon, cos_lon, Scalar(0);
+
+    Vec3<Scalar> down;
+    down << -cos_lat * cos_lon, -cos_lat * sin_lon, -sin_lat;
+
+    // Trig for azimuth and elevation
+    const Scalar sin_az = janus::sin(azimuth);
+    const Scalar cos_az = janus::cos(azimuth);
+    const Scalar sin_el = janus::sin(elevation);
+    const Scalar cos_el = janus::cos(elevation);
+
+    // Step 1: Rotate by azimuth in horizontal plane
+    // Horizontal forward direction = cos(az)*North + sin(az)*East
+    Vec3<Scalar> horiz_fwd = cos_az * north + sin_az * east;
+
+    // Horizontal right direction = -sin(az)*North + cos(az)*East
+    Vec3<Scalar> horiz_right = -sin_az * north + cos_az * east;
+
+    // Step 2: Pitch up by elevation
+    // Rail X-axis: cos(el)*horiz_fwd - sin(el)*down (up is -down)
+    Vec3<Scalar> rail_x = cos_el * horiz_fwd - sin_el * down;
+
+    // Rail Y-axis: remains horiz_right (perpendicular to pitch rotation)
+    Vec3<Scalar> rail_y = horiz_right;
+
+    // Rail Z-axis: sin(el)*horiz_fwd + cos(el)*down
+    Vec3<Scalar> rail_z = sin_el * horiz_fwd + cos_el * down;
+
+    return CoordinateFrame<Scalar>(rail_x, rail_y, rail_z,
+                                   Vec3<Scalar>::Zero());
+}
+
+/// Create Rail Launch frame at a given ECEF position
+///
+/// Convenience overload that computes LLA from ECEF position.
+///
+/// @tparam Scalar Scalar type (double for numeric, SymbolicScalar for symbolic)
+/// @param r_ecef Position in ECEF [m]
+/// @param azimuth Launch azimuth from North [rad]
+/// @param elevation Rail elevation angle from horizontal [rad]
+/// @param m Earth model (default: WGS84)
+/// @return Rail frame expressed in ECEF
+template <typename Scalar>
+CoordinateFrame<Scalar>
+local_rail_at(const Vec3<Scalar> &r_ecef, const Scalar &azimuth,
+              const Scalar &elevation,
+              const EarthModel &m = EarthModel::WGS84()) {
+    LLA<Scalar> lla = ecef_to_lla(r_ecef, m);
+    return local_rail(lla, azimuth, elevation, m);
+}
+
+// =============================================================================
 // CDA Frame (Cross-range, Down-range, Altitude) — Trajectory-Relative
 // =============================================================================
 
