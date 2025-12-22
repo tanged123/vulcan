@@ -24,7 +24,8 @@ Vulcan is an aerospace engineering utilities library that provides model-agnosti
 - 🎮 **Transfer Functions**: Transfer functions (1st/2nd order), discretization, PID control
 - 📉 **Estimation**: Kalman Filter, EKF, UKF, estimation utilities
 - 🚀 **Propulsion**: Rocket, Electric, Air-breathing, Altitude-compensated thrust
-
+- 🎯 **Dynamics**: 6DOF rigid body, 5DOF guided, 3DOF point mass, 1/2DOF oscillators, fuel slosh, rail launch
+- ⚖️ **Mass Properties**: Aggregation, parallel axis theorem, shape primitives, validation
 - ⏱️ **Time Systems**: UTC, TAI, GPS, TT, TDB; Julian date conversions; leap seconds
 - 🔄 **Rotations**: Quaternions, DCMs, all 12 Euler sequences, axis-angle, SLERP
 - 🌌 **Environment**: Space environment constants, solar flux (placeholder)
@@ -88,16 +89,20 @@ vulcan/
 │   ├── aerodynamics/       # Aero calculations demo
 │   ├── atmosphere/         # Atmospheric model usage
 │   ├── coordinates/        # Coordinate frame transformations
+│   ├── dynamics/           # Dynamics demo
 │   ├── environment/        # Space environment
 │   ├── geodetic/           # Geodetic conversions
 │   ├── geometry/           # Geometric primitives
 │   ├── gravity/            # Gravity models demo
 │   ├── intro/              # Getting started
 │   ├── io/                 # HDF5 and telemetry I/O
+│   ├── mass/               # Mass properties, aggregation, inertia
 │   ├── orbital/            # Orbital mechanics & optimization
+│   ├── propulsion/         # Propulsion models demo
 │   ├── rotations/          # Rotation and attitude examples
 │   ├── sensors/            # Sensor noise simulation
 │   ├── time/               # Time systems and Julian dates
+│   ├── transfer_functions/ # Transfer functions demo
 │   └── wind/               # Wind model optimization
 ├── include/vulcan/
 │   ├── aerodynamics/       # Dynamic pressure, Mach, Reynolds, AoA
@@ -110,7 +115,8 @@ vulcan/
 │   ├── geometry/           # Geometric primitives
 │   ├── gravity/            # Point mass, J2/J4, spherical harmonics
 │   ├── io/                 # HDF5, CSV, Signal, Telemetry
-
+│   ├── dynamics/           # 6DOF, point mass, guided, oscillators, slosh
+│   ├── mass/               # Mass properties, aggregation, inertia
 │   ├── orbital/            # Keplerian, anomaly, ephemeris
 │   ├── propulsion/         # Rocket, electric, air-breathing
 │   ├── rng/                # Random number generation

@@ -12,6 +12,8 @@
 - **Orbital Mechanics**: Keplerian elements, propagators, anomaly conversions
 - **Aerodynamic Utilities**: Mach, dynamic pressure, Reynolds number
 - **Propulsion**: Rockets, electric, air-breathing, altitude compensation
+- **Dynamics**: 6DOF rigid body, 5DOF guided, 3DOF point mass, oscillators, fuel slosh, rail launch
+- **Mass Properties**: Aggregation, parallel axis theorem, shape primitives
 - **Control & Dynamics**: Transfer functions, PID, discretization
 - **Estimation**: Kalman Filters (Linear, EKF, UKF)
 - **Time Systems**: High-precision time conversions (TAI, UTC, GPS, TT, TDB)
@@ -38,6 +40,8 @@ vulcan/
 │   ├── core/           # Constants, Utils, Types
 │   ├── atmosphere/     # Atmospheric models
 │   ├── coordinates/    # Coordinate systems
+│   ├── dynamics/       # 6DOF, point mass, guided, oscillators, slosh
+│   ├── mass/           # Mass properties, aggregation, inertia
 │   ├── orbital/        # Orbital mechanics
 │   ├── gravity/        # Gravity models
 │   └── ...
@@ -79,6 +83,8 @@ These constraints ensure Janus compatibility:
 - **Geometry**: Basic primitives (Sphere, Cone, Cylinder)
 - **RNG**: Reproducible random number generation
 - **I/O**: HDF5, CSV, Telemetry support
+- **Dynamics**: 6DOF rigid body, 5DOF guided, 3DOF point mass, oscillators, slosh, rail launch
+- **Mass Properties**: Aggregation, parallel axis theorem, shape factories
 
 ### In Refinement 🚧
 
