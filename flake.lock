@@ -43,11 +43,11 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1766267954,
-        "narHash": "sha256-DSOe4ZebAGUJw9VADib0g78LgM1sb5ROmJFBcjiwhCo=",
+        "lastModified": 1766386856,
+        "narHash": "sha256-qNSs8Xb2mezpeH/VYt+3bsc8yTvAXtsKqgLvTlDt0pQ=",
         "owner": "tanged123",
         "repo": "janus",
-        "rev": "c9ddfbf42be332a4496a98f6d58233daadbb9f91",
+        "rev": "5d1d344b04f54f4cb895464346a93d20f2bc902a",
         "type": "github"
       },
       "original": {
