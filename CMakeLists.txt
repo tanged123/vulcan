@@ -63,8 +63,14 @@ install(
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/vulcan)
 
 # --- Testing ---
-enable_testing()
-add_subdirectory(tests)
+option(BUILD_TESTING "Build test suite" ON)
+if(BUILD_TESTING)
+  enable_testing()
+  add_subdirectory(tests)
+endif()
 
 # --- Examples ---
-add_subdirectory(examples)
+option(BUILD_EXAMPLES "Build examples" ON)
+if(BUILD_EXAMPLES)
+  add_subdirectory(examples)
+endif()
