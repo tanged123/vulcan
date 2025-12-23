@@ -99,6 +99,13 @@ target_link_libraries(geometry_demo PRIVATE vulcan)
 target_precompile_headers(geometry_demo REUSE_FROM getting_started)
 
 # =============================================================================
+# Interpolation Examples
+# =============================================================================
+add_executable(interpolation_demo interpolation/interpolation_demo.cpp)
+target_link_libraries(interpolation_demo PRIVATE vulcan)
+target_precompile_headers(interpolation_demo REUSE_FROM getting_started)
+
+# =============================================================================
 # Orbital Mechanics Examples
 # =============================================================================
 add_executable(orbital_demo orbital/orbital_demo.cpp)
