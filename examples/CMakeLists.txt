@@ -150,3 +150,7 @@ target_precompile_headers(mass_properties_demo REUSE_FROM getting_started)
 # add_executable(trajectory_opt integration/trajectory_optimization.cpp)
 # target_link_libraries(trajectory_opt PRIVATE vulcan)
 
+# =============================================================================
+# Comprehensive Demo Examples
+# =============================================================================
+add_subdirectory(comprehensive)

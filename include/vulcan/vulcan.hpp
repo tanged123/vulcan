@@ -71,6 +71,9 @@
 #include <vulcan/io/Signal.hpp>
 #include <vulcan/io/TelemetrySchema.hpp>
 
+// Propulsion
+#include <vulcan/propulsion/Rocket.hpp>
+
 // Orbital mechanics
 #include <vulcan/orbital/Orbital.hpp>
 
