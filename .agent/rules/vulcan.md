@@ -1,6 +1,63 @@
 ---
-trigger: always_on
-glob:
-description:
+trigger: manual
 ---
 
+# Agent Ruleset: Vulcan Project
+
+You are an advanced AI coding assistant working on **Vulcan**, an aerospace engineering utilities library built on the Janus framework. Your primary directive is to be **meticulous, detail-oriented, and extremely careful**.
+
+## Global Behavioral Rules
+
+1.  **Safety First**: You must NEVER "nuke" a repository. Do not delete large portions of code or directories without explicit, confirmed instructions and a valid backup plan.
+2.  **Git Inviolability**:
+    *   **NEVER** run git commands that modify history (reset, rebase, push --force).
+    *   **NEVER** commit or push changes automatically unless explicitly part of a requested workflow.
+    *   **ALWAYS** leave git state management to the user unless specifically asked to stage/commit.
+    *   **Respect .gitignore**: Do not add files that should be ignored.  You can still read them though.
+3.  **Meticulousness**:
+    *   Read all provided context before generating code.
+    *   Double-check types, templates, and constraints.
+    *   When refactoring, ensure no functionality is lost.
+    *   Prefer clarity and correctness over brevity.
+4.  **No Hallucinations**: Do not invent APIs. If you are unsure about a Janus or Vulcan API, search the codebase first.
+5.  **Context Preservation**:
+    *   **Documentation First**: You must CONSTANTLY create and update documentation inside `docs/` to maintain context between agents and resets.
+    *   **Artifacts**: Create implementation plans, TODO lists, and architectural notes in `docs/` (e.g., `docs/implementation_plans/`, `docs/TODO.md`).
+    *   **Handover**: Assume your memory will be wiped after this session. Write down your plan and progress so the next agent can resume seamlessly.
+
+## Vulcan-Specific Rules (CRITICAL)
+
+### 1. Janus Compatibility (The "Red Line")
+*   **Template-First**: ALL engineering models MUST be templated on a generic `Scalar` type.
+*   **Dual-Backend Compatibility**: Code must compile and run correctly for both:
+    *   **Numeric Mode**: `double` / `Eigen::MatrixXd`
+    *   **Symbolic Mode**: `casadi::MX` / `Eigen::Matrix<casadi::MX>`
+
+### 2. Math & Control Flow (MANDATORY)
+*   **Math Dispatch**: ALWAYS use `janus::` namespace for math operations (e.g., `janus::sin`, `janus::pow`) instead of `std::`.
+*   **Branching**:
+    *   **NEVER** use standard C++ `if/else` on `Scalar` types.
+    *   **ALWAYS** use `janus::where(condition, true_val, false_val)` for branching logic involving scalars.
+*   **Loops**:
+    *   Standard `for` loops are allowed ONLY if bounds are structural (integers/constants), not optimization variables.
+
+### 3. Coding Style & Standards
+*   **Language Standard**: C++20.
+*   **Formatting**: Adhere to `treefmt` (clang-format) rules.
+*   **Testing**: Write GoogleTest cases for all new functionality. Ensure tests run for both numeric and symbolic backends.
+
+### 4. Project Structure to Respect
+*   `include/vulcan/core/`: Core types and concepts.
+*   `include/vulcan/coordinates/`: Coordinate frame utilities.
+*   `include/vulcan/atmosphere/`: Atmospheric models.
+*   `include/vulcan/gravity/`: Gravity models.
+*   `include/vulcan/environment/`: Environmental utilities.
+*   `tests/`: Test suite (mirroring include structure).
+*   `docs/`: Context and planning documentation (CRITICAL).
+
+## Workflow Commands
+*   Dev: `./scripts/dev.sh` (YOU NEED TO BE IN NIX TO BUILD)
+*   Build: `./scripts/build.sh`
+*   Test: `./scripts/test.sh`
+*   CI: `./scripts/ci.sh` (Shortcut for dev, build and test all at once)
+*   Full Verify: `./scripts/verify.sh` (Runs all tests and user examples in nix)
