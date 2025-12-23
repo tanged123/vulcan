@@ -61,20 +61,25 @@ nix develop
 ```cpp
 #include <vulcan/vulcan.hpp>
 
-// Templated function works in both modes
+// 1. Pure Physics Model (State-Free)
 template <typename Scalar>
-Scalar air_density(const Scalar& altitude) {
-    return vulcan::standard_atmosphere::density(altitude);
+Scalar flight_loads(Scalar alt, Scalar vel) {
+    // Composition: Atmosphere + Aerodynamics modules
+    Scalar rho = vulcan::ussa1976::density(alt);
+    return vulcan::aero::dynamic_pressure(rho, vel);
 }
 
 int main() {
-    // Numeric mode
-    double rho = air_density(10000.0);  // 10 km
+    // 2. Numeric Mode (Simulation)
+    double q = flight_loads(10000.0, 500.0); 
     
-    // Symbolic mode
+    // 3. Symbolic Mode (Optimization)
     auto h = janus::sym("h");
-    auto rho_sym = air_density(h);
-    auto drho_dh = janus::jacobian(rho_sym, h);  // Automatic differentiation!
+    auto v = janus::sym("v");
+    auto q_sym = flight_loads(h, v);
+    
+    // Automatic differentiation
+    auto dq_dh = janus::jacobian(q_sym, h); 
 }
 ```
 
@@ -151,6 +156,19 @@ Scalar cd = janus::where(mach > 1.0, 0.5, 0.02);
 
 // ❌ NEVER use std:: math or if/else on Scalars
 ```
+
+## Architecture: State-Free
+
+**Vulcan is explicitly STATE FREE.** 
+
+It does **not** manage simulation state, time integration, or object lifecycles. It is a library of **pure** physics models and utilities.
+
+- **No classes storing `dt` or `time`**: You provide the state, Vulcan calculates the derivative.
+- **No internal integrators**: You choose the integrator (RK4, discrete stepping, collocation).
+- **Just Physics**: Header-only libraries defining the equations of motion and constitutive laws.
+
+This design is critical for symbolic optimization, where the entire simulation must be unrolled into a single computational graph without side effects.
+
 
 ## License
 

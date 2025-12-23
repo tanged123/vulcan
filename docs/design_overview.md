@@ -50,6 +50,23 @@ vulcan/
 └── docs/               # Documentation
 ```
 
+### Stateless Philosophy
+
+Vulcan adheres to a strict **State-Free** architecture. It is NOT a simulation engine; it is a library of physics models.
+
+| Concept | Definition |
+| :--- | :--- |
+| **Model** | A stateless unit of **Physics**. A pure function or helper class (usually from **Vulcan**) that performs a standard calculation given inputs (e.g., `density(h)`, `forces(state)`). |
+| **State** | A data structure (struct) defined by the **User** that holds the variables evolving in time. |
+| **Integrator** | An external algorithm (RK4, etc.) that advances the **State** using derivatives computed by the **Model**. |
+
+**Why?**
+- **Symbolic Compatibility**: Internal state variables (like `dt` counters) break symbolic graph unrolling.
+- **Flexibility**: The user owns the memory layout (Arrays vs Structs vs Eigen).
+- **Correctness**: Physics doesn't change; state does. Separating them prevents "magic" side effects.
+
+---
+
 ---
 
 ## 3. The "Red Line" Rules
