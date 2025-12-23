@@ -101,3 +101,10 @@ All demos can be built and run using the standard project scripts:
     ```
 3.  **View Graphs**:
     After processing, open the generated HTML files in your browser (e.g., `graph_ascent_trajectory.html`).
+
+> [!TIP]
+> **Interactive Examples** - Explore the computational graphs:
+> - [🔍 Launch Ascent Fuel Consumption](examples/comprehensive/graph_fuel_consumption.html)
+> - [🔍 Lunar DV Total](examples/comprehensive/graph_lunar_dv_total.html)
+> - [🔍 Reentry Heading Rate](examples/comprehensive/graph_reentry_heading_rate.html)
+> - [🔍 Slosh Roll Acceleration](examples/comprehensive/graph_slosh_roll_accel.html)
