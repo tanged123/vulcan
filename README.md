@@ -159,12 +159,12 @@ Scalar cd = janus::where(mach > 1.0, 0.5, 0.02);
 
 ## Architecture: State-Free
 
-**Vulcan is explicitly STATE FREE.** 
+**Vulcan is explicitly STATE FREE.**
 
-It does **not** manage simulation state, time integration, or object lifecycles. It is a library of **pure** physics models and utilities.
+It does **not** manage simulation lifecycles or hidden history. It is a library of **pure** physics models and utilities.
 
-- **No classes storing `dt` or `time`**: You provide the state, Vulcan calculates the derivative.
-- **No internal integrators**: You choose the integrator (RK4, discrete stepping, collocation).
+- **No Hidden State**: Classes do not store simulation time `t` or history. You pass the current state in, and get the result out.
+- **Functional Algorithms**: Integrators and time utilities exist, but they are pure functions (e.g., `rk4_step(model, x, dt)`), not stateful engines.
 - **Just Physics**: Header-only libraries defining the equations of motion and constitutive laws.
 
 This design is critical for symbolic optimization, where the entire simulation must be unrolled into a single computational graph without side effects.
