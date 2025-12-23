@@ -1,12 +1,16 @@
 // Vulcan Table Interpolation Wrapper
-// Thin wrappers around janus::Interpolator for atmospheric/aero property
-// lookups
+// Thin wrappers around janus::Interpolator and janus::ScatteredInterpolator
+// for atmospheric/aero property lookups
 #pragma once
 
 #include <janus/math/Interpolate.hpp>
+#include <janus/math/ScatteredInterpolator.hpp>
 #include <vector>
 
 namespace vulcan {
+
+// Re-export RBF kernel types for convenience
+using janus::RBFKernel;
 
 // ============================================================================
 // Table1D - One-dimensional table interpolation
@@ -171,6 +175,178 @@ class TableND {
      * @brief Get the interpolation method
      */
     janus::InterpolationMethod method() const { return m_interp.method(); }
+
+    /**
+     * @brief Check if table is valid (initialized)
+     */
+    bool valid() const { return m_interp.valid(); }
+};
+
+// ============================================================================
+// ScatteredTable1D - One-dimensional scattered data interpolation
+// ============================================================================
+
+/**
+ * @brief 1D scattered data interpolation using Radial Basis Functions
+ *
+ * Wraps janus::ScatteredInterpolator for single-variable lookups with
+ * non-uniform spacing. Uses RBF fitting followed by grid resampling for
+ * fast symbolic-compatible queries.
+ *
+ * @example
+ * ```cpp
+ * janus::NumericVector x(5), y(5);
+ * x << 0.0, 0.3, 0.7, 1.5, 2.0;  // Non-uniform spacing
+ * y << 0.0, 0.29, 0.64, 1.0, 0.91;
+ *
+ * vulcan::ScatteredTable1D table(x, y);
+ *
+ * double val = table(1.0);  // Interpolate at 1.0
+ * std::cout << "RMS error: " << table.reconstruction_error() << "\n";
+ * ```
+ */
+class ScatteredTable1D {
+  private:
+    janus::ScatteredInterpolator m_interp;
+
+  public:
+    /**
+     * @brief Construct 1D scattered interpolation table
+     *
+     * @param x Independent variable values (can be non-uniform)
+     * @param y Dependent variable values at x points
+     * @param grid_resolution Grid points for resampling (default: 50)
+     * @param kernel RBF kernel type (default: ThinPlateSpline)
+     * @throw janus::InterpolationError if sizes don't match or < 2 points
+     */
+    ScatteredTable1D(const janus::NumericVector &x,
+                     const janus::NumericVector &y, int grid_resolution = 50,
+                     RBFKernel kernel = RBFKernel::ThinPlateSpline)
+        : m_interp(x, y, grid_resolution, kernel) {}
+
+    /**
+     * @brief Query table at a single point
+     *
+     * @tparam Scalar Query type (double or janus::SymbolicScalar)
+     * @param x Query point
+     * @return Interpolated value
+     */
+    template <janus::JanusScalar Scalar>
+    Scalar operator()(const Scalar &x) const {
+        return m_interp(x);
+    }
+
+    /**
+     * @brief Get RMS reconstruction error at original data points
+     *
+     * Lower values indicate better fit quality.
+     */
+    double reconstruction_error() const {
+        return m_interp.reconstruction_error();
+    }
+
+    /**
+     * @brief Get number of dimensions (always 1)
+     */
+    int dims() const { return m_interp.dims(); }
+
+    /**
+     * @brief Check if table is valid (initialized)
+     */
+    bool valid() const { return m_interp.valid(); }
+};
+
+// ============================================================================
+// ScatteredTableND - N-dimensional scattered data interpolation
+// ============================================================================
+
+/**
+ * @brief N-dimensional scattered data interpolation using Radial Basis
+ * Functions
+ *
+ * Wraps janus::ScatteredInterpolator for multi-variate lookups with
+ * unstructured (non-gridded) data points, such as wind tunnel measurements
+ * or CFD samples.
+ *
+ * @example
+ * ```cpp
+ * // 2D scattered data: (Mach, alpha) -> CL
+ * janus::NumericMatrix points(20, 2);  // 20 test points
+ * janus::NumericVector values(20);      // CL measurements
+ * // ... fill with wind tunnel data ...
+ *
+ * vulcan::ScatteredTableND table(points, values, 30);
+ *
+ * janus::NumericVector query(2);
+ * query << 0.8, 5.0;  // Mach=0.8, alpha=5°
+ * double cl = table(query);
+ * ```
+ */
+class ScatteredTableND {
+  private:
+    janus::ScatteredInterpolator m_interp;
+
+  public:
+    /**
+     * @brief Construct N-D scattered interpolation table
+     *
+     * @param points Data locations, shape (n_points, n_dims)
+     * @param values Function values at each point (length n_points)
+     * @param grid_resolution Points per dimension for resampling grid
+     * @param kernel RBF kernel type (default: ThinPlateSpline)
+     * @param epsilon Shape parameter for Multiquadric/Gaussian kernels
+     * @param method Gridded interpolation method for final queries
+     * @throw janus::InterpolationError if inputs are invalid
+     */
+    ScatteredTableND(
+        const janus::NumericMatrix &points, const janus::NumericVector &values,
+        int grid_resolution = 20, RBFKernel kernel = RBFKernel::ThinPlateSpline,
+        double epsilon = 1.0,
+        janus::InterpolationMethod method = janus::InterpolationMethod::Linear)
+        : m_interp(points, values, grid_resolution, kernel, epsilon, method) {}
+
+    /**
+     * @brief Construct with explicit per-dimension grid specification
+     *
+     * @param points Data locations, shape (n_points, n_dims)
+     * @param values Function values at each point
+     * @param grid_points Explicit grid coordinates per dimension
+     * @param kernel RBF kernel type
+     * @param epsilon Shape parameter for Multiquadric/Gaussian kernels
+     * @param method Gridded interpolation method for final queries
+     */
+    ScatteredTableND(
+        const janus::NumericMatrix &points, const janus::NumericVector &values,
+        const std::vector<janus::NumericVector> &grid_points,
+        RBFKernel kernel = RBFKernel::ThinPlateSpline, double epsilon = 1.0,
+        janus::InterpolationMethod method = janus::InterpolationMethod::Linear)
+        : m_interp(points, values, grid_points, kernel, epsilon, method) {}
+
+    /**
+     * @brief Query table at a single N-D point
+     *
+     * @tparam Scalar Scalar type (double or janus::SymbolicScalar)
+     * @param x Query point (size must match dims())
+     * @return Interpolated value
+     */
+    template <janus::JanusScalar Scalar>
+    Scalar operator()(const janus::JanusVector<Scalar> &x) const {
+        return m_interp(x);
+    }
+
+    /**
+     * @brief Get RMS reconstruction error at original data points
+     *
+     * Lower values indicate better fit quality.
+     */
+    double reconstruction_error() const {
+        return m_interp.reconstruction_error();
+    }
+
+    /**
+     * @brief Get number of input dimensions
+     */
+    int dims() const { return m_interp.dims(); }
 
     /**
      * @brief Check if table is valid (initialized)
