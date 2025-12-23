@@ -18,9 +18,10 @@ echo "Running examples..."
 EXAMPLES_DIR="$PROJECT_ROOT/build/examples"
 
 if [ -d "$EXAMPLES_DIR" ]; then
-    # Find all executable files in the examples directory
+    # Find all executable files in the examples directory (recursive)
     # Sort them to ensure deterministic run order
-    for exe in $(find "$EXAMPLES_DIR" -maxdepth 1 -type f -executable | sort); do
+    # Exclude stage_separation as it's deprecated/removed
+    for exe in $(find "$EXAMPLES_DIR" -type f -executable | grep -v "stage_separation" | grep -v "CMakeFiles" | sort); do
         echo ""
         echo "=== Running $(basename "$exe") ==="
         "$exe"
