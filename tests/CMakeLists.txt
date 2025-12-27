@@ -122,6 +122,10 @@ add_executable(test_io
     io/test_frame_serializer.cpp
     io/test_hdf5_roundtrip.cpp
     io/test_csv_export.cpp
+    io/test_yaml_node.cpp
+    io/test_yaml_convert.cpp
+    io/test_yaml_file.cpp
+    io/test_yaml_env.cpp
 )
 target_link_libraries(test_io PRIVATE vulcan GTest::gtest_main)
 target_precompile_headers(test_io REUSE_FROM test_core)

@@ -78,6 +78,10 @@ add_executable(telemetry_demo io/telemetry_demo.cpp)
 target_link_libraries(telemetry_demo PRIVATE vulcan)
 target_precompile_headers(telemetry_demo REUSE_FROM getting_started)
 
+add_executable(yaml_config_demo io/yaml_config_demo.cpp)
+target_link_libraries(yaml_config_demo PRIVATE vulcan)
+target_precompile_headers(yaml_config_demo REUSE_FROM getting_started)
+
 # =============================================================================
 # Environment Examples
 # =============================================================================

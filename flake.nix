@@ -56,6 +56,7 @@
             pkgs.casadi
             pkgs.hdf5
             pkgs.highfive # C++ HDF5 wrapper
+            pkgs.yaml-cpp
             janusPackage
           ];
 
@@ -78,6 +79,7 @@
               casadi
               hdf5
               highfive
+              yaml-cpp
               gtest
               clang-tools
               doxygen
@@ -91,7 +93,7 @@
             ];
 
           shellHook = ''
-            export CMAKE_PREFIX_PATH=${pkgs.eigen}:${pkgs.casadi}:${pkgs.gtest}:${pkgs.hdf5}:${pkgs.highfive}:${janusPackage}
+            export CMAKE_PREFIX_PATH=${pkgs.eigen}:${pkgs.casadi}:${pkgs.gtest}:${pkgs.hdf5}:${pkgs.highfive}:${pkgs.yaml-cpp}:${janusPackage}
           '';
         };
 

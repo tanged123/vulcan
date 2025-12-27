@@ -23,6 +23,7 @@ find_package(casadi REQUIRED)
 find_package(janus REQUIRED) # Janus as external dependency
 find_package(HDF5 REQUIRED COMPONENTS C CXX)
 find_package(HighFive REQUIRED) # C++ HDF5 wrapper
+find_package(yaml-cpp REQUIRED)
 
 # --- Main Library ---
 add_library(vulcan INTERFACE)
@@ -32,7 +33,7 @@ target_include_directories(
 
 # Link Dependencies
 target_link_libraries(vulcan INTERFACE Eigen3::Eigen casadi janus::janus
-                                       HighFive)
+                                       HighFive yaml-cpp)
 
 # --- Coverage ---
 option(ENABLE_COVERAGE "Enable coverage reporting" OFF)
