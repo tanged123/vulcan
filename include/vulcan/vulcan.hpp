@@ -71,6 +71,12 @@
 #include <vulcan/io/Signal.hpp>
 #include <vulcan/io/TelemetrySchema.hpp>
 
+// YAML Configuration
+#include <vulcan/io/YamlConvert.hpp>
+#include <vulcan/io/YamlEnv.hpp>
+#include <vulcan/io/YamlFile.hpp>
+#include <vulcan/io/YamlNode.hpp>
+
 // Propulsion
 #include <vulcan/propulsion/Rocket.hpp>
 
