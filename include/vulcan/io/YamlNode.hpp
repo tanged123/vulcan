@@ -222,31 +222,39 @@ T yaml_as(const YAML::Node &node, const std::string &path) {
 } // namespace detail
 
 // --- Scalars ---
+/// @brief Convert node to double
 template <> inline double YamlNode::As<double>() const {
     return detail::yaml_as<double>(node_, path_);
 }
 
+/// @brief Convert node to float
 template <> inline float YamlNode::As<float>() const {
     return detail::yaml_as<float>(node_, path_);
 }
 
+/// @brief Convert node to int
 template <> inline int YamlNode::As<int>() const {
     return detail::yaml_as<int>(node_, path_);
 }
 
+/// @brief Convert node to int64_t
 template <> inline int64_t YamlNode::As<int64_t>() const {
     return detail::yaml_as<int64_t>(node_, path_);
 }
 
+/// @brief Convert node to bool
 template <> inline bool YamlNode::As<bool>() const {
     return detail::yaml_as<bool>(node_, path_);
 }
 
+/// @brief Convert node to string
 template <> inline std::string YamlNode::As<std::string>() const {
     return detail::yaml_as<std::string>(node_, path_);
 }
 
 // --- Janus types (double specialization) ---
+
+/// @brief Convert node to Vec3<double> from [x, y, z]
 template <>
 inline janus::Vec3<double> YamlNode::As<janus::Vec3<double>>() const {
     if (!IsSequence() || Size() != 3) {
@@ -256,6 +264,7 @@ inline janus::Vec3<double> YamlNode::As<janus::Vec3<double>>() const {
                                (*this)[2].As<double>()};
 }
 
+/// @brief Convert node to Quaternion<double> from [w, x, y, z]
 template <>
 inline janus::Quaternion<double>
 YamlNode::As<janus::Quaternion<double>>() const {
@@ -269,6 +278,7 @@ YamlNode::As<janus::Quaternion<double>>() const {
         (*this)[2].As<double>(), (*this)[3].As<double>()};
 }
 
+/// @brief Convert node to Mat3<double> from nested or flat array
 template <>
 inline janus::Mat3<double> YamlNode::As<janus::Mat3<double>>() const {
     if (!IsSequence()) {
@@ -308,15 +318,19 @@ inline janus::Mat3<double> YamlNode::As<janus::Mat3<double>>() const {
 }
 
 // --- Containers ---
+
+/// @brief Convert node to vector of doubles
 template <>
 inline std::vector<double> YamlNode::As<std::vector<double>>() const {
     return ToVector<double>();
 }
 
+/// @brief Convert node to vector of ints
 template <> inline std::vector<int> YamlNode::As<std::vector<int>>() const {
     return ToVector<int>();
 }
 
+/// @brief Convert node to vector of strings
 template <>
 inline std::vector<std::string> YamlNode::As<std::vector<std::string>>() const {
     return ToVector<std::string>();

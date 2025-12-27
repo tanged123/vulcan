@@ -20,7 +20,9 @@ namespace YAML {
 // janus::Vec3<T> - stored as [x, y, z]
 // =============================================================================
 
+/// @brief Conversion trait for janus::Vec3<T>
 template <typename T> struct convert<janus::Vec3<T>> {
+    /// @brief Encode Vec3 to YAML sequence [x, y, z]
     static Node encode(const janus::Vec3<T> &v) {
         Node node;
         node.push_back(v.x());
@@ -29,6 +31,7 @@ template <typename T> struct convert<janus::Vec3<T>> {
         return node;
     }
 
+    /// @brief Decode YAML sequence to Vec3
     static bool decode(const Node &node, janus::Vec3<T> &v) {
         if (!node.IsSequence() || node.size() != 3) {
             return false;
@@ -42,7 +45,9 @@ template <typename T> struct convert<janus::Vec3<T>> {
 // janus::Quaternion<T> - stored as [w, x, y, z] (scalar-first)
 // =============================================================================
 
+/// @brief Conversion trait for janus::Quaternion<T>
 template <typename T> struct convert<janus::Quaternion<T>> {
+    /// @brief Encode Quaternion to YAML sequence [w, x, y, z]
     static Node encode(const janus::Quaternion<T> &q) {
         Node node;
         node.push_back(q.w);
@@ -52,6 +57,7 @@ template <typename T> struct convert<janus::Quaternion<T>> {
         return node;
     }
 
+    /// @brief Decode YAML sequence to Quaternion
     static bool decode(const Node &node, janus::Quaternion<T> &q) {
         if (!node.IsSequence() || node.size() != 4) {
             return false;
@@ -68,7 +74,9 @@ template <typename T> struct convert<janus::Quaternion<T>> {
 // janus::Mat3<T> - stored as [[row0], [row1], [row2]] or flat [9 elements]
 // =============================================================================
 
+/// @brief Conversion trait for janus::Mat3<T>
 template <typename T> struct convert<janus::Mat3<T>> {
+    /// @brief Encode Mat3 to nested YAML sequence
     static Node encode(const janus::Mat3<T> &m) {
         Node node;
         for (int i = 0; i < 3; ++i) {
@@ -81,6 +89,7 @@ template <typename T> struct convert<janus::Mat3<T>> {
         return node;
     }
 
+    /// @brief Decode YAML sequence to Mat3 (nested or flat)
     static bool decode(const Node &node, janus::Mat3<T> &m) {
         if (!node.IsSequence()) {
             return false;
@@ -118,6 +127,7 @@ template <typename T> struct convert<janus::Mat3<T>> {
 // Emitter operators for Janus types (required for YAML::Emitter << type)
 // =============================================================================
 
+/// @brief Emit Vec3 to YAML stream
 template <typename T>
 inline Emitter &operator<<(Emitter &emitter, const janus::Vec3<T> &v) {
     emitter << YAML::Flow << YAML::BeginSeq;
@@ -126,6 +136,7 @@ inline Emitter &operator<<(Emitter &emitter, const janus::Vec3<T> &v) {
     return emitter;
 }
 
+/// @brief Emit Quaternion to YAML stream
 template <typename T>
 inline Emitter &operator<<(Emitter &emitter, const janus::Quaternion<T> &q) {
     emitter << YAML::Flow << YAML::BeginSeq;
@@ -134,6 +145,7 @@ inline Emitter &operator<<(Emitter &emitter, const janus::Quaternion<T> &q) {
     return emitter;
 }
 
+/// @brief Emit Mat3 to YAML stream
 template <typename T>
 inline Emitter &operator<<(Emitter &emitter, const janus::Mat3<T> &m) {
     emitter << YAML::BeginSeq;

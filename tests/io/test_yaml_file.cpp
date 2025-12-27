@@ -144,6 +144,16 @@ TEST_F(YamlFileTest, MergeEmptyListThrows) {
     EXPECT_THROW(YamlFile::MergeFiles({}), YamlError);
 }
 
+TEST_F(YamlFileTest, MergeFirstFileMissingThrows) {
+    EXPECT_THROW(YamlFile::MergeFiles({"/nonexistent/file.yaml"}), YamlError);
+}
+
+TEST_F(YamlFileTest, MergeFirstFileInvalidThrows) {
+    WriteFile("invalid.yaml", "key: [unclosed");
+    EXPECT_THROW(YamlFile::MergeFiles({(temp_dir_ / "invalid.yaml").string()}),
+                 YamlError);
+}
+
 // =============================================================================
 // Validation Tests
 // =============================================================================

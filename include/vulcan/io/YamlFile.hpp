@@ -55,7 +55,12 @@ class YamlFile {
             throw YamlError("merge", "no files provided for merge");
         }
 
-        YAML::Node result = YAML::LoadFile(paths[0]);
+        YAML::Node result;
+        try {
+            result = YAML::LoadFile(paths[0]);
+        } catch (const YAML::Exception &e) {
+            throw YamlError(paths[0], e.what());
+        }
 
         for (std::size_t i = 1; i < paths.size(); ++i) {
             try {
