@@ -154,6 +154,14 @@ TEST_F(YamlFileTest, MergeFirstFileInvalidThrows) {
                  YamlError);
 }
 
+TEST_F(YamlFileTest, CircularIncludeThrows) {
+    WriteFile("a.yaml", "b: !include b.yaml");
+    WriteFile("b.yaml", "a: !include a.yaml");
+
+    EXPECT_THROW(YamlFile::LoadWithIncludes((temp_dir_ / "a.yaml").string()),
+                 YamlError);
+}
+
 // =============================================================================
 // Validation Tests
 // =============================================================================

@@ -36,8 +36,13 @@ template <typename T> struct convert<janus::Vec3<T>> {
         if (!node.IsSequence() || node.size() != 3) {
             return false;
         }
-        v = janus::Vec3<T>{node[0].as<T>(), node[1].as<T>(), node[2].as<T>()};
-        return true;
+        try {
+            v = janus::Vec3<T>{node[0].as<T>(), node[1].as<T>(),
+                               node[2].as<T>()};
+            return true;
+        } catch (const YAML::Exception &) {
+            return false;
+        }
     }
 };
 
@@ -62,11 +67,15 @@ template <typename T> struct convert<janus::Quaternion<T>> {
         if (!node.IsSequence() || node.size() != 4) {
             return false;
         }
-        q = janus::Quaternion<T>{node[0].as<T>(),  // w
-                                 node[1].as<T>(),  // x
-                                 node[2].as<T>(),  // y
-                                 node[3].as<T>()}; // z
-        return true;
+        try {
+            q = janus::Quaternion<T>{node[0].as<T>(),  // w
+                                     node[1].as<T>(),  // x
+                                     node[2].as<T>(),  // y
+                                     node[3].as<T>()}; // z
+            return true;
+        } catch (const YAML::Exception &) {
+            return false;
+        }
     }
 };
 
@@ -95,28 +104,33 @@ template <typename T> struct convert<janus::Mat3<T>> {
             return false;
         }
 
-        // Nested format: [[r00, r01, r02], [r10, r11, r12], [r20, r21, r22]]
-        if (node.size() == 3 && node[0].IsSequence()) {
-            for (int i = 0; i < 3; ++i) {
-                if (node[i].size() != 3) {
-                    return false;
+        try {
+            // Nested format: [[r00, r01, r02], [r10, r11, r12], [r20, r21,
+            // r22]]
+            if (node.size() == 3 && node[0].IsSequence()) {
+                for (int i = 0; i < 3; ++i) {
+                    if (node[i].size() != 3) {
+                        return false;
+                    }
+                    for (int j = 0; j < 3; ++j) {
+                        m(i, j) = node[i][j].as<T>();
+                    }
                 }
-                for (int j = 0; j < 3; ++j) {
-                    m(i, j) = node[i][j].as<T>();
-                }
+                return true;
             }
-            return true;
-        }
 
-        // Flat format: [r00, r01, r02, r10, r11, r12, r20, r21, r22]
-        // (row-major)
-        if (node.size() == 9) {
-            for (int i = 0; i < 3; ++i) {
-                for (int j = 0; j < 3; ++j) {
-                    m(i, j) = node[i * 3 + j].as<T>();
+            // Flat format: [r00, r01, r02, r10, r11, r12, r20, r21, r22]
+            // (row-major)
+            if (node.size() == 9) {
+                for (int i = 0; i < 3; ++i) {
+                    for (int j = 0; j < 3; ++j) {
+                        m(i, j) = node[i * 3 + j].as<T>();
+                    }
                 }
+                return true;
             }
-            return true;
+        } catch (const YAML::Exception &) {
+            return false;
         }
 
         return false;

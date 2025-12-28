@@ -15,6 +15,7 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 namespace vulcan::io {
@@ -36,9 +37,15 @@ class YamlFile {
     static YamlNode LoadWithIncludes(const std::string &path) {
         auto base_dir = std::filesystem::path(path).parent_path();
         try {
+            std::unordered_set<std::string> visited;
+            auto canonical_path = std::filesystem::canonical(path).string();
+            visited.insert(canonical_path);
+
             YAML::Node root = YAML::LoadFile(path);
-            ResolveIncludes(root, base_dir);
+            ResolveIncludes(root, base_dir, visited);
             return YamlNode(root, path);
+        } catch (const std::filesystem::filesystem_error &e) {
+            throw YamlError(path, "filesystem error: " + std::string(e.what()));
         } catch (const YAML::Exception &e) {
             throw YamlError(path, e.what());
         }
@@ -127,7 +134,8 @@ class YamlFile {
   private:
     /// Recursively resolve !include directives
     static void ResolveIncludes(YAML::Node &node,
-                                const std::filesystem::path &base_dir) {
+                                const std::filesystem::path &base_dir,
+                                std::unordered_set<std::string> &visited) {
         if (node.IsMap()) {
             for (auto it = node.begin(); it != node.end(); ++it) {
                 auto value = it->second;
@@ -138,16 +146,30 @@ class YamlFile {
                     auto full_path = base_dir / include_path;
 
                     try {
+                        auto canonical_path =
+                            std::filesystem::canonical(full_path).string();
+                        if (visited.count(canonical_path)) {
+                            throw YamlError(full_path.string(),
+                                            "circular include detected: " +
+                                                canonical_path);
+                        }
+
+                        visited.insert(canonical_path);
                         YAML::Node included =
                             YAML::LoadFile(full_path.string());
                         auto include_dir = full_path.parent_path();
-                        ResolveIncludes(included, include_dir);
+                        ResolveIncludes(included, include_dir, visited);
                         node[it->first] = included;
+                        visited.erase(canonical_path);
+                    } catch (const std::filesystem::filesystem_error &e) {
+                        throw YamlError(full_path.string(),
+                                        "filesystem error: " +
+                                            std::string(e.what()));
                     } catch (const YAML::Exception &e) {
                         throw YamlError(full_path.string(), e.what());
                     }
                 } else {
-                    ResolveIncludes(value, base_dir);
+                    ResolveIncludes(value, base_dir, visited);
                 }
             }
         } else if (node.IsSequence()) {
@@ -160,16 +182,30 @@ class YamlFile {
                     auto full_path = base_dir / include_path;
 
                     try {
+                        auto canonical_path =
+                            std::filesystem::canonical(full_path).string();
+                        if (visited.count(canonical_path)) {
+                            throw YamlError(full_path.string(),
+                                            "circular include detected: " +
+                                                canonical_path);
+                        }
+
+                        visited.insert(canonical_path);
                         YAML::Node included =
                             YAML::LoadFile(full_path.string());
                         auto include_dir = full_path.parent_path();
-                        ResolveIncludes(included, include_dir);
+                        ResolveIncludes(included, include_dir, visited);
                         node[i] = included;
+                        visited.erase(canonical_path);
+                    } catch (const std::filesystem::filesystem_error &e) {
+                        throw YamlError(full_path.string(),
+                                        "filesystem error: " +
+                                            std::string(e.what()));
                     } catch (const YAML::Exception &e) {
                         throw YamlError(full_path.string(), e.what());
                     }
                 } else {
-                    ResolveIncludes(element, base_dir);
+                    ResolveIncludes(element, base_dir, visited);
                 }
             }
         }
