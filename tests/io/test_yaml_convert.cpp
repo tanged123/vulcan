@@ -63,6 +63,16 @@ TEST(YamlConvertTest, Vec3DecodeWrongSize) {
     EXPECT_FALSE(YAML::convert<janus::Vec3<double>>::decode(node, v));
 }
 
+TEST(YamlConvertTest, Vec3DecodeTypeMismatch) {
+    YAML::Node node;
+    node.push_back(1.0);
+    node.push_back("not a number");
+    node.push_back(3.0);
+
+    janus::Vec3<double> v;
+    EXPECT_FALSE(YAML::convert<janus::Vec3<double>>::decode(node, v));
+}
+
 // =============================================================================
 // Quaternion Round-Trip Tests
 // =============================================================================
@@ -119,6 +129,17 @@ TEST(YamlConvertTest, QuaternionDecodeWrongSize) {
     node.push_back(0.0);
     node.push_back(0.0);
     // Only 3 elements
+
+    janus::Quaternion<double> q;
+    EXPECT_FALSE(YAML::convert<janus::Quaternion<double>>::decode(node, q));
+}
+
+TEST(YamlConvertTest, QuaternionDecodeTypeMismatch) {
+    YAML::Node node;
+    node.push_back(1.0);
+    node.push_back(0.0);
+    node.push_back("fail");
+    node.push_back(0.0);
 
     janus::Quaternion<double> q;
     EXPECT_FALSE(YAML::convert<janus::Quaternion<double>>::decode(node, q));
@@ -198,6 +219,20 @@ TEST(YamlConvertTest, Mat3DecodeInvalidFormat) {
 TEST(YamlConvertTest, Mat3DecodeNestedWrongRowSize) {
     // Second row has wrong size
     YAML::Node node = YAML::Load("[[1, 2, 3], [4, 5], [7, 8, 9]]");
+
+    janus::Mat3<double> m;
+    EXPECT_FALSE(YAML::convert<janus::Mat3<double>>::decode(node, m));
+}
+
+TEST(YamlConvertTest, Mat3DecodeTypeMismatchNested) {
+    YAML::Node node = YAML::Load("[[1, 2, 3], [4, 'oops', 6], [7, 8, 9]]");
+
+    janus::Mat3<double> m;
+    EXPECT_FALSE(YAML::convert<janus::Mat3<double>>::decode(node, m));
+}
+
+TEST(YamlConvertTest, Mat3DecodeTypeMismatchFlat) {
+    YAML::Node node = YAML::Load("[1, 2, 3, 4, 5, 6, 7, 8, 'oops']");
 
     janus::Mat3<double> m;
     EXPECT_FALSE(YAML::convert<janus::Mat3<double>>::decode(node, m));
