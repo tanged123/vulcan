@@ -19,13 +19,19 @@
 #include <vulcan/rotations/Rotations.hpp>
 
 // Coordinate systems
-#include <vulcan/coordinates/BodyFrames.hpp>
-#include <vulcan/coordinates/CoordinateFrame.hpp>
 #include <vulcan/coordinates/EarthModel.hpp>
+#include <vulcan/coordinates/FrameContext.hpp>
+#include <vulcan/coordinates/FrameID.hpp>
+#include <vulcan/coordinates/FrameKinematics.hpp>
+#include <vulcan/coordinates/FrameLocal.hpp>
+#include <vulcan/coordinates/FramePrimitives.hpp>
+#include <vulcan/coordinates/FrameRegistry.hpp>
+#include <vulcan/coordinates/FrameTransforms.hpp>
+#include <vulcan/coordinates/FrameVehicle.hpp>
 #include <vulcan/coordinates/Geodetic.hpp>
-#include <vulcan/coordinates/LocalFrames.hpp>
 #include <vulcan/coordinates/QuaternionUtils.hpp>
-#include <vulcan/coordinates/Transforms.hpp>
+#include <vulcan/coordinates/TransformChain.hpp>
+#include <vulcan/coordinates/TransformProvider.hpp>
 
 // Geodetic utilities
 #include <vulcan/geodetic/GeodesicUtils.hpp>

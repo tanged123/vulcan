@@ -3,9 +3,9 @@
 #pragma once
 
 #include <vulcan/aerodynamics/Aerodynamics.hpp>
-#include <vulcan/coordinates/CoordinateFrame.hpp>
+#include <vulcan/coordinates/FrameLocal.hpp>
+#include <vulcan/coordinates/FramePrimitives.hpp>
 #include <vulcan/coordinates/Geodetic.hpp>
-#include <vulcan/coordinates/LocalFrames.hpp>
 #include <vulcan/rotations/EulerSequences.hpp>
 
 #include <janus/math/Linalg.hpp>

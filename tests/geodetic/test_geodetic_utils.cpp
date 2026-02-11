@@ -2,7 +2,7 @@
 // Tests for distance calculations, bearings, horizon, visibility, and CDA frame
 
 #include <gtest/gtest.h>
-#include <vulcan/coordinates/LocalFrames.hpp>
+#include <vulcan/coordinates/FrameLocal.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/geodetic/GeodesicUtils.hpp>
 

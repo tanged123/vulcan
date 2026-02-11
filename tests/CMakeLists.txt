@@ -30,6 +30,11 @@ add_executable(test_coordinates
     coordinates/test_geodetic.cpp
     coordinates/test_transforms.cpp
     coordinates/test_benchmarks.cpp
+    coordinates/test_frame_registry.cpp
+    coordinates/test_transform_providers.cpp
+    coordinates/test_frame_context.cpp
+    coordinates/test_direct_transforms.cpp
+    coordinates/test_symbolic_context.cpp
 )
 target_link_libraries(test_coordinates PRIVATE vulcan GTest::gtest_main)
 target_precompile_headers(test_coordinates REUSE_FROM test_core)
@@ -215,4 +220,3 @@ add_executable(test_dynamics
 target_link_libraries(test_dynamics PRIVATE vulcan GTest::gtest_main)
 target_precompile_headers(test_dynamics REUSE_FROM test_core)
 gtest_discover_tests(test_dynamics)
-

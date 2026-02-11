@@ -8,6 +8,7 @@ Welcome to the Vulcan user guides. These documents provide detailed usage instru
 |-------|-------------|
 | [Atmosphere](atmosphere.md) | US Standard Atmosphere 1976 - temperature, pressure, density |
 | [Coordinates](coordinates.md) | ECEF, LLA, NED frames and geodetic conversions |
+| [Frame Graph](frame_graph.md) | Hierarchical frame tree with extensible transform providers |
 | [Rotations](rotations.md) | Euler angles, quaternions, DCMs, axis-angle |
 | [Time](time.md) | Epochs, time scales (TAI, TT, UTC, GPS), leap seconds |
 | [Wind](wind.md) | Wind shear, Dryden and von Kármán turbulence models |
@@ -26,6 +27,7 @@ All examples are in the `examples/` directory:
 ./scripts/build.sh
 ./build/examples/atmosphere_profile
 ./build/examples/coordinate_demo
+./build/examples/frame_graph_demo
 ./build/examples/rotations_demo
 ./build/examples/time_optimization
 ./build/examples/wind_optimization

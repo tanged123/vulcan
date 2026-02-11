@@ -2,8 +2,8 @@
 // Velocity transforms and non-inertial accelerations for ECEF/ECI
 #pragma once
 
-#include <vulcan/coordinates/CoordinateFrame.hpp>
 #include <vulcan/coordinates/EarthModel.hpp>
+#include <vulcan/coordinates/FramePrimitives.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 
 #include <janus/math/Linalg.hpp>
