@@ -1,10 +1,62 @@
 #include <gtest/gtest.h>
+#include <vulcan/coordinates/FrameContext.hpp>
 #include <vulcan/coordinates/FrameKinematics.hpp>
 #include <vulcan/coordinates/Geodetic.hpp>
+#include <vulcan/coordinates/TransformProvider.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/core/Units.hpp>
 
 #include <janus/janus.hpp>
+
+#include <chrono>
+#include <cmath>
+#include <string>
+#include <vector>
+
+namespace {
+
+template <typename Scalar> vulcan::Mat3<Scalar> rot_z(Scalar angle) {
+    vulcan::Mat3<Scalar> R;
+    const Scalar c = janus::cos(angle);
+    const Scalar s = janus::sin(angle);
+    R << c, -s, Scalar(0), s, c, Scalar(0), Scalar(0), Scalar(0), Scalar(1);
+    return R;
+}
+
+template <typename Scalar>
+class RigidOffsetProvider final : public vulcan::TransformProvider<Scalar> {
+  public:
+    RigidOffsetProvider(
+        const vulcan::Mat3<Scalar> &R_child_to_parent,
+        const vulcan::Vec3<Scalar> &offset_child_origin_in_parent)
+        : R_(R_child_to_parent), t_(offset_child_origin_in_parent) {}
+
+    [[nodiscard]] vulcan::Vec3<Scalar>
+    to_parent(const vulcan::Vec3<Scalar> &v) const override {
+        return R_ * v;
+    }
+
+    [[nodiscard]] vulcan::Vec3<Scalar>
+    from_parent(const vulcan::Vec3<Scalar> &v) const override {
+        return R_.transpose() * v;
+    }
+
+    [[nodiscard]] vulcan::Vec3<Scalar>
+    position_to_parent(const vulcan::Vec3<Scalar> &pos) const override {
+        return R_ * pos + t_;
+    }
+
+    [[nodiscard]] vulcan::Vec3<Scalar>
+    position_from_parent(const vulcan::Vec3<Scalar> &pos) const override {
+        return R_.transpose() * (pos - t_);
+    }
+
+  private:
+    vulcan::Mat3<Scalar> R_;
+    vulcan::Vec3<Scalar> t_;
+};
+
+} // namespace
 
 // ============================================
 // Benchmark Sources
@@ -256,4 +308,120 @@ TEST(Benchmarks, ECI_Rotation_GMST90) {
     EXPECT_NEAR(eci.y_axis(0), 1.0, 1e-10);
     EXPECT_NEAR(eci.y_axis(1), 0.0, 1e-10);
     EXPECT_NEAR(eci.y_axis(2), 0.0, 1e-10);
+}
+
+// ============================================
+// Frame Graph Dynamics Checks
+// ============================================
+
+TEST(Benchmarks, MerryGoRoundOppositeHorses) {
+    // Inertially fixed center is ECI root. Carousel spins about +Z.
+    vulcan::FrameContext<double> ctx;
+
+    const double theta = 0.73; // spin angle [rad]
+    const double radius = 6.5; // horse radius [m]
+
+    const auto carousel_id =
+        ctx.add_frame("Carousel", vulcan::FRAME_ECI,
+                      std::make_shared<RigidOffsetProvider<double>>(
+                          rot_z(theta), vulcan::Vec3<double>::Zero()));
+
+    vulcan::Vec3<double> horse_a_offset;
+    horse_a_offset << radius, 0.0, 0.0;
+    vulcan::Vec3<double> horse_b_offset;
+    horse_b_offset << -radius, 0.0, 0.0;
+
+    const auto horse_a_id =
+        ctx.add_frame("HorseA", carousel_id,
+                      std::make_shared<RigidOffsetProvider<double>>(
+                          vulcan::Mat3<double>::Identity(), horse_a_offset));
+
+    const auto horse_b_id =
+        ctx.add_frame("HorseB", carousel_id,
+                      std::make_shared<RigidOffsetProvider<double>>(
+                          rot_z(vulcan::constants::angle::pi), horse_b_offset));
+
+    // Horse origins in ECI should be opposite.
+    const vulcan::Vec3<double> origin = vulcan::Vec3<double>::Zero();
+    const auto horse_a_pos_eci =
+        ctx.transform_position(origin, horse_a_id, vulcan::FRAME_ECI);
+    const auto horse_b_pos_eci =
+        ctx.transform_position(origin, horse_b_id, vulcan::FRAME_ECI);
+    const auto sum_pos = horse_a_pos_eci + horse_b_pos_eci;
+
+    EXPECT_NEAR(sum_pos(0), 0.0, 1e-12);
+    EXPECT_NEAR(sum_pos(1), 0.0, 1e-12);
+    EXPECT_NEAR(sum_pos(2), 0.0, 1e-12);
+
+    // Horse forward axes in ECI should also be opposite.
+    const vulcan::Vec3<double> x_axis = vulcan::Vec3<double>::UnitX();
+    const auto horse_a_x_eci =
+        ctx.transform(x_axis, horse_a_id, vulcan::FRAME_ECI);
+    const auto horse_b_x_eci =
+        ctx.transform(x_axis, horse_b_id, vulcan::FRAME_ECI);
+    const auto sum_axes = horse_a_x_eci + horse_b_x_eci;
+
+    EXPECT_NEAR(sum_axes(0), 0.0, 1e-12);
+    EXPECT_NEAR(sum_axes(1), 0.0, 1e-12);
+    EXPECT_NEAR(sum_axes(2), 0.0, 1e-12);
+}
+
+TEST(Benchmarks, FrameGraphStressPerformanceRobustness) {
+    vulcan::FrameContext<double> ctx;
+    ctx.set_ecef(0.35);
+    ctx.set_ned(-1.2, 0.6);
+    ctx.set_body_euler(0.4, -0.2, 0.1);
+    ctx.set_wind(0.08, -0.03);
+    ctx.set_stability(0.06);
+
+    // Build a deeper graph branch from wind for stress testing.
+    std::vector<vulcan::FrameID> ids;
+    ids.reserve(17);
+    ids.push_back(vulcan::FRAME_WIND);
+
+    vulcan::FrameID parent = vulcan::FRAME_WIND;
+    for (int i = 0; i < 16; ++i) {
+        const double yaw = 0.01 * static_cast<double>(i + 1);
+        const double pitch = -0.005 * static_cast<double>(i + 1);
+        const double roll = 0.003 * static_cast<double>(i + 1);
+        const auto q = janus::Quaternion<double>::from_euler(roll, pitch, yaw);
+        parent = ctx.add_frame(
+            "Stress_" + std::to_string(i), parent,
+            std::make_shared<vulcan::QuaternionProvider<double>>(q));
+        ids.push_back(parent);
+    }
+
+    const vulcan::FrameID deepest = ids.back();
+    const auto to_eci = ctx.chain(deepest, vulcan::FRAME_ECI);
+    const auto from_eci = ctx.chain(vulcan::FRAME_ECI, deepest);
+
+    vulcan::Vec3<double> v0;
+    v0 << 230.0, -45.0, 11.0;
+
+    constexpr int kIterations = 120000;
+    double max_err = 0.0;
+
+    const auto start = std::chrono::steady_clock::now();
+    for (int i = 0; i < kIterations; ++i) {
+        const double scale = 1.0 + 1e-6 * static_cast<double>(i % 97);
+        const vulcan::Vec3<double> v = scale * v0;
+
+        const auto v_eci = to_eci.transform_vector(v);
+        const auto v_back = from_eci.transform_vector(v_eci);
+
+        const double err = (v_back - v).norm();
+        if (err > max_err) {
+            max_err = err;
+        }
+
+        EXPECT_TRUE(std::isfinite(v_eci(0)));
+        EXPECT_TRUE(std::isfinite(v_eci(1)));
+        EXPECT_TRUE(std::isfinite(v_eci(2)));
+    }
+    const auto stop = std::chrono::steady_clock::now();
+
+    const std::chrono::duration<double> elapsed = stop - start;
+    EXPECT_LT(max_err, 1e-9);
+    // Keep this generous to avoid flaky CI timing failures.
+    EXPECT_LT(elapsed.count(), 5.0);
 }
