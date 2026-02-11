@@ -18,6 +18,10 @@ add_executable(coordinate_demo coordinates/coordinate_demo.cpp)
 target_link_libraries(coordinate_demo PRIVATE vulcan)
 target_precompile_headers(coordinate_demo REUSE_FROM getting_started)
 
+add_executable(frame_graph_demo coordinates/frame_graph_demo.cpp)
+target_link_libraries(frame_graph_demo PRIVATE vulcan)
+target_precompile_headers(frame_graph_demo REUSE_FROM getting_started)
+
 # =============================================================================
 # Atmosphere Examples
 # =============================================================================
