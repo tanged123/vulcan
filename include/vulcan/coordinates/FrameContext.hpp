@@ -46,7 +46,7 @@ template <typename Scalar> class FrameContext {
             std::make_shared<ECEFProvider<Scalar>>(model, t_seconds);
 
         frames_[FRAME_ECEF.id] = CoordinateFrame<Scalar>::ecef();
-        const Scalar angle = Scalar(model.gmst(t_seconds));
+        const Scalar angle = Scalar(model.ecef_to_eci_angle(t_seconds));
         frames_[FRAME_ECI.id] = CoordinateFrame<Scalar>::eci(angle);
     }
 
@@ -157,12 +157,11 @@ template <typename Scalar> class FrameContext {
 
     FrameID add_frame(const std::string &name, FrameID parent,
                       std::shared_ptr<TransformProvider<Scalar>> provider) {
-        FrameID id = registry_.register_frame(name, parent);
-        ensure_capacity(id);
-
         if (!provider) {
             throw CoordinateError("Provider cannot be null");
         }
+        FrameID id = registry_.register_frame(name, parent);
+        ensure_capacity(id);
         providers_[id.id] = std::move(provider);
         frames_[id.id].reset();
         return id;
@@ -174,11 +173,11 @@ template <typename Scalar> class FrameContext {
 
     [[nodiscard]] Vec3<Scalar> transform(const Vec3<Scalar> &v, FrameID from,
                                          FrameID to) const {
+        assert_registered(from);
+        assert_registered(to);
         if (from == to) {
             return v;
         }
-        assert_registered(from);
-        assert_registered(to);
 
         // Fast path: direct child -> parent
         if (registry_.parent_of(from) == to) {
@@ -196,11 +195,11 @@ template <typename Scalar> class FrameContext {
     [[nodiscard]] Vec3<Scalar> transform_position(const Vec3<Scalar> &pos,
                                                   FrameID from,
                                                   FrameID to) const {
+        assert_registered(from);
+        assert_registered(to);
         if (from == to) {
             return pos;
         }
-        assert_registered(from);
-        assert_registered(to);
 
         // Fast path: direct child -> parent
         if (registry_.parent_of(from) == to) {
@@ -216,6 +215,8 @@ template <typename Scalar> class FrameContext {
     }
 
     [[nodiscard]] TransformChain<Scalar> chain(FrameID from, FrameID to) const {
+        assert_registered(from);
+        assert_registered(to);
         if (from == to) {
             FramePath identity_path;
             identity_path.frames = {from};
@@ -224,9 +225,6 @@ template <typename Scalar> class FrameContext {
             identity_path.descending_count = 0;
             return TransformChain<Scalar>(identity_path, {}, {});
         }
-
-        assert_registered(from);
-        assert_registered(to);
 
         const FramePath path = registry_.find_path(from, to);
         if (!path.is_valid()) {

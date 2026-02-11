@@ -27,7 +27,7 @@ class ECEFProvider final : public TransformProvider<Scalar> {
     }
 
     ECEFProvider(const EarthRotationModel &model, double t_seconds) {
-        const Scalar angle = Scalar(model.gmst(t_seconds));
+        const Scalar angle = Scalar(model.ecef_to_eci_angle(t_seconds));
         c_ = janus::cos(angle);
         s_ = janus::sin(angle);
     }
