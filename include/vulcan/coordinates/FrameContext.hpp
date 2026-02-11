@@ -2,8 +2,8 @@
 // User-facing API for frame-tree setup and transforms
 #pragma once
 
-#include <vulcan/coordinates/BodyFrames.hpp>
 #include <vulcan/coordinates/FrameRegistry.hpp>
+#include <vulcan/coordinates/FrameVehicle.hpp>
 #include <vulcan/coordinates/TransformChain.hpp>
 #include <vulcan/coordinates/providers/ECEFProvider.hpp>
 #include <vulcan/coordinates/providers/EarthProviders.hpp>

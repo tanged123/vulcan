@@ -2,7 +2,7 @@
 // Edge-local transform interface for frame-tree execution
 #pragma once
 
-#include <vulcan/coordinates/CoordinateFrame.hpp>
+#include <vulcan/coordinates/FramePrimitives.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 
 #include <janus/math/Quaternion.hpp>

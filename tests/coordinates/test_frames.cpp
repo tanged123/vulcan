@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include <vulcan/coordinates/CoordinateFrame.hpp>
 #include <vulcan/coordinates/EarthModel.hpp>
+#include <vulcan/coordinates/FramePrimitives.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/core/Units.hpp>
 

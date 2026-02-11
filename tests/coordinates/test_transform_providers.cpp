@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include <vulcan/coordinates/BodyFrames.hpp>
-#include <vulcan/coordinates/CoordinateFrame.hpp>
+#include <vulcan/coordinates/FramePrimitives.hpp>
+#include <vulcan/coordinates/FrameVehicle.hpp>
 #include <vulcan/coordinates/providers/ECEFProvider.hpp>
 #include <vulcan/coordinates/providers/EarthProviders.hpp>
 #include <vulcan/coordinates/providers/VehicleProviders.hpp>

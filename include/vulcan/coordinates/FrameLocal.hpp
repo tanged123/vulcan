@@ -2,7 +2,7 @@
 // Convenience functions for local tangent plane reference frames
 #pragma once
 
-#include <vulcan/coordinates/CoordinateFrame.hpp>
+#include <vulcan/coordinates/FramePrimitives.hpp>
 #include <vulcan/coordinates/Geodetic.hpp>
 
 #include <janus/math/Trig.hpp>

@@ -2,9 +2,9 @@
 // Providers for frames that are children of ECEF
 #pragma once
 
-#include <vulcan/coordinates/CoordinateFrame.hpp>
+#include <vulcan/coordinates/FrameLocal.hpp>
+#include <vulcan/coordinates/FramePrimitives.hpp>
 #include <vulcan/coordinates/Geodetic.hpp>
-#include <vulcan/coordinates/LocalFrames.hpp>
 #include <vulcan/coordinates/TransformProvider.hpp>
 
 namespace vulcan {

@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
-#include <vulcan/coordinates/BodyFrames.hpp>
-#include <vulcan/coordinates/CoordinateFrame.hpp>
 #include <vulcan/coordinates/FrameContext.hpp>
+#include <vulcan/coordinates/FramePrimitives.hpp>
 #include <vulcan/coordinates/FrameTransforms.hpp>
+#include <vulcan/coordinates/FrameVehicle.hpp>
 #include <vulcan/core/Constants.hpp>
 
 #include <memory>
