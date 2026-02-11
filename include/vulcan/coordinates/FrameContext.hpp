@@ -125,6 +125,7 @@ template <typename Scalar> class FrameContext {
         if (!registry_.has_frame(id)) {
             throw CoordinateError("Cannot set unregistered frame");
         }
+        ensure_capacity(id);
         if (id == FRAME_ECI) {
             frames_[FRAME_ECI.id] = frame;
             return;
@@ -258,10 +259,17 @@ template <typename Scalar> class FrameContext {
         frames_.resize(registry_.size());
 
         // Default aligned inertial/ECEF state at angle = 0.
-        providers_[FRAME_ECEF.id] =
-            std::make_shared<ECEFProvider<Scalar>>(Scalar(0));
-        frames_[FRAME_ECEF.id] = CoordinateFrame<Scalar>::ecef();
-        frames_[FRAME_ECI.id] = CoordinateFrame<Scalar>::eci(Scalar(0));
+        // Guard against custom registries that may not include built-in IDs.
+        if (registry_.has_frame(FRAME_ECEF) &&
+            FRAME_ECEF.id < providers_.size() &&
+            FRAME_ECEF.id < frames_.size()) {
+            providers_[FRAME_ECEF.id] =
+                std::make_shared<ECEFProvider<Scalar>>(Scalar(0));
+            frames_[FRAME_ECEF.id] = CoordinateFrame<Scalar>::ecef();
+        }
+        if (registry_.has_frame(FRAME_ECI) && FRAME_ECI.id < frames_.size()) {
+            frames_[FRAME_ECI.id] = CoordinateFrame<Scalar>::eci(Scalar(0));
+        }
     }
 
     void ensure_capacity(FrameID id) {
