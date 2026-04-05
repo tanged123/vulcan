@@ -80,7 +80,9 @@ ReentryOutputs<Scalar> reentry_physics(const Scalar &altitude,
                                        const Scalar &gamma, const Scalar &bank,
                                        const ReentryVehicle &vehicle) {
     // 1. Atmosphere - use USSA1976 for realistic density profile
-    Scalar rho = ussa1976::density(altitude);
+    Scalar rho =
+        ussa1976::density(vulcan::Quantity<vulcan::units::m, Scalar>(altitude))
+            .value();
 
     // 2. Aerodynamic forces using Vulcan aero module
     Scalar q = aero::dynamic_pressure(rho, velocity);

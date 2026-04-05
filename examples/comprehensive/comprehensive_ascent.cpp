@@ -77,10 +77,11 @@ ascent_physics(const Scalar &altitude, const Scalar &velocity,
                const Scalar &flight_path_angle, const Scalar &mass,
                const Scalar &throttle, const VehicleParams &params) {
     // 1. Atmosphere
-    Scalar rho = ussa1976::density(altitude);
-    Scalar pressure = ussa1976::pressure(altitude);
-    Scalar temperature = ussa1976::temperature(altitude);
-    Scalar speed_of_sound = ussa1976::speed_of_sound(altitude);
+    auto alt_q = vulcan::Quantity<vulcan::units::m, Scalar>(altitude);
+    Scalar rho = ussa1976::density(alt_q).value();
+    Scalar pressure = ussa1976::pressure(alt_q).value();
+    Scalar temperature = ussa1976::temperature(alt_q).value();
+    Scalar speed_of_sound = ussa1976::speed_of_sound(alt_q).value();
 
     // 2. Aerodynamics
     Scalar q = aero::dynamic_pressure(rho, velocity);
@@ -147,7 +148,9 @@ Scalar fuel_consumption(const Scalar &turn_alt, const Scalar &turn_rate,
     using namespace vulcan::propulsion::rocket;
 
     Scalar mass0 = Scalar(params.m_dry + params.m_prop);
-    Scalar ve = exhaust_velocity(Scalar(params.Isp_vac));
+    Scalar ve = exhaust_velocity(vulcan::Quantity<vulcan::units::s, Scalar>(
+                                     Scalar(params.Isp_vac)))
+                    .value();
 
     // Base delta-V needed for first stage contribution (~2400 m/s typical for
     // F9)
@@ -198,7 +201,11 @@ Scalar fuel_consumption(const Scalar &turn_alt, const Scalar &turn_rate,
     Scalar total_dv = dv_base + gravity_loss;
 
     // Compute propellant using rocket equation
-    Scalar fuel = propellant_mass(total_dv, mass0, ve);
+    Scalar fuel =
+        propellant_mass(vulcan::Quantity<vulcan::units::mps, Scalar>(total_dv),
+                        vulcan::Quantity<vulcan::units::kg, Scalar>(mass0),
+                        vulcan::Quantity<vulcan::units::mps, Scalar>(ve))
+            .value();
 
     return fuel;
 }
@@ -234,7 +241,9 @@ Scalar max_q_estimate(const Scalar &turn_alt, const VehicleParams &params) {
     v_maxq = janus::where(v_maxq < Scalar(200.0), Scalar(200.0), v_maxq);
 
     // Density at 12km
-    Scalar rho = ussa1976::density(h_maxq);
+    Scalar rho =
+        ussa1976::density(vulcan::Quantity<vulcan::units::m, Scalar>(h_maxq))
+            .value();
 
     // Dynamic pressure
     return Scalar(0.5) * rho * v_maxq * v_maxq;

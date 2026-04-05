@@ -3,6 +3,8 @@
 #include <vulcan/vulcan.hpp>
 
 using namespace vulcan;
+using namespace vulcan::units;
+using vulcan::Quantity;
 
 // Templated function works for both numeric and symbolic types
 template <typename Scalar>
@@ -10,12 +12,12 @@ void analyze_flight_condition(const Scalar &altitude,
                               const Vec3<Scalar> &v_body,
                               const Scalar &char_length) {
     // 1. Get Atmospheric Conditions
-    auto atm = vulcan::ussa1976::state(altitude);
+    auto atm = vulcan::ussa1976::state(Quantity<m, Scalar>(altitude));
 
-    // 2. Compute Aerodynamic State
-    auto aero =
-        vulcan::aero::aero_state(atm.density, atm.speed_of_sound,
-                                 atm.dynamic_viscosity, v_body, char_length);
+    // 2. Compute Aerodynamic State (aero functions take raw Scalar)
+    auto aero = vulcan::aero::aero_state(
+        atm.density.value(), atm.speed_of_sound.value(),
+        atm.dynamic_viscosity.value(), v_body, char_length);
 
     // Print results (only for numeric types)
     if constexpr (std::is_same_v<Scalar, double>) {
@@ -80,9 +82,11 @@ int main() {
 
     // Compute chain of operations symbolically
     // This builds the computational graph: h -> atm -> aero -> q
-    auto atm = vulcan::ussa1976::state(sym_h);
-    auto aero = vulcan::aero::aero_state(atm.density, atm.speed_of_sound,
-                                         atm.dynamic_viscosity, sym_v, sym_L);
+    auto atm =
+        vulcan::ussa1976::state(Quantity<m, janus::SymbolicScalar>(sym_h));
+    auto aero = vulcan::aero::aero_state(
+        atm.density.value(), atm.speed_of_sound.value(),
+        atm.dynamic_viscosity.value(), sym_v, sym_L);
 
     // We can now output this graph or derivatives
     std::cout << "Generated symbolic graph for Mach number:" << std::endl;

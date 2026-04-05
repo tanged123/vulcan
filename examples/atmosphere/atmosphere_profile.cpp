@@ -4,9 +4,12 @@
 #include <janus/optimization/Opti.hpp>
 #include <vulcan/vulcan.hpp>
 
+using namespace vulcan::units;
+using vulcan::Quantity;
+
 // Templated model function - works in both modes
 template <typename Scalar> Scalar air_density(const Scalar &altitude) {
-    return vulcan::ussa1976::density(altitude);
+    return vulcan::ussa1976::density(Quantity<m, Scalar>(altitude)).value();
 }
 
 int main() {
@@ -29,11 +32,12 @@ int main() {
         double h = h_km * 1000.0; // Convert to meters
 
         // Use state() to get all properties in one call
-        auto atm = vulcan::ussa1976::state(h);
+        auto atm = vulcan::ussa1976::state(Quantity<m>(h));
 
         printf("%5d    %6.2f   %10.2f  %11.6f   %6.2f   %6.4f\n", h_km,
-               atm.temperature, atm.pressure, atm.density, atm.speed_of_sound,
-               atm.gravity);
+               atm.temperature.value(), atm.pressure.value(),
+               atm.density.value(), atm.speed_of_sound.value(),
+               atm.gravity.value());
     }
 
     // ========================================
@@ -58,7 +62,7 @@ int main() {
     auto sol = opti.solve();
 
     double h_opt = static_cast<double>(sol.value(h));
-    double rho_at_opt = vulcan::ussa1976::density(h_opt);
+    double rho_at_opt = vulcan::ussa1976::density(Quantity<m>(h_opt)).value();
 
     std::cout << "  Target density: " << target_rho << " kg/m^3" << std::endl;
     std::cout << "  Optimal altitude: " << h_opt / 1000.0 << " km" << std::endl;

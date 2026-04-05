@@ -5,9 +5,12 @@
 #include <janus/math/AutoDiff.hpp>
 #include <vulcan/vulcan.hpp>
 
+using namespace vulcan::units;
+using vulcan::Quantity;
+
 // Templated model function - works in both modes
 template <typename Scalar> Scalar air_density(const Scalar &altitude) {
-    return vulcan::ussa1976::density(altitude);
+    return vulcan::ussa1976::density(Quantity<m, Scalar>(altitude)).value();
 }
 
 int main() {
@@ -25,11 +28,11 @@ int main() {
     std::cout << "  Density at 10km: " << rho << " kg/m^3" << std::endl;
 
     // Use state() to get all properties at once
-    auto atm = vulcan::ussa1976::state(alt);
-    std::cout << "  Temperature at 10km: " << atm.temperature << " K"
+    auto atm = vulcan::ussa1976::state(Quantity<m>(alt));
+    std::cout << "  Temperature at 10km: " << atm.temperature.value() << " K"
               << std::endl;
-    std::cout << "  Speed of sound at 10km: " << atm.speed_of_sound << " m/s"
-              << std::endl;
+    std::cout << "  Speed of sound at 10km: " << atm.speed_of_sound.value()
+              << " m/s" << std::endl;
 
     // ========================================
     // 2. Unit Conversions
@@ -38,8 +41,8 @@ int main() {
     double alt_ft = vulcan::units::m_to_ft(alt);
     std::cout << "  10 km = " << alt_ft << " ft" << std::endl;
 
-    double T_C = vulcan::units::K_to_C(atm.temperature);
-    std::cout << "  " << atm.temperature << " K = " << T_C << " °C"
+    double T_C = vulcan::units::K_to_C(atm.temperature.value());
+    std::cout << "  " << atm.temperature.value() << " K = " << T_C << " °C"
               << std::endl;
 
     // ========================================
