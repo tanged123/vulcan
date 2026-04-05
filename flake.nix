@@ -31,6 +31,35 @@
         # Get janus package from input
         janusPackage = janus.packages.${system}.default;
 
+        # mp-units: C++20 physical units library (not in nixpkgs)
+        mp-units = stdenv.mkDerivation {
+          pname = "mp-units";
+          version = "2.5.0";
+
+          src = pkgs.fetchFromGitHub {
+            owner = "mpusz";
+            repo = "mp-units";
+            rev = "v2.5.0";
+            hash = "sha256-HP5eq5NJIAsK3HuTwIvJgt5Y3gSMpmOng+/HDXBv0ZA=";
+          };
+
+          nativeBuildInputs = [
+            pkgs.cmake
+            pkgs.ninja
+          ];
+
+          buildInputs = [
+            pkgs.fmt
+          ];
+
+          cmakeFlags = [
+            "-DMP_UNITS_API_CONTRACTS=NONE"
+          ];
+
+          # The CMakeLists.txt is in src/ subdirectory
+          sourceRoot = "source/src";
+        };
+
         # Treefmt configuration
         treefmtEval = treefmt-nix.lib.evalModule pkgs {
           projectRootFile = "flake.nix";
@@ -58,6 +87,7 @@
             pkgs.highfive # C++ HDF5 wrapper
             pkgs.yaml-cpp
             janusPackage
+            mp-units
           ];
 
           cmakeFlags = [
@@ -86,14 +116,16 @@
               graphviz
               lcov
               llvmPackages_latest.llvm
+              fmt
             ]
             ++ [
               janusPackage
+              mp-units
               treefmtEval.config.build.wrapper
             ];
 
           shellHook = ''
-            export CMAKE_PREFIX_PATH=${pkgs.eigen}:${pkgs.casadi}:${pkgs.gtest}:${pkgs.hdf5}:${pkgs.highfive}:${pkgs.yaml-cpp}:${janusPackage}
+            export CMAKE_PREFIX_PATH=${pkgs.eigen}:${pkgs.casadi}:${pkgs.gtest}:${pkgs.hdf5}:${pkgs.highfive}:${pkgs.yaml-cpp}:${pkgs.fmt}:${janusPackage}:${mp-units}
           '';
         };
 
