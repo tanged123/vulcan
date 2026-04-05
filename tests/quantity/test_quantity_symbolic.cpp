@@ -1,145 +1,133 @@
-// CasADi symbolic proof-of-concept for vulcan::Quantity<Unit, casadi::MX>
+// CasADi symbolic proof-of-concept for vulcan::Quantity with SymbolicScalar
 //
-// This is the critical go/no-go gate: every test here verifies that
-// Quantity arithmetic, comparison, conversion, and dimensionless collapse
-// trace through CasADi's symbolic graph and evaluate to correct numerics.
+// This is the critical go/no-go gate: every test verifies that Quantity
+// arithmetic, comparison, conversion, and dimensionless collapse trace
+// through the symbolic graph and evaluate to correct numerics.
 //
-// Key finding: mp_units::quantity<Unit, MX> cannot be instantiated because
-// casadi::MX::operator== returns MX (not bool), violating
-// std::equality_comparable. The Quantity class uses a partial specialization
-// that stores MX directly and uses mp-units only for compile-time unit algebra
-// and conversion factors.
+// Uses Janus APIs (janus::sym, janus::Function, janus::SymbolicScalar)
+// — never raw CasADi types directly.
 #include <gtest/gtest.h>
 
 #include <vulcan/quantity/Quantity.hpp>
 
-#include <casadi/casadi.hpp>
+#include <janus/core/Function.hpp>
+#include <janus/core/JanusTypes.hpp>
 #include <janus/math/Arithmetic.hpp>
 #include <janus/math/Logic.hpp>
 
 namespace vu = vulcan::units;
-using MX = casadi::MX;
-
-// Helper: evaluate a single-output CasADi function and return as double
-static double eval1(casadi::Function &f, const std::vector<casadi::DM> &args) {
-    std::vector<casadi::DM> result = f(args);
-    return static_cast<double>(result.at(0));
-}
+using Sym = janus::SymbolicScalar;
 
 // =============================================================================
-// 1. Symbolic addition: Quantity<m,MX> + Quantity<m,MX>
+// 1. Symbolic addition: Quantity<m, Sym> + Quantity<m, Sym>
 // =============================================================================
 
 TEST(QuantitySymbolic, Addition) {
-    MX x = MX::sym("x");
-    MX y = MX::sym("y");
+    auto x = janus::sym("x");
+    auto y = janus::sym("y");
 
-    vulcan::Quantity<vu::m, MX> qx{x};
-    vulcan::Quantity<vu::m, MX> qy{y};
+    vulcan::Quantity<vu::m, Sym> qx{x};
+    vulcan::Quantity<vu::m, Sym> qy{y};
 
     auto qz = qx + qy;
-    MX z = qz.value();
 
-    // Build CasADi Function and evaluate
-    casadi::Function f("add", {x, y}, {z});
-    EXPECT_NEAR(eval1(f, {casadi::DM(3.0), casadi::DM(7.0)}), 10.0, 1e-12);
+    janus::Function f("add", {x, y}, {qz.value()});
+    auto result = f.eval(3.0, 7.0);
+    EXPECT_NEAR(result(0, 0), 10.0, 1e-12);
 }
 
 // =============================================================================
-// 2. Cross-unit division: Quantity<m,MX> / Quantity<s,MX>  -->  m/s
+// 2. Cross-unit division: Quantity<m, Sym> / Quantity<s, Sym> → m/s
 // =============================================================================
 
 TEST(QuantitySymbolic, CrossUnitDivision) {
-    MX d = MX::sym("d");
-    MX t = MX::sym("t");
+    auto d = janus::sym("d");
+    auto t = janus::sym("t");
 
-    vulcan::Quantity<vu::m, MX> dist{d};
-    vulcan::Quantity<vu::s, MX> time{t};
+    vulcan::Quantity<vu::m, Sym> dist{d};
+    vulcan::Quantity<vu::s, Sym> time{t};
 
-    auto vel = dist / time; // should produce m/s result
-    MX v = vel.value();
+    auto vel = dist / time;
 
-    casadi::Function f("div", {d, t}, {v});
-    EXPECT_NEAR(eval1(f, {casadi::DM(100.0), casadi::DM(10.0)}), 10.0, 1e-12);
+    janus::Function f("div", {d, t}, {vel.value()});
+    auto result = f.eval(100.0, 10.0);
+    EXPECT_NEAR(result(0, 0), 10.0, 1e-12);
 }
 
 // =============================================================================
-// 3. Scalar multiplication: Quantity<N,MX> * MX(2.0)
+// 3. Scalar multiplication: Quantity<N, Sym> * Sym(2.0)
 // =============================================================================
 
 TEST(QuantitySymbolic, ScalarMultiply) {
-    MX force_sym = MX::sym("F");
+    auto force_sym = janus::sym("F");
 
-    vulcan::Quantity<vu::N, MX> force{force_sym};
-    auto doubled = force * MX(2.0);
-    MX result_expr = doubled.value();
+    vulcan::Quantity<vu::N, Sym> force{force_sym};
+    auto doubled = force * Sym(2.0);
 
-    casadi::Function f("smul", {force_sym}, {result_expr});
-    EXPECT_NEAR(eval1(f, {casadi::DM(5.0)}), 10.0, 1e-12);
+    janus::Function f("smul", {force_sym}, {doubled.value()});
+    auto result = f.eval(5.0);
+    EXPECT_NEAR(result(0, 0), 10.0, 1e-12);
 }
 
 // =============================================================================
-// 4. Comparison + janus::where:  a < b  -->  MX predicate
+// 4. Comparison + janus::where: a < b → symbolic predicate
 // =============================================================================
 
 TEST(QuantitySymbolic, ComparisonWithWhere) {
-    MX a_sym = MX::sym("a");
-    MX b_sym = MX::sym("b");
+    auto a_sym = janus::sym("a");
+    auto b_sym = janus::sym("b");
 
-    vulcan::Quantity<vu::m, MX> a{a_sym};
-    vulcan::Quantity<vu::m, MX> b{b_sym};
+    vulcan::Quantity<vu::m, Sym> a{a_sym};
+    vulcan::Quantity<vu::m, Sym> b{b_sym};
 
-    // a < b produces an MX predicate (not bool)
     auto cond = a < b;
-    MX selected = janus::where(cond, a.value(), b.value());
+    Sym selected = janus::where(cond, a.value(), b.value());
 
-    casadi::Function f("sel", {a_sym, b_sym}, {selected});
+    janus::Function f("sel", {a_sym, b_sym}, {selected});
 
-    // Case 1: a < b  -->  select a
-    EXPECT_NEAR(eval1(f, {casadi::DM(3.0), casadi::DM(7.0)}), 3.0, 1e-12);
+    // a < b → select a
+    auto r1 = f.eval(3.0, 7.0);
+    EXPECT_NEAR(r1(0, 0), 3.0, 1e-12);
 
-    // Case 2: a >= b  -->  select b
-    EXPECT_NEAR(eval1(f, {casadi::DM(9.0), casadi::DM(4.0)}), 4.0, 1e-12);
+    // a >= b → select b
+    auto r2 = f.eval(9.0, 4.0);
+    EXPECT_NEAR(r2(0, 0), 4.0, 1e-12);
 }
 
 // =============================================================================
-// 5. Dimensionless implicit conversion  -->  janus::exp()
+// 5. Dimensionless implicit conversion → janus::exp()
 // =============================================================================
 
 TEST(QuantitySymbolic, DimensionlessImplicitToExp) {
-    MX a_sym = MX::sym("a");
-    MX b_sym = MX::sym("b");
+    auto a_sym = janus::sym("a");
+    auto b_sym = janus::sym("b");
 
-    vulcan::Quantity<vu::m, MX> a{a_sym};
-    vulcan::Quantity<vu::m, MX> b{b_sym};
+    vulcan::Quantity<vu::m, Sym> a{a_sym};
+    vulcan::Quantity<vu::m, Sym> b{b_sym};
 
-    // m / m  -->  dimensionless  -->  implicit conversion to MX
+    // m / m → dimensionless → implicit conversion to Sym
     auto ratio = a / b;
-    MX ratio_mx = ratio; // implicit conversion via operator Rep()
+    Sym ratio_sym = ratio;
 
-    // Feed dimensionless MX into janus::exp
-    MX result_expr = janus::exp(ratio_mx);
+    // Feed dimensionless into janus::exp
+    Sym result_expr = janus::exp(ratio_sym);
 
-    casadi::Function f("dimless_exp", {a_sym, b_sym}, {result_expr});
-
-    // exp(2.0/1.0) = exp(2)
-    EXPECT_NEAR(eval1(f, {casadi::DM(2.0), casadi::DM(1.0)}), std::exp(2.0),
-                1e-10);
+    janus::Function f("dimless_exp", {a_sym, b_sym}, {result_expr});
+    auto result = f.eval(2.0, 1.0);
+    EXPECT_NEAR(result(0, 0), std::exp(2.0), 1e-10);
 }
 
 // =============================================================================
-// 6. Unit conversion symbolic: Quantity<ft, MX>(x).in<m>()
+// 6. Unit conversion symbolic: Quantity<ft, Sym>(x).in<m>()
 // =============================================================================
 
 TEST(QuantitySymbolic, UnitConversionFtToM) {
-    MX x = MX::sym("x");
+    auto x = janus::sym("x");
 
-    vulcan::Quantity<vu::ft, MX> alt_ft{x};
+    vulcan::Quantity<vu::ft, Sym> alt_ft{x};
     auto alt_m = alt_ft.template in<vu::m>();
-    MX result_expr = alt_m.value();
 
-    casadi::Function f("ft2m", {x}, {result_expr});
-
-    // 1000 ft * 0.3048 = 304.8 m
-    EXPECT_NEAR(eval1(f, {casadi::DM(1000.0)}), 304.8, 1e-6);
+    janus::Function f("ft2m", {x}, {alt_m.value()});
+    auto result = f.eval(1000.0);
+    EXPECT_NEAR(result(0, 0), 304.8, 1e-6);
 }
