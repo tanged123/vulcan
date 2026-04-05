@@ -6,6 +6,7 @@
 #include <iostream>
 
 using namespace vulcan;
+using namespace vulcan::units;
 using namespace vulcan::geodetic;
 
 int main() {
@@ -16,20 +17,24 @@ int main() {
     // Define some interesting locations
     // =========================================================================
     // London Heathrow (LHR)
-    LLA<double> london(-0.4543 * constants::angle::deg2rad,
-                       51.4700 * constants::angle::deg2rad, 25.0);
+    LLA<double> london(Quantity<rad>(-0.4543 * constants::angle::deg2rad),
+                       Quantity<rad>(51.4700 * constants::angle::deg2rad),
+                       Quantity<m>(25.0));
 
     // New York JFK
-    LLA<double> nyc(-73.7781 * constants::angle::deg2rad,
-                    40.6413 * constants::angle::deg2rad, 4.0);
+    LLA<double> nyc(Quantity<rad>(-73.7781 * constants::angle::deg2rad),
+                    Quantity<rad>(40.6413 * constants::angle::deg2rad),
+                    Quantity<m>(4.0));
 
     // Kennedy Space Center
-    LLA<double> ksc(-80.6041 * constants::angle::deg2rad,
-                    28.5721 * constants::angle::deg2rad, 3.0);
+    LLA<double> ksc(Quantity<rad>(-80.6041 * constants::angle::deg2rad),
+                    Quantity<rad>(28.5721 * constants::angle::deg2rad),
+                    Quantity<m>(3.0));
 
     // Estimated downrange splashdown zone (example)
-    LLA<double> splashdown(-75.0 * constants::angle::deg2rad,
-                           30.0 * constants::angle::deg2rad, 0.0);
+    LLA<double> splashdown(Quantity<rad>(-75.0 * constants::angle::deg2rad),
+                           Quantity<rad>(30.0 * constants::angle::deg2rad),
+                           Quantity<m>(0.0));
 
     // =========================================================================
     // 1. Distance Calculations
@@ -76,9 +81,9 @@ int main() {
     auto waypoint = destination_point(ksc, bearing_to_fly, distance_m);
 
     std::cout << "From KSC, fly 500 nm at 045°:\n";
-    std::cout << "  Waypoint: " << waypoint.lat * constants::angle::rad2deg
-              << "° N, " << waypoint.lon * constants::angle::rad2deg
-              << "° W\n\n";
+    std::cout << "  Waypoint: "
+              << waypoint.lat.value() * constants::angle::rad2deg << "° N, "
+              << waypoint.lon.value() * constants::angle::rad2deg << "° W\n\n";
 
     // =========================================================================
     // 4. Horizon Distance & Visibility
@@ -98,8 +103,10 @@ int main() {
               << " km\n";
 
     // Can the aircraft see a ship 500 km away?
-    LLA<double> aircraft(0.0, 0.0, aircraft_alt);
-    LLA<double> ship(5.0 * constants::angle::deg2rad, 0.0, 0.0); // ~555 km away
+    LLA<double> aircraft(Quantity<rad>(0.0), Quantity<rad>(0.0),
+                         Quantity<m>(aircraft_alt));
+    LLA<double> ship(Quantity<rad>(5.0 * constants::angle::deg2rad),
+                     Quantity<rad>(0.0), Quantity<m>(0.0));
 
     double visibility = is_visible(aircraft, ship);
     std::cout << "Aircraft can see ship at 555 km: "
@@ -119,7 +126,11 @@ int main() {
     auto cda_frame = local_cda(ksc, launch_bearing);
 
     // Where is the splashdown in CDA coordinates?
-    Vec3<double> splashdown_ecef = lla_to_ecef(splashdown);
+    auto splashdown_ecef_q = lla_to_ecef(splashdown);
+    Vec3<double> splashdown_ecef;
+    splashdown_ecef(0) = splashdown_ecef_q(0).value();
+    splashdown_ecef(1) = splashdown_ecef_q(1).value();
+    splashdown_ecef(2) = splashdown_ecef_q(2).value();
     Vec3<double> cda_coords = ecef_to_cda(splashdown_ecef, ksc, launch_bearing);
 
     std::cout << "Splashdown in CDA coordinates:\n";
@@ -132,12 +143,18 @@ int main() {
     trajectory_point << 100000.0, 20000.0, 50000.0; // (D, C, A) in meters
 
     Vec3<double> traj_ecef = cda_to_ecef(trajectory_point, ksc, launch_bearing);
-    LLA<double> traj_lla = ecef_to_lla(traj_ecef);
+    Vec3<Quantity<m, double>> traj_ecef_q;
+    traj_ecef_q(0) = Quantity<m>(traj_ecef(0));
+    traj_ecef_q(1) = Quantity<m>(traj_ecef(1));
+    traj_ecef_q(2) = Quantity<m>(traj_ecef(2));
+    LLA<double> traj_lla = ecef_to_lla(traj_ecef_q);
 
     std::cout << "Trajectory point (100km D, 20km C, 50km A):\n";
-    std::cout << "  Lat: " << traj_lla.lat * constants::angle::rad2deg << "°\n";
-    std::cout << "  Lon: " << traj_lla.lon * constants::angle::rad2deg << "°\n";
-    std::cout << "  Alt: " << traj_lla.alt / 1000.0 << " km\n\n";
+    std::cout << "  Lat: " << traj_lla.lat.value() * constants::angle::rad2deg
+              << "°\n";
+    std::cout << "  Lon: " << traj_lla.lon.value() * constants::angle::rad2deg
+              << "°\n";
+    std::cout << "  Alt: " << traj_lla.alt.value() / 1000.0 << " km\n\n";
 
     // =========================================================================
     // 6. Symbolic Mode (for Optimization)
@@ -149,7 +166,9 @@ int main() {
     SymbolicScalar lon_sym = sym("lon");
     SymbolicScalar alt_sym = sym("alt");
 
-    LLA<SymbolicScalar> pos_sym(lon_sym, lat_sym, alt_sym);
+    LLA<SymbolicScalar> pos_sym{Quantity<rad, SymbolicScalar>(lon_sym),
+                                Quantity<rad, SymbolicScalar>(lat_sym),
+                                Quantity<m, SymbolicScalar>(alt_sym)};
 
     // Compute horizon distance symbolically
     auto horizon_sym = horizon_distance(alt_sym);
@@ -165,7 +184,10 @@ int main() {
     // Build symbolic initial_bearing function
     SymbolicScalar lat2_sym = sym("lat2");
     SymbolicScalar lon2_sym = sym("lon2");
-    LLA<SymbolicScalar> pos2_sym(lon2_sym, lat2_sym, SymbolicScalar(0.0));
+    LLA<SymbolicScalar> pos2_sym{
+        Quantity<rad, SymbolicScalar>(lon2_sym),
+        Quantity<rad, SymbolicScalar>(lat2_sym),
+        Quantity<m, SymbolicScalar>(SymbolicScalar(0.0))};
 
     auto bearing_result = initial_bearing(pos_sym, pos2_sym);
     janus::Function bearing_fn("initial_bearing",

@@ -4,12 +4,16 @@
 
 #include <vulcan/coordinates/EarthModel.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
+#include <vulcan/quantity/Quantity.hpp>
+#include <vulcan/quantity/Units.hpp>
 
 #include <janus/math/Arithmetic.hpp>
 #include <janus/math/Logic.hpp>
 #include <janus/math/Trig.hpp>
 
 namespace vulcan {
+
+using namespace vulcan::units;
 
 // =============================================================================
 // LLA - Geodetic Coordinates
@@ -25,12 +29,17 @@ namespace vulcan {
 /// @tparam Scalar Scalar type (double for numeric, janus::SymbolicScalar for
 /// symbolic)
 template <typename Scalar> struct LLA {
-    Scalar lon; ///< Longitude [rad], positive East, range [-π, π]
-    Scalar lat; ///< Geodetic latitude [rad], range [-π/2, π/2]
-    Scalar alt; ///< Altitude above ellipsoid [m]
+    Quantity<rad, Scalar>
+        lon; ///< Longitude [rad], positive East, range [-π, π]
+    Quantity<rad, Scalar> lat; ///< Geodetic latitude [rad], range [-π/2, π/2]
+    Quantity<m, Scalar> alt;   ///< Altitude above ellipsoid [m]
 
-    LLA() : lon(Scalar(0)), lat(Scalar(0)), alt(Scalar(0)) {}
-    LLA(Scalar lon_, Scalar lat_, Scalar alt_)
+    LLA()
+        : lon(Quantity<rad, Scalar>(Scalar(0))),
+          lat(Quantity<rad, Scalar>(Scalar(0))),
+          alt(Quantity<m, Scalar>(Scalar(0))) {}
+    LLA(Quantity<rad, Scalar> lon_, Quantity<rad, Scalar> lat_,
+        Quantity<m, Scalar> alt_)
         : lon(lon_), lat(lat_), alt(alt_) {}
 };
 
@@ -47,12 +56,18 @@ template <typename Scalar> struct LLA {
 /// @tparam Scalar Scalar type (double for numeric, janus::SymbolicScalar for
 /// symbolic)
 template <typename Scalar> struct Spherical {
-    Scalar lon;    ///< Longitude [rad], positive East, range [-π, π]
-    Scalar lat_gc; ///< Geocentric latitude [rad], range [-π/2, π/2]
-    Scalar radius; ///< Distance from Earth center [m]
+    Quantity<rad, Scalar>
+        lon; ///< Longitude [rad], positive East, range [-π, π]
+    Quantity<rad, Scalar>
+        lat_gc; ///< Geocentric latitude [rad], range [-π/2, π/2]
+    Quantity<m, Scalar> radius; ///< Distance from Earth center [m]
 
-    Spherical() : lon(Scalar(0)), lat_gc(Scalar(0)), radius(Scalar(0)) {}
-    Spherical(Scalar lon_, Scalar lat_gc_, Scalar radius_)
+    Spherical()
+        : lon(Quantity<rad, Scalar>(Scalar(0))),
+          lat_gc(Quantity<rad, Scalar>(Scalar(0))),
+          radius(Quantity<m, Scalar>(Scalar(0))) {}
+    Spherical(Quantity<rad, Scalar> lon_, Quantity<rad, Scalar> lat_gc_,
+              Quantity<m, Scalar> radius_)
         : lon(lon_), lat_gc(lat_gc_), radius(radius_) {}
 };
 
@@ -75,14 +90,15 @@ template <typename Scalar> struct Spherical {
 /// @param m Earth model (default: WGS84)
 /// @return LLA structure with (lon, lat, alt)
 template <typename Scalar>
-LLA<Scalar> ecef_to_lla(const Vec3<Scalar> &r,
-                        const EarthModel &m = EarthModel::WGS84()) {
-    const Scalar x = r(0);
-    const Scalar y = r(1);
-    const Scalar z = r(2);
+LLA<Scalar> ecef_to_lla(const Vec3<Quantity<m, Scalar>> &r,
+                        const EarthModel &em = EarthModel::WGS84()) {
+    // Unwrap Quantity inputs to raw Scalar
+    const Scalar x = r(0).value();
+    const Scalar y = r(1).value();
+    const Scalar z = r(2).value();
 
-    const double a = m.a;
-    const double e2 = m.e2;
+    const double a = em.a;
+    const double e2 = em.e2;
     const double e4 = e2 * e2;
 
     // Compute intermediate values
@@ -122,19 +138,23 @@ LLA<Scalar> ecef_to_lla(const Vec3<Scalar> &r,
 
     // Compute geodetic latitude
     // φ = 2 atan2(z, D + √(D² + z²))
-    const Scalar lat = 2.0 * janus::atan2(z, D + janus::sqrt(D * D + z * z));
+    const Scalar lat_raw =
+        2.0 * janus::atan2(z, D + janus::sqrt(D * D + z * z));
 
     // Compute altitude
     // h = (k + e² - 1) / k · √(D² + z²)
-    const Scalar alt = (k + e2 - 1.0) / k * janus::sqrt(D * D + z * z);
+    const Scalar alt_raw = (k + e2 - 1.0) / k * janus::sqrt(D * D + z * z);
 
     // Compute longitude with pole handling
     // At poles (xy_dist ≈ 0), longitude is undefined; we set it to 0
     constexpr double eps = 1e-15;
     const Scalar is_pole = xy_dist < eps;
-    const Scalar lon = janus::where(is_pole, Scalar(0.0), janus::atan2(y, x));
+    const Scalar lon_raw =
+        janus::where(is_pole, Scalar(0.0), janus::atan2(y, x));
 
-    return LLA<Scalar>(lon, lat, alt);
+    return LLA<Scalar>(Quantity<rad, Scalar>(lon_raw),
+                       Quantity<rad, Scalar>(lat_raw),
+                       Quantity<m, Scalar>(alt_raw));
 }
 
 // =============================================================================
@@ -149,15 +169,21 @@ LLA<Scalar> ecef_to_lla(const Vec3<Scalar> &r,
 /// @param m Earth model (default: WGS84)
 /// @return Position in ECEF [m]
 template <typename Scalar>
-Vec3<Scalar> lla_to_ecef(const LLA<Scalar> &lla,
-                         const EarthModel &m = EarthModel::WGS84()) {
-    const Scalar sin_lat = janus::sin(lla.lat);
-    const Scalar cos_lat = janus::cos(lla.lat);
-    const Scalar sin_lon = janus::sin(lla.lon);
-    const Scalar cos_lon = janus::cos(lla.lon);
+Vec3<Quantity<m, Scalar>>
+lla_to_ecef(const LLA<Scalar> &lla,
+            const EarthModel &em = EarthModel::WGS84()) {
+    // Unwrap Quantity fields to raw Scalar
+    const Scalar lat_raw = lla.lat.value();
+    const Scalar lon_raw = lla.lon.value();
+    const Scalar alt_raw = lla.alt.value();
 
-    const double a = m.a;
-    const double e2 = m.e2;
+    const Scalar sin_lat = janus::sin(lat_raw);
+    const Scalar cos_lat = janus::cos(lat_raw);
+    const Scalar sin_lon = janus::sin(lon_raw);
+    const Scalar cos_lon = janus::cos(lon_raw);
+
+    const double a = em.a;
+    const double e2 = em.e2;
 
     // Radius of curvature in the prime vertical
     // N = a / √(1 - e² sin²φ)
@@ -167,10 +193,10 @@ Vec3<Scalar> lla_to_ecef(const LLA<Scalar> &lla,
     // x = (N + h) cos(φ) cos(λ)
     // y = (N + h) cos(φ) sin(λ)
     // z = (N(1 - e²) + h) sin(φ)
-    Vec3<Scalar> r;
-    r(0) = (N + lla.alt) * cos_lat * cos_lon;
-    r(1) = (N + lla.alt) * cos_lat * sin_lon;
-    r(2) = (N * (1.0 - e2) + lla.alt) * sin_lat;
+    Vec3<Quantity<m, Scalar>> r;
+    r(0) = Quantity<m, Scalar>((N + alt_raw) * cos_lat * cos_lon);
+    r(1) = Quantity<m, Scalar>((N + alt_raw) * cos_lat * sin_lon);
+    r(2) = Quantity<m, Scalar>((N * (1.0 - e2) + alt_raw) * sin_lat);
 
     return r;
 }
@@ -193,18 +219,21 @@ Spherical<Scalar> ecef_to_spherical(const Vec3<Scalar> &r) {
     const Scalar z = r(2);
 
     // Radius (distance from Earth center)
-    const Scalar radius = janus::sqrt(x * x + y * y + z * z);
+    const Scalar radius_raw = janus::sqrt(x * x + y * y + z * z);
 
     // Geocentric latitude (angle from equatorial plane to position vector)
-    const Scalar lat_gc = janus::asin(z / radius);
+    const Scalar lat_gc_raw = janus::asin(z / radius_raw);
 
     // Longitude with pole handling
     const Scalar xy_dist = janus::sqrt(x * x + y * y);
     constexpr double eps = 1e-15;
     const Scalar is_pole = xy_dist < eps;
-    const Scalar lon = janus::where(is_pole, Scalar(0.0), janus::atan2(y, x));
+    const Scalar lon_raw =
+        janus::where(is_pole, Scalar(0.0), janus::atan2(y, x));
 
-    return Spherical<Scalar>(lon, lat_gc, radius);
+    return Spherical<Scalar>(Quantity<rad, Scalar>(lon_raw),
+                             Quantity<rad, Scalar>(lat_gc_raw),
+                             Quantity<m, Scalar>(radius_raw));
 }
 
 // =============================================================================
@@ -219,15 +248,20 @@ Spherical<Scalar> ecef_to_spherical(const Vec3<Scalar> &r) {
 /// @return Position in ECEF [m]
 template <typename Scalar>
 Vec3<Scalar> spherical_to_ecef(const Spherical<Scalar> &geo) {
-    const Scalar sin_lat = janus::sin(geo.lat_gc);
-    const Scalar cos_lat = janus::cos(geo.lat_gc);
-    const Scalar sin_lon = janus::sin(geo.lon);
-    const Scalar cos_lon = janus::cos(geo.lon);
+    // Unwrap Quantity fields to raw Scalar
+    const Scalar lat_gc_raw = geo.lat_gc.value();
+    const Scalar lon_raw = geo.lon.value();
+    const Scalar radius_raw = geo.radius.value();
+
+    const Scalar sin_lat = janus::sin(lat_gc_raw);
+    const Scalar cos_lat = janus::cos(lat_gc_raw);
+    const Scalar sin_lon = janus::sin(lon_raw);
+    const Scalar cos_lon = janus::cos(lon_raw);
 
     Vec3<Scalar> r;
-    r(0) = geo.radius * cos_lat * cos_lon;
-    r(1) = geo.radius * cos_lat * sin_lon;
-    r(2) = geo.radius * sin_lat;
+    r(0) = radius_raw * cos_lat * cos_lon;
+    r(1) = radius_raw * cos_lat * sin_lon;
+    r(2) = radius_raw * sin_lat;
 
     return r;
 }
@@ -245,10 +279,12 @@ Vec3<Scalar> spherical_to_ecef(const Spherical<Scalar> &geo) {
 /// @param m Earth model (default: WGS84)
 /// @return Geocentric latitude [rad]
 template <typename Scalar>
-Scalar geodetic_to_geocentric_lat(Scalar lat_gd,
-                                  const EarthModel &m = EarthModel::WGS84()) {
-    // tan(φ_gc) = (1 - e²) tan(φ_gd)
-    return janus::atan((1.0 - m.e2) * janus::tan(lat_gd));
+Quantity<rad, Scalar>
+geodetic_to_geocentric_lat(Quantity<rad, Scalar> lat_gd,
+                           const EarthModel &em = EarthModel::WGS84()) {
+    // Unwrap, compute, wrap
+    const Scalar raw = lat_gd.value();
+    return Quantity<rad, Scalar>(janus::atan((1.0 - em.e2) * janus::tan(raw)));
 }
 
 /// Convert geocentric latitude to geodetic latitude
@@ -257,10 +293,11 @@ Scalar geodetic_to_geocentric_lat(Scalar lat_gd,
 /// @param m Earth model (default: WGS84)
 /// @return Geodetic latitude [rad]
 template <typename Scalar>
-Scalar geocentric_to_geodetic_lat(Scalar lat_gc,
-                                  const EarthModel &m = EarthModel::WGS84()) {
-    // tan(φ_gd) = tan(φ_gc) / (1 - e²)
-    return janus::atan(janus::tan(lat_gc) / (1.0 - m.e2));
+Quantity<rad, Scalar>
+geocentric_to_geodetic_lat(Quantity<rad, Scalar> lat_gc,
+                           const EarthModel &em = EarthModel::WGS84()) {
+    const Scalar raw = lat_gc.value();
+    return Quantity<rad, Scalar>(janus::atan(janus::tan(raw) / (1.0 - em.e2)));
 }
 
 /// Compute the radius of curvature in the prime vertical (N)
@@ -272,10 +309,12 @@ Scalar geocentric_to_geodetic_lat(Scalar lat_gc,
 /// @param m Earth model (default: WGS84)
 /// @return Radius of curvature N [m]
 template <typename Scalar>
-Scalar radius_of_curvature_N(Scalar lat,
-                             const EarthModel &m = EarthModel::WGS84()) {
-    const Scalar sin_lat = janus::sin(lat);
-    return m.a / janus::sqrt(1.0 - m.e2 * sin_lat * sin_lat);
+Quantity<m, Scalar>
+radius_of_curvature_N(Quantity<rad, Scalar> lat,
+                      const EarthModel &em = EarthModel::WGS84()) {
+    const Scalar sin_lat = janus::sin(lat.value());
+    return Quantity<m, Scalar>(em.a /
+                               janus::sqrt(1.0 - em.e2 * sin_lat * sin_lat));
 }
 
 /// Compute the radius of curvature in the meridian (M)
@@ -287,11 +326,12 @@ Scalar radius_of_curvature_N(Scalar lat,
 /// @param m Earth model (default: WGS84)
 /// @return Radius of curvature M [m]
 template <typename Scalar>
-Scalar radius_of_curvature_M(Scalar lat,
-                             const EarthModel &m = EarthModel::WGS84()) {
-    const Scalar sin_lat = janus::sin(lat);
-    const Scalar denom = 1.0 - m.e2 * sin_lat * sin_lat;
-    return m.a * (1.0 - m.e2) / janus::pow(denom, 1.5);
+Quantity<m, Scalar>
+radius_of_curvature_M(Quantity<rad, Scalar> lat,
+                      const EarthModel &em = EarthModel::WGS84()) {
+    const Scalar sin_lat = janus::sin(lat.value());
+    const Scalar denom = 1.0 - em.e2 * sin_lat * sin_lat;
+    return Quantity<m, Scalar>(em.a * (1.0 - em.e2) / janus::pow(denom, 1.5));
 }
 
 } // namespace vulcan

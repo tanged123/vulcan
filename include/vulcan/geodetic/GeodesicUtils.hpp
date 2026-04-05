@@ -6,6 +6,8 @@
 #include <vulcan/coordinates/Geodetic.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
+#include <vulcan/quantity/Quantity.hpp>
+#include <vulcan/quantity/Units.hpp>
 
 #include <janus/math/Arithmetic.hpp>
 #include <janus/math/Logic.hpp>
@@ -35,15 +37,15 @@ namespace vulcan::geodetic {
 template <typename Scalar>
 Scalar haversine_distance(const LLA<Scalar> &lla1, const LLA<Scalar> &lla2,
                           double radius = constants::earth::R_mean.value()) {
-    const Scalar dlat = lla2.lat - lla1.lat;
-    const Scalar dlon = lla2.lon - lla1.lon;
+    const Scalar dlat = lla2.lat.value() - lla1.lat.value();
+    const Scalar dlon = lla2.lon.value() - lla1.lon.value();
 
     const Scalar sin_dlat_2 = janus::sin(dlat / 2.0);
     const Scalar sin_dlon_2 = janus::sin(dlon / 2.0);
 
-    const Scalar a = sin_dlat_2 * sin_dlat_2 + janus::cos(lla1.lat) *
-                                                   janus::cos(lla2.lat) *
-                                                   sin_dlon_2 * sin_dlon_2;
+    const Scalar a = sin_dlat_2 * sin_dlat_2 +
+                     janus::cos(lla1.lat.value()) *
+                         janus::cos(lla2.lat.value()) * sin_dlon_2 * sin_dlon_2;
 
     const Scalar c = 2.0 * janus::atan2(janus::sqrt(a), janus::sqrt(1.0 - a));
 
@@ -74,15 +76,15 @@ Scalar great_circle_distance(const LLA<Scalar> &lla1, const LLA<Scalar> &lla2,
     const double f = m.f;
 
     // Reduced latitudes
-    const Scalar U1 = janus::atan((1.0 - f) * janus::tan(lla1.lat));
-    const Scalar U2 = janus::atan((1.0 - f) * janus::tan(lla2.lat));
+    const Scalar U1 = janus::atan((1.0 - f) * janus::tan(lla1.lat.value()));
+    const Scalar U2 = janus::atan((1.0 - f) * janus::tan(lla2.lat.value()));
 
     const Scalar sin_U1 = janus::sin(U1);
     const Scalar cos_U1 = janus::cos(U1);
     const Scalar sin_U2 = janus::sin(U2);
     const Scalar cos_U2 = janus::cos(U2);
 
-    const Scalar L = lla2.lon - lla1.lon;
+    const Scalar L = lla2.lon.value() - lla1.lon.value();
 
     // Iterative solution
     Scalar lambda = L;
@@ -169,14 +171,14 @@ initial_bearing(const LLA<Scalar> &lla1, const LLA<Scalar> &lla2,
     // For spherical approximation (sufficient for bearing):
     // θ = atan2(sin(Δλ)cos(φ₂), cos(φ₁)sin(φ₂) - sin(φ₁)cos(φ₂)cos(Δλ))
 
-    const Scalar dlon = lla2.lon - lla1.lon;
+    const Scalar dlon = lla2.lon.value() - lla1.lon.value();
 
     const Scalar sin_dlon = janus::sin(dlon);
     const Scalar cos_dlon = janus::cos(dlon);
-    const Scalar sin_lat1 = janus::sin(lla1.lat);
-    const Scalar cos_lat1 = janus::cos(lla1.lat);
-    const Scalar sin_lat2 = janus::sin(lla2.lat);
-    const Scalar cos_lat2 = janus::cos(lla2.lat);
+    const Scalar sin_lat1 = janus::sin(lla1.lat.value());
+    const Scalar cos_lat1 = janus::cos(lla1.lat.value());
+    const Scalar sin_lat2 = janus::sin(lla2.lat.value());
+    const Scalar cos_lat2 = janus::cos(lla2.lat.value());
 
     const Scalar x = sin_dlon * cos_lat2;
     const Scalar y = cos_lat1 * sin_lat2 - sin_lat1 * cos_lat2 * cos_dlon;
@@ -250,7 +252,7 @@ LLA<Scalar> destination_point(const LLA<Scalar> &lla, const Scalar &bearing,
     const Scalar cos_bearing = janus::cos(bearing);
 
     // Reduced latitude
-    const Scalar U1 = janus::atan((1.0 - f) * janus::tan(lla.lat));
+    const Scalar U1 = janus::atan((1.0 - f) * janus::tan(lla.lat.value()));
     const Scalar sin_U1 = janus::sin(U1);
     const Scalar cos_U1 = janus::cos(U1);
 
@@ -320,9 +322,10 @@ LLA<Scalar> destination_point(const LLA<Scalar> &lla, const Scalar &bearing,
                  (cos_2sigma_m +
                   C * cos_sigma * (-1.0 + 2.0 * cos_2sigma_m * cos_2sigma_m)));
 
-    const Scalar lon2 = lla.lon + L;
+    const Scalar lon2 = lla.lon.value() + L;
 
-    return LLA<Scalar>(lon2, lat2, lla.alt);
+    return LLA<Scalar>(Quantity<units::rad, Scalar>(lon2),
+                       Quantity<units::rad, Scalar>(lat2), lla.alt);
 }
 
 // =============================================================================
@@ -369,8 +372,8 @@ Scalar is_visible(const LLA<Scalar> &lla_observer,
                   const LLA<Scalar> &lla_target,
                   const EarthModel &m = EarthModel::WGS84()) {
     // Horizon distance from each point
-    const Scalar h1 = horizon_distance(lla_observer.alt, m);
-    const Scalar h2 = horizon_distance(lla_target.alt, m);
+    const Scalar h1 = horizon_distance(lla_observer.alt.value(), m);
+    const Scalar h2 = horizon_distance(lla_target.alt.value(), m);
 
     // Ground distance between points
     const Scalar ground_dist =

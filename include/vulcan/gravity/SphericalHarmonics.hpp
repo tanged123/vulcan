@@ -131,9 +131,9 @@ acceleration(const Vec3<Quantity<units::m, Scalar>> &r_ecef,
 
     // Convert to spherical coordinates
     const Spherical<Scalar> sph = ecef_to_spherical(r_raw);
-    const Scalar r = sph.radius;
-    const Scalar lon = sph.lon;
-    const Scalar lat_gc = sph.lat_gc;
+    const Scalar r = sph.radius.value();
+    const Scalar lon = sph.lon.value();
+    const Scalar lat_gc = sph.lat_gc.value();
 
     const Scalar sin_lat = janus::sin(lat_gc);
     const Scalar cos_lat = janus::cos(lat_gc);
@@ -235,9 +235,9 @@ potential(const Vec3<Quantity<units::m, Scalar>> &r_ecef,
     r_raw(2) = r_ecef(2).value();
 
     const Spherical<Scalar> sph = ecef_to_spherical(r_raw);
-    const Scalar r = sph.radius;
-    const Scalar lon = sph.lon;
-    const Scalar lat_gc = sph.lat_gc;
+    const Scalar r = sph.radius.value();
+    const Scalar lon = sph.lon.value();
+    const Scalar lat_gc = sph.lat_gc.value();
 
     const Scalar sin_lat = janus::sin(lat_gc);
 

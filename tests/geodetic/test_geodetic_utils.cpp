@@ -5,26 +5,52 @@
 #include <vulcan/coordinates/FrameLocal.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/geodetic/GeodesicUtils.hpp>
+#include <vulcan/quantity/Quantity.hpp>
+#include <vulcan/quantity/Units.hpp>
 
 #include <janus/janus.hpp>
 
 using namespace vulcan;
+using namespace vulcan::units;
 using namespace vulcan::geodetic;
+
+// Helper to build LLA<double> from raw doubles
+static LLA<double> make_lla(double lon_rad, double lat_rad, double alt_m) {
+    return LLA<double>(Quantity<rad>(lon_rad), Quantity<rad>(lat_rad),
+                       Quantity<m>(alt_m));
+}
+
+// Helper to build LLA<casadi::MX> from symbolic scalars
+static LLA<casadi::MX> make_lla_mx(casadi::MX lon_val, casadi::MX lat_val,
+                                   casadi::MX alt_val) {
+    return LLA<casadi::MX>(Quantity<rad, casadi::MX>(lon_val),
+                           Quantity<rad, casadi::MX>(lat_val),
+                           Quantity<m, casadi::MX>(alt_val));
+}
+
+// Helper to unwrap Vec3<Quantity<m>> to Vec3<double>
+static Vec3<double> unwrap_ecef(const Vec3<Quantity<m, double>> &r) {
+    Vec3<double> out;
+    out(0) = r(0).value();
+    out(1) = r(1).value();
+    out(2) = r(2).value();
+    return out;
+}
 
 // =============================================================================
 // Haversine Distance Tests
 // =============================================================================
 
 TEST(GeodesicUtils, Haversine_SamePoint) {
-    LLA<double> p1(0.0, 0.0, 0.0);
+    auto p1 = make_lla(0.0, 0.0, 0.0);
     auto d = haversine_distance(p1, p1);
     EXPECT_NEAR(d, 0.0, 1e-10);
 }
 
 TEST(GeodesicUtils, Haversine_Equator_90Degrees) {
     // Quarter of Earth circumference along equator
-    LLA<double> p1(0.0, 0.0, 0.0);
-    LLA<double> p2(constants::angle::pi.value() / 2.0, 0.0, 0.0);
+    auto p1 = make_lla(0.0, 0.0, 0.0);
+    auto p2 = make_lla(constants::angle::pi.value() / 2.0, 0.0, 0.0);
 
     auto d = haversine_distance(p1, p2);
     // Expected: ~10,007 km (quarter circumference using mean radius 6371km)
@@ -33,8 +59,8 @@ TEST(GeodesicUtils, Haversine_Equator_90Degrees) {
 
 TEST(GeodesicUtils, Haversine_Poles) {
     // North to South pole
-    LLA<double> north(0.0, constants::angle::pi.value() / 2.0, 0.0);
-    LLA<double> south(0.0, -constants::angle::pi.value() / 2.0, 0.0);
+    auto north = make_lla(0.0, constants::angle::pi.value() / 2.0, 0.0);
+    auto south = make_lla(0.0, -constants::angle::pi.value() / 2.0, 0.0);
 
     auto d = haversine_distance(north, south);
     // Expected: half circumference using mean radius ~20,015 km
@@ -48,8 +74,8 @@ TEST(GeodesicUtils, Haversine_ShortDistance) {
     // ~0.013 degrees longitude at 45N is about 1 km
     double lon2 = 0.013 * constants::angle::deg2rad;
 
-    LLA<double> p1(lon1, lat, 0.0);
-    LLA<double> p2(lon2, lat, 0.0);
+    auto p1 = make_lla(lon1, lat, 0.0);
+    auto p2 = make_lla(lon2, lat, 0.0);
 
     auto d = haversine_distance(p1, p2);
     EXPECT_NEAR(d, 1000.0, 50.0); // Within 50m
@@ -60,18 +86,18 @@ TEST(GeodesicUtils, Haversine_ShortDistance) {
 // =============================================================================
 
 TEST(GeodesicUtils, Vincenty_SamePoint) {
-    LLA<double> p1(0.0, 0.0, 0.0);
+    auto p1 = make_lla(0.0, 0.0, 0.0);
     auto d = great_circle_distance(p1, p1);
     EXPECT_NEAR(d, 0.0, 1.0); // Within 1m
 }
 
 TEST(GeodesicUtils, Vincenty_LondonToNewYork) {
-    // London: 51.5074° N, 0.1278° W
-    // New York: 40.7128° N, 74.0060° W
-    LLA<double> london(-0.1278 * constants::angle::deg2rad,
-                       51.5074 * constants::angle::deg2rad, 0.0);
-    LLA<double> nyc(-74.0060 * constants::angle::deg2rad,
-                    40.7128 * constants::angle::deg2rad, 0.0);
+    // London: 51.5074 N, 0.1278 W
+    // New York: 40.7128 N, 74.0060 W
+    auto london = make_lla(-0.1278 * constants::angle::deg2rad,
+                           51.5074 * constants::angle::deg2rad, 0.0);
+    auto nyc = make_lla(-74.0060 * constants::angle::deg2rad,
+                        40.7128 * constants::angle::deg2rad, 0.0);
 
     auto d = great_circle_distance(london, nyc);
     // Expected: ~5,585 km (Vincenty gives slightly different result than
@@ -80,12 +106,12 @@ TEST(GeodesicUtils, Vincenty_LondonToNewYork) {
 }
 
 TEST(GeodesicUtils, Vincenty_SydneyToSantiago) {
-    // Sydney: 33.8688° S, 151.2093° E
-    // Santiago: 33.4489° S, 70.6693° W
-    LLA<double> sydney(151.2093 * constants::angle::deg2rad,
-                       -33.8688 * constants::angle::deg2rad, 0.0);
-    LLA<double> santiago(-70.6693 * constants::angle::deg2rad,
-                         -33.4489 * constants::angle::deg2rad, 0.0);
+    // Sydney: 33.8688 S, 151.2093 E
+    // Santiago: 33.4489 S, 70.6693 W
+    auto sydney = make_lla(151.2093 * constants::angle::deg2rad,
+                           -33.8688 * constants::angle::deg2rad, 0.0);
+    auto santiago = make_lla(-70.6693 * constants::angle::deg2rad,
+                             -33.4489 * constants::angle::deg2rad, 0.0);
 
     auto d = great_circle_distance(sydney, santiago);
     // Expected: ~11,369 km
@@ -98,8 +124,8 @@ TEST(GeodesicUtils, Vincenty_ShortDistance) {
     double lon1 = 0.0;
     double lon2 = 0.013 * constants::angle::deg2rad;
 
-    LLA<double> p1(lon1, lat, 0.0);
-    LLA<double> p2(lon2, lat, 0.0);
+    auto p1 = make_lla(lon1, lat, 0.0);
+    auto p2 = make_lla(lon2, lat, 0.0);
 
     auto d = great_circle_distance(p1, p2);
     EXPECT_NEAR(d, 1025.0, 50.0); // Within 50m
@@ -110,46 +136,46 @@ TEST(GeodesicUtils, Vincenty_ShortDistance) {
 // =============================================================================
 
 TEST(GeodesicUtils, InitialBearing_DueNorth) {
-    LLA<double> p1(0.0, 0.0, 0.0);
-    LLA<double> p2(0.0, 10.0 * constants::angle::deg2rad, 0.0);
+    auto p1 = make_lla(0.0, 0.0, 0.0);
+    auto p2 = make_lla(0.0, 10.0 * constants::angle::deg2rad, 0.0);
 
     auto bearing = initial_bearing(p1, p2);
-    EXPECT_NEAR(bearing, 0.0, 0.001); // Due North = 0°
+    EXPECT_NEAR(bearing, 0.0, 0.001); // Due North = 0
 }
 
 TEST(GeodesicUtils, InitialBearing_DueEast) {
-    LLA<double> p1(0.0, 0.0, 0.0);
-    LLA<double> p2(10.0 * constants::angle::deg2rad, 0.0, 0.0);
+    auto p1 = make_lla(0.0, 0.0, 0.0);
+    auto p2 = make_lla(10.0 * constants::angle::deg2rad, 0.0, 0.0);
 
     auto bearing = initial_bearing(p1, p2);
     EXPECT_NEAR(bearing, constants::angle::pi.value() / 2.0,
-                0.001); // Due East = 90°
+                0.001); // Due East = 90
 }
 
 TEST(GeodesicUtils, InitialBearing_DueSouth) {
-    LLA<double> p1(0.0, 10.0 * constants::angle::deg2rad, 0.0);
-    LLA<double> p2(0.0, 0.0, 0.0);
+    auto p1 = make_lla(0.0, 10.0 * constants::angle::deg2rad, 0.0);
+    auto p2 = make_lla(0.0, 0.0, 0.0);
 
     auto bearing = initial_bearing(p1, p2);
     EXPECT_NEAR(bearing, constants::angle::pi.value(),
-                0.001); // Due South = 180°
+                0.001); // Due South = 180
 }
 
 TEST(GeodesicUtils, InitialBearing_DueWest) {
-    LLA<double> p1(10.0 * constants::angle::deg2rad, 0.0, 0.0);
-    LLA<double> p2(0.0, 0.0, 0.0);
+    auto p1 = make_lla(10.0 * constants::angle::deg2rad, 0.0, 0.0);
+    auto p2 = make_lla(0.0, 0.0, 0.0);
 
     auto bearing = initial_bearing(p1, p2);
     EXPECT_NEAR(bearing, 3.0 * constants::angle::pi.value() / 2.0,
-                0.001); // Due West = 270°
+                0.001); // Due West = 270
 }
 
 TEST(GeodesicUtils, FinalBearing_GreatCircle) {
     // Final bearing differs from initial for great circle routes
-    LLA<double> london(-0.1278 * constants::angle::deg2rad,
-                       51.5074 * constants::angle::deg2rad, 0.0);
-    LLA<double> nyc(-74.0060 * constants::angle::deg2rad,
-                    40.7128 * constants::angle::deg2rad, 0.0);
+    auto london = make_lla(-0.1278 * constants::angle::deg2rad,
+                           51.5074 * constants::angle::deg2rad, 0.0);
+    auto nyc = make_lla(-74.0060 * constants::angle::deg2rad,
+                        40.7128 * constants::angle::deg2rad, 0.0);
 
     auto init = initial_bearing(london, nyc);
     auto final_b = final_bearing(london, nyc);
@@ -158,9 +184,9 @@ TEST(GeodesicUtils, FinalBearing_GreatCircle) {
     EXPECT_NE(init, final_b);
 
     // Both bearings should be in the western hemisphere for London->NYC
-    // Initial: heading northwest (between 270° and 360° or ~288°)
-    // Final: heading southwest (could be > 180° depending on normalization)
-    EXPECT_GT(init, constants::angle::pi.value()); // Northwest > 180°
+    // Initial: heading northwest (between 270 and 360 or ~288)
+    // Final: heading southwest (could be > 180 depending on normalization)
+    EXPECT_GT(init, constants::angle::pi.value()); // Northwest > 180
 }
 
 // =============================================================================
@@ -168,7 +194,7 @@ TEST(GeodesicUtils, FinalBearing_GreatCircle) {
 // =============================================================================
 
 TEST(GeodesicUtils, DestinationPoint_Roundtrip) {
-    LLA<double> start(0.0, 45.0 * constants::angle::deg2rad, 1000.0);
+    auto start = make_lla(0.0, 45.0 * constants::angle::deg2rad, 1000.0);
     double bearing = 45.0 * constants::angle::deg2rad; // Northeast
     double distance = 100000.0;                        // 100 km
 
@@ -180,23 +206,23 @@ TEST(GeodesicUtils, DestinationPoint_Roundtrip) {
     EXPECT_NEAR(calc_dist, distance, 1.0); // Within 1m
 
     // Altitude should be preserved
-    EXPECT_NEAR(dest.alt, start.alt, 1e-6);
+    EXPECT_NEAR(dest.alt.value(), start.alt.value(), 1e-6);
 }
 
 TEST(GeodesicUtils, DestinationPoint_Cardinal) {
-    LLA<double> start(0.0, 0.0, 0.0); // Equator, prime meridian
-    double distance = 111000.0;       // ~1 degree at equator
+    auto start = make_lla(0.0, 0.0, 0.0); // Equator, prime meridian
+    double distance = 111000.0;           // ~1 degree at equator
 
     // Go due North
     auto dest_n = destination_point(start, 0.0, distance);
-    EXPECT_NEAR(dest_n.lat, 1.0 * constants::angle::deg2rad, 0.01);
-    EXPECT_NEAR(dest_n.lon, 0.0, 0.01);
+    EXPECT_NEAR(dest_n.lat.value(), 1.0 * constants::angle::deg2rad, 0.01);
+    EXPECT_NEAR(dest_n.lon.value(), 0.0, 0.01);
 
     // Go due East
     auto dest_e =
         destination_point(start, constants::angle::pi.value() / 2.0, distance);
-    EXPECT_NEAR(dest_e.lat, 0.0, 0.01);
-    EXPECT_NEAR(dest_e.lon, 1.0 * constants::angle::deg2rad, 0.01);
+    EXPECT_NEAR(dest_e.lat.value(), 0.0, 0.01);
+    EXPECT_NEAR(dest_e.lon.value(), 1.0 * constants::angle::deg2rad, 0.01);
 }
 
 // =============================================================================
@@ -228,8 +254,8 @@ TEST(GeodesicUtils, HorizonDistance_ISS) {
 
 TEST(GeodesicUtils, IsVisible_ClosePoints) {
     // Two points 10 km apart, both at 100m altitude
-    LLA<double> p1(0.0, 0.0, 100.0);
-    LLA<double> p2(0.001 * constants::angle::deg2rad, 0.0, 100.0);
+    auto p1 = make_lla(0.0, 0.0, 100.0);
+    auto p2 = make_lla(0.001 * constants::angle::deg2rad, 0.0, 100.0);
 
     auto vis = is_visible(p1, p2);
     EXPECT_GT(vis, 0.0); // Should be visible
@@ -237,8 +263,8 @@ TEST(GeodesicUtils, IsVisible_ClosePoints) {
 
 TEST(GeodesicUtils, IsVisible_FarPoints_SeaLevel) {
     // Two points 500 km apart at sea level
-    LLA<double> p1(0.0, 0.0, 0.0);
-    LLA<double> p2(5.0 * constants::angle::deg2rad, 0.0, 0.0);
+    auto p1 = make_lla(0.0, 0.0, 0.0);
+    auto p2 = make_lla(5.0 * constants::angle::deg2rad, 0.0, 0.0);
 
     auto vis = is_visible(p1, p2);
     EXPECT_LT(vis, 0.0); // Should NOT be visible (below horizon)
@@ -246,8 +272,8 @@ TEST(GeodesicUtils, IsVisible_FarPoints_SeaLevel) {
 
 TEST(GeodesicUtils, IsVisible_HighAltitude) {
     // Observer at 30km (high altitude balloon), target 500km away at sea level
-    LLA<double> observer(0.0, 0.0, 30000.0);
-    LLA<double> target(5.0 * constants::angle::deg2rad, 0.0, 0.0);
+    auto observer = make_lla(0.0, 0.0, 30000.0);
+    auto target = make_lla(5.0 * constants::angle::deg2rad, 0.0, 0.0);
 
     auto vis = is_visible(observer, target);
     EXPECT_GT(vis, 0.0); // Should be visible from high altitude
@@ -309,7 +335,7 @@ TEST(GeodesicUtils, RayEllipsoid_Tangent) {
 
 TEST(CDAFrame, FromBearing_North) {
     // CDA with bearing = 0 (North) should have D=North, C=East
-    LLA<double> origin(0.0, 45.0 * constants::angle::deg2rad, 0.0);
+    auto origin = make_lla(0.0, 45.0 * constants::angle::deg2rad, 0.0);
     double bearing = 0.0; // Due North
 
     auto frame = local_cda(origin, bearing);
@@ -324,8 +350,8 @@ TEST(CDAFrame, FromBearing_North) {
 }
 
 TEST(CDAFrame, FromBearing_East) {
-    // CDA with bearing = 90° (East)
-    LLA<double> origin(0.0, 0.0, 0.0); // Equator, prime meridian
+    // CDA with bearing = 90 (East)
+    auto origin = make_lla(0.0, 0.0, 0.0); // Equator, prime meridian
     double bearing = constants::angle::pi.value() / 2.0; // Due East
 
     auto frame = local_cda(origin, bearing);
@@ -339,14 +365,14 @@ TEST(CDAFrame, FromBearing_East) {
 
 TEST(CDAFrame, Roundtrip_ECEF) {
     // Convert point to CDA and back
-    LLA<double> ref(10.0 * constants::angle::deg2rad,
-                    45.0 * constants::angle::deg2rad, 0.0);
+    auto ref = make_lla(10.0 * constants::angle::deg2rad,
+                        45.0 * constants::angle::deg2rad, 0.0);
     double bearing = 30.0 * constants::angle::deg2rad;
 
     // Target point 10km downrange, 5km crossrange, 1km up
-    LLA<double> target_lla(10.1 * constants::angle::deg2rad,
-                           45.05 * constants::angle::deg2rad, 1000.0);
-    Vec3<double> target_ecef = lla_to_ecef(target_lla);
+    auto target_lla = make_lla(10.1 * constants::angle::deg2rad,
+                               45.05 * constants::angle::deg2rad, 1000.0);
+    Vec3<double> target_ecef = unwrap_ecef(lla_to_ecef(target_lla));
 
     // Convert to CDA
     Vec3<double> cda = ecef_to_cda(target_ecef, ref, bearing);
@@ -360,13 +386,13 @@ TEST(CDAFrame, Roundtrip_ECEF) {
 
 TEST(CDAFrame, DownRange_Distance) {
     // Point along bearing should have positive downrange, zero crossrange
-    LLA<double> origin(0.0, 0.0, 0.0);
+    auto origin = make_lla(0.0, 0.0, 0.0);
     double bearing = 0.0;      // Due North
     double distance = 10000.0; // 10 km
 
     // Destination point along bearing
     auto dest = destination_point(origin, bearing, distance);
-    Vec3<double> dest_ecef = lla_to_ecef(dest);
+    Vec3<double> dest_ecef = unwrap_ecef(lla_to_ecef(dest));
 
     // Convert to CDA
     Vec3<double> cda = ecef_to_cda(dest_ecef, origin, bearing);
@@ -378,14 +404,14 @@ TEST(CDAFrame, DownRange_Distance) {
 
 TEST(CDAFrame, CrossRange_Offset) {
     // Point perpendicular to bearing should have zero downrange
-    LLA<double> origin(0.0, 0.0, 0.0);
+    auto origin = make_lla(0.0, 0.0, 0.0);
     double bearing = 0.0;      // Due North
     double distance = 10000.0; // 10 km
 
-    // Point due East (90° from North)
+    // Point due East (90 from North)
     double cross_bearing = constants::angle::pi.value() / 2.0;
     auto dest = destination_point(origin, cross_bearing, distance);
-    Vec3<double> dest_ecef = lla_to_ecef(dest);
+    Vec3<double> dest_ecef = unwrap_ecef(lla_to_ecef(dest));
 
     // Convert to CDA
     Vec3<double> cda = ecef_to_cda(dest_ecef, origin, bearing);
@@ -405,8 +431,8 @@ TEST(GeodesicSymbolic, Haversine_GraphBuilds) {
     auto lon2 = casadi::MX::sym("lon2");
     auto lat2 = casadi::MX::sym("lat2");
 
-    LLA<casadi::MX> p1(lon1, lat1, casadi::MX(0));
-    LLA<casadi::MX> p2(lon2, lat2, casadi::MX(0));
+    auto p1 = make_lla_mx(lon1, lat1, casadi::MX(0));
+    auto p2 = make_lla_mx(lon2, lat2, casadi::MX(0));
 
     auto d = haversine_distance(p1, p2);
     EXPECT_FALSE(d.is_empty());
@@ -418,8 +444,8 @@ TEST(GeodesicSymbolic, InitialBearing_GraphBuilds) {
     auto lon2 = casadi::MX::sym("lon2");
     auto lat2 = casadi::MX::sym("lat2");
 
-    LLA<casadi::MX> p1(lon1, lat1, casadi::MX(0));
-    LLA<casadi::MX> p2(lon2, lat2, casadi::MX(0));
+    auto p1 = make_lla_mx(lon1, lat1, casadi::MX(0));
+    auto p2 = make_lla_mx(lon2, lat2, casadi::MX(0));
 
     auto b = initial_bearing(p1, p2);
     EXPECT_FALSE(b.is_empty());
@@ -431,11 +457,11 @@ TEST(GeodesicSymbolic, DestinationPoint_GraphBuilds) {
     auto bearing = casadi::MX::sym("bearing");
     auto dist = casadi::MX::sym("dist");
 
-    LLA<casadi::MX> start(lon, lat, casadi::MX(0));
+    auto start = make_lla_mx(lon, lat, casadi::MX(0));
 
     auto dest = destination_point(start, bearing, dist);
-    EXPECT_FALSE(dest.lon.is_empty());
-    EXPECT_FALSE(dest.lat.is_empty());
+    EXPECT_FALSE(dest.lon.value().is_empty());
+    EXPECT_FALSE(dest.lat.value().is_empty());
 }
 
 TEST(GeodesicSymbolic, HorizonDistance_GraphBuilds) {
@@ -449,7 +475,7 @@ TEST(GeodesicSymbolic, CDA_GraphBuilds) {
     auto lat = casadi::MX::sym("lat");
     auto bearing = casadi::MX::sym("bearing");
 
-    LLA<casadi::MX> origin(lon, lat, casadi::MX(0));
+    auto origin = make_lla_mx(lon, lat, casadi::MX(0));
 
     auto frame = local_cda(origin, bearing);
 

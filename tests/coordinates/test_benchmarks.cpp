@@ -5,8 +5,12 @@
 #include <vulcan/coordinates/TransformProvider.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/core/Units.hpp>
+#include <vulcan/quantity/Quantity.hpp>
+#include <vulcan/quantity/Units.hpp>
 
 #include <janus/janus.hpp>
+
+using namespace vulcan::units;
 
 #include <chrono>
 #include <cmath>
@@ -92,16 +96,17 @@ TEST(Benchmarks, Vallado_Ex3_3_SiteCoordinates) {
     double lon_deg = -104.883;
     double alt_m = 2184.0;
 
-    vulcan::LLA<double> site(lon_deg * vulcan::constants::angle::deg2rad,
-                             lat_deg * vulcan::constants::angle::deg2rad,
-                             alt_m);
+    vulcan::LLA<double> site(
+        vulcan::Quantity<rad>(lon_deg * vulcan::constants::angle::deg2rad),
+        vulcan::Quantity<rad>(lat_deg * vulcan::constants::angle::deg2rad),
+        vulcan::Quantity<m>(alt_m));
 
     auto r_ecef = vulcan::lla_to_ecef(site);
 
     // Convert to km for comparison with textbook values
-    double x_km = r_ecef(0) / 1000.0;
-    double y_km = r_ecef(1) / 1000.0;
-    double z_km = r_ecef(2) / 1000.0;
+    double x_km = r_ecef(0).value() / 1000.0;
+    double y_km = r_ecef(1).value() / 1000.0;
+    double z_km = r_ecef(2).value() / 1000.0;
 
     // Tolerances: Vallado usually gives 3-4 decimal places in km.
     // We expect strict agreement to ~1m (0.001 km) or better.
@@ -118,28 +123,32 @@ TEST(Benchmarks, Vallado_Ex3_3_SiteCoordinates) {
 TEST(Benchmarks, WGS84_ZeroZeroZero) {
     // 0 lat, 0 lon, 0 alt
     // Should be [a, 0, 0] exactly.
-    vulcan::LLA<double> lla(0.0, 0.0, 0.0);
+    vulcan::LLA<double> lla(vulcan::Quantity<rad>(0.0),
+                            vulcan::Quantity<rad>(0.0),
+                            vulcan::Quantity<m>(0.0));
     auto r = vulcan::lla_to_ecef(lla);
 
-    EXPECT_DOUBLE_EQ(r(0), vulcan::constants::wgs84::a.value());
-    EXPECT_DOUBLE_EQ(r(1), 0.0);
-    EXPECT_DOUBLE_EQ(r(2), 0.0);
+    EXPECT_DOUBLE_EQ(r(0).value(), vulcan::constants::wgs84::a.value());
+    EXPECT_DOUBLE_EQ(r(1).value(), 0.0);
+    EXPECT_DOUBLE_EQ(r(2).value(), 0.0);
 }
 
 TEST(Benchmarks, WGS84_NorthPole) {
     // 90 deg N, 0 lon, 0 alt
     // Should be [0, 0, b] exactly (b = a * sqrt(1-e^2)) -> Actually b is
     // semi-minor axis
-    vulcan::LLA<double> lla(0.0, vulcan::constants::angle::pi.value() / 2.0,
-                            0.0);
+    vulcan::LLA<double> lla(
+        vulcan::Quantity<rad>(0.0),
+        vulcan::Quantity<rad>(vulcan::constants::angle::pi.value() / 2.0),
+        vulcan::Quantity<m>(0.0));
     auto r = vulcan::lla_to_ecef(lla);
 
     // b = 6356752.3142 m for WGS84
     double b_wgs84 = 6356752.314245;
 
-    EXPECT_NEAR(r(0), 0.0, 1e-9);
-    EXPECT_NEAR(r(1), 0.0, 1e-9);
-    EXPECT_NEAR(r(2), b_wgs84, 1e-4); // Check against literal constant
+    EXPECT_NEAR(r(0).value(), 0.0, 1e-9);
+    EXPECT_NEAR(r(1).value(), 0.0, 1e-9);
+    EXPECT_NEAR(r(2).value(), b_wgs84, 1e-4); // Check against literal constant
 }
 
 // ============================================
@@ -159,8 +168,11 @@ TEST(Benchmarks, StressTest_GlobalGrid) {
         for (double lon_deg : lons) {
             for (double alt : alts) {
                 vulcan::LLA<double> original(
-                    lon_deg * vulcan::constants::angle::deg2rad,
-                    lat_deg * vulcan::constants::angle::deg2rad, alt);
+                    vulcan::Quantity<rad>(lon_deg *
+                                          vulcan::constants::angle::deg2rad),
+                    vulcan::Quantity<rad>(lat_deg *
+                                          vulcan::constants::angle::deg2rad),
+                    vulcan::Quantity<m>(alt));
 
                 // LLA -> ECEF
                 auto r = vulcan::lla_to_ecef(original);
@@ -171,13 +183,13 @@ TEST(Benchmarks, StressTest_GlobalGrid) {
                 // Check tolerances (1 cm positional, 1e-9 rad angular)
                 // Note: Near poles, longitude is unstable, but we avoided
                 // exactly +/- 90.
-                EXPECT_NEAR(recovered.lat, original.lat, 1e-10)
+                EXPECT_NEAR(recovered.lat.value(), original.lat.value(), 1e-10)
                     << "Lat failure at " << lat_deg << ", " << lon_deg << ", "
                     << alt;
-                EXPECT_NEAR(recovered.lon, original.lon, 1e-10)
+                EXPECT_NEAR(recovered.lon.value(), original.lon.value(), 1e-10)
                     << "Lon failure at " << lat_deg << ", " << lon_deg << ", "
                     << alt;
-                EXPECT_NEAR(recovered.alt, original.alt,
+                EXPECT_NEAR(recovered.alt.value(), original.alt.value(),
                             1e-4) // 0.1 mm tolerance on altitude
                     << "Alt failure at " << lat_deg << ", " << lon_deg << ", "
                     << alt;
@@ -199,14 +211,16 @@ TEST(Benchmarks, MathWorks_Paris) {
     double lon = 2.3508 * vulcan::constants::angle::deg2rad;
     double alt = 67.4;
 
-    vulcan::LLA<double> paris(lon, lat, alt);
+    vulcan::LLA<double> paris{vulcan::Quantity<rad>(lon),
+                              vulcan::Quantity<rad>(lat),
+                              vulcan::Quantity<m>(alt)};
     auto r = vulcan::lla_to_ecef(paris);
 
     // Check with 5m tolerance (source inputs likely truncated causing ~3m
     // deviation)
-    EXPECT_NEAR(r(0), 4201000.0, 5.0);
-    EXPECT_NEAR(r(1), 172460.3, 5.0);
-    EXPECT_NEAR(r(2), 4780100.0, 5.0);
+    EXPECT_NEAR(r(0).value(), 4201000.0, 5.0);
+    EXPECT_NEAR(r(1).value(), 172460.3, 5.0);
+    EXPECT_NEAR(r(2).value(), 4780100.0, 5.0);
 }
 
 // ============================================
@@ -228,7 +242,9 @@ TEST(Benchmarks, EPSG_NorthSea) {
     double lon = dms_to_rad(2.0, 7.0, 46.38);
     double alt = 73.0;
 
-    vulcan::LLA<double> north_sea(lon, lat, alt);
+    vulcan::LLA<double> north_sea{vulcan::Quantity<rad>(lon),
+                                  vulcan::Quantity<rad>(lat),
+                                  vulcan::Quantity<m>(alt)};
     auto r = vulcan::lla_to_ecef(north_sea);
 
     // Expected:
@@ -236,10 +252,10 @@ TEST(Benchmarks, EPSG_NorthSea) {
     // Y: 140,253.34 m
     // Z: 5,124,304.35 m
 
-    EXPECT_NEAR(r(0), 3771793.97,
+    EXPECT_NEAR(r(0).value(), 3771793.97,
                 0.01); // 1cm tolerance matching source precision
-    EXPECT_NEAR(r(1), 140253.34, 0.01);
-    EXPECT_NEAR(r(2), 5124304.35, 0.01);
+    EXPECT_NEAR(r(1).value(), 140253.34, 0.01);
+    EXPECT_NEAR(r(2).value(), 5124304.35, 0.01);
 }
 
 // ============================================

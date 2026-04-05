@@ -4,6 +4,8 @@
 
 #include <vulcan/coordinates/FramePrimitives.hpp>
 #include <vulcan/coordinates/Geodetic.hpp>
+#include <vulcan/quantity/Quantity.hpp>
+#include <vulcan/quantity/Units.hpp>
 
 #include <janus/math/Trig.hpp>
 
@@ -108,7 +110,7 @@ CoordinateFrame<Scalar> local_geocentric(Scalar lon, Scalar lat_gc) {
 template <typename Scalar>
 CoordinateFrame<Scalar> local_geocentric_at(const Vec3<Scalar> &r_ecef) {
     Spherical<Scalar> geo = ecef_to_spherical(r_ecef);
-    return local_geocentric(geo.lon, geo.lat_gc);
+    return local_geocentric(geo.lon.value(), geo.lat_gc.value());
 }
 
 /// Create Local Geodetic Horizon frame (NED) at a given ECEF position
@@ -124,8 +126,13 @@ template <typename Scalar>
 CoordinateFrame<Scalar>
 local_ned_at(const Vec3<Scalar> &r_ecef,
              const EarthModel &m = EarthModel::WGS84()) {
-    LLA<Scalar> lla = ecef_to_lla(r_ecef, m);
-    return local_ned(lla.lon, lla.lat);
+    // Wrap raw Vec3<Scalar> to Vec3<Quantity<m, Scalar>> for ecef_to_lla
+    Vec3<Quantity<units::m, Scalar>> r_q;
+    r_q(0) = Quantity<units::m, Scalar>(r_ecef(0));
+    r_q(1) = Quantity<units::m, Scalar>(r_ecef(1));
+    r_q(2) = Quantity<units::m, Scalar>(r_ecef(2));
+    LLA<Scalar> lla = ecef_to_lla(r_q, m);
+    return local_ned(lla.lon.value(), lla.lat.value());
 }
 
 /// Create Local Geodetic Horizon frame (ENU) at a given ECEF position
@@ -141,8 +148,12 @@ template <typename Scalar>
 CoordinateFrame<Scalar>
 local_enu_at(const Vec3<Scalar> &r_ecef,
              const EarthModel &m = EarthModel::WGS84()) {
-    LLA<Scalar> lla = ecef_to_lla(r_ecef, m);
-    return local_enu(lla.lon, lla.lat);
+    Vec3<Quantity<units::m, Scalar>> r_q;
+    r_q(0) = Quantity<units::m, Scalar>(r_ecef(0));
+    r_q(1) = Quantity<units::m, Scalar>(r_ecef(1));
+    r_q(2) = Quantity<units::m, Scalar>(r_ecef(2));
+    LLA<Scalar> lla = ecef_to_lla(r_q, m);
+    return local_enu(lla.lon.value(), lla.lat.value());
 }
 
 // =============================================================================
@@ -172,10 +183,10 @@ local_rail(const LLA<Scalar> &lla_origin, const Scalar &azimuth,
            const Scalar &elevation,
            [[maybe_unused]] const EarthModel &m = EarthModel::WGS84()) {
     // Start with NED axes at origin
-    const Scalar sin_lat = janus::sin(lla_origin.lat);
-    const Scalar cos_lat = janus::cos(lla_origin.lat);
-    const Scalar sin_lon = janus::sin(lla_origin.lon);
-    const Scalar cos_lon = janus::cos(lla_origin.lon);
+    const Scalar sin_lat = janus::sin(lla_origin.lat.value());
+    const Scalar cos_lat = janus::cos(lla_origin.lat.value());
+    const Scalar sin_lon = janus::sin(lla_origin.lon.value());
+    const Scalar cos_lon = janus::cos(lla_origin.lon.value());
 
     // NED basis vectors in ECEF
     Vec3<Scalar> north;
@@ -229,7 +240,11 @@ CoordinateFrame<Scalar>
 local_rail_at(const Vec3<Scalar> &r_ecef, const Scalar &azimuth,
               const Scalar &elevation,
               const EarthModel &m = EarthModel::WGS84()) {
-    LLA<Scalar> lla = ecef_to_lla(r_ecef, m);
+    Vec3<Quantity<units::m, Scalar>> r_q;
+    r_q(0) = Quantity<units::m, Scalar>(r_ecef(0));
+    r_q(1) = Quantity<units::m, Scalar>(r_ecef(1));
+    r_q(2) = Quantity<units::m, Scalar>(r_ecef(2));
+    LLA<Scalar> lla = ecef_to_lla(r_q, m);
     return local_rail(lla, azimuth, elevation, m);
 }
 
@@ -258,10 +273,10 @@ CoordinateFrame<Scalar>
 local_cda(const LLA<Scalar> &lla_origin, const Scalar &bearing,
           [[maybe_unused]] const EarthModel &m = EarthModel::WGS84()) {
     // Start with local ENU frame at origin
-    const Scalar sin_lat = janus::sin(lla_origin.lat);
-    const Scalar cos_lat = janus::cos(lla_origin.lat);
-    const Scalar sin_lon = janus::sin(lla_origin.lon);
-    const Scalar cos_lon = janus::cos(lla_origin.lon);
+    const Scalar sin_lat = janus::sin(lla_origin.lat.value());
+    const Scalar cos_lat = janus::cos(lla_origin.lat.value());
+    const Scalar sin_lon = janus::sin(lla_origin.lon.value());
+    const Scalar cos_lon = janus::cos(lla_origin.lon.value());
 
     // ENU basis vectors in ECEF
     Vec3<Scalar> east;
@@ -300,7 +315,11 @@ template <typename Scalar>
 CoordinateFrame<Scalar>
 local_cda_at(const Vec3<Scalar> &r_ecef, const Scalar &bearing,
              const EarthModel &m = EarthModel::WGS84()) {
-    LLA<Scalar> lla = ecef_to_lla(r_ecef, m);
+    Vec3<Quantity<units::m, Scalar>> r_q;
+    r_q(0) = Quantity<units::m, Scalar>(r_ecef(0));
+    r_q(1) = Quantity<units::m, Scalar>(r_ecef(1));
+    r_q(2) = Quantity<units::m, Scalar>(r_ecef(2));
+    LLA<Scalar> lla = ecef_to_lla(r_q, m);
     return local_cda(lla, bearing, m);
 }
 
@@ -326,8 +345,12 @@ Vec3<Scalar> ecef_to_cda(const Vec3<Scalar> &r_ecef, const LLA<Scalar> &lla_ref,
     // Get CDA frame at reference point
     CoordinateFrame<Scalar> cda_frame = local_cda(lla_ref, bearing, m);
 
-    // Get reference point in ECEF
-    Vec3<Scalar> r_ref = lla_to_ecef(lla_ref, m);
+    // Get reference point in ECEF (unwrap Quantity)
+    auto r_ref_q = lla_to_ecef(lla_ref, m);
+    Vec3<Scalar> r_ref;
+    r_ref(0) = r_ref_q(0).value();
+    r_ref(1) = r_ref_q(1).value();
+    r_ref(2) = r_ref_q(2).value();
 
     // Compute offset vector
     Vec3<Scalar> delta = r_ecef - r_ref;
@@ -359,8 +382,12 @@ Vec3<Scalar> cda_to_ecef(const Vec3<Scalar> &cda, const LLA<Scalar> &lla_ref,
     // Get CDA frame at reference point
     CoordinateFrame<Scalar> cda_frame = local_cda(lla_ref, bearing, m);
 
-    // Get reference point in ECEF
-    Vec3<Scalar> r_ref = lla_to_ecef(lla_ref, m);
+    // Get reference point in ECEF (unwrap Quantity)
+    auto r_ref_q = lla_to_ecef(lla_ref, m);
+    Vec3<Scalar> r_ref;
+    r_ref(0) = r_ref_q(0).value();
+    r_ref(1) = r_ref_q(1).value();
+    r_ref(2) = r_ref_q(2).value();
 
     // Convert CDA to ECEF offset
     // delta = R * cda where R = [downrange | crossrange | up]

@@ -5,6 +5,8 @@
 #include <vulcan/coordinates/EarthModel.hpp>
 #include <vulcan/coordinates/Geodetic.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
+#include <vulcan/quantity/Quantity.hpp>
+#include <vulcan/quantity/Units.hpp>
 
 #include <janus/math/Arithmetic.hpp>
 #include <janus/math/Linalg.hpp>
@@ -301,9 +303,14 @@ Vec3<Scalar> project_to_plane(const Vec3<Scalar> &point,
 template <typename Scalar>
 LLA<Scalar> ground_track_point(const Vec3<Scalar> &r_ecef,
                                const EarthModel &model = EarthModel::WGS84()) {
+    // Wrap raw Vec3<Scalar> to Vec3<Quantity<m, Scalar>> for ecef_to_lla
+    Vec3<Quantity<units::m, Scalar>> r_q;
+    r_q(0) = Quantity<units::m, Scalar>(r_ecef(0));
+    r_q(1) = Quantity<units::m, Scalar>(r_ecef(1));
+    r_q(2) = Quantity<units::m, Scalar>(r_ecef(2));
     // Convert to LLA and set altitude to zero
-    LLA<Scalar> lla = ecef_to_lla<Scalar>(r_ecef, model);
-    return LLA<Scalar>(lla.lon, lla.lat, Scalar(0));
+    LLA<Scalar> lla = ecef_to_lla<Scalar>(r_q, model);
+    return LLA<Scalar>(lla.lon, lla.lat, Quantity<units::m, Scalar>(Scalar(0)));
 }
 
 /**
@@ -321,7 +328,12 @@ template <typename Scalar>
 Vec3<Scalar> ground_track_ecef(const Vec3<Scalar> &r_ecef,
                                const EarthModel &model = EarthModel::WGS84()) {
     LLA<Scalar> ground = ground_track_point<Scalar>(r_ecef, model);
-    return lla_to_ecef<Scalar>(ground, model);
+    auto r_q = lla_to_ecef<Scalar>(ground, model);
+    Vec3<Scalar> r_out;
+    r_out(0) = r_q(0).value();
+    r_out(1) = r_q(1).value();
+    r_out(2) = r_q(2).value();
+    return r_out;
 }
 
 } // namespace vulcan::geometry

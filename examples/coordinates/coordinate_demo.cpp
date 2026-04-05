@@ -16,6 +16,7 @@
 #include <iostream>
 
 using namespace vulcan;
+using namespace vulcan::units;
 
 int main() {
     std::cout << std::fixed << std::setprecision(4);
@@ -45,31 +46,41 @@ int main() {
     double lon = lon_deg * constants::angle::deg2rad;
     double lat = lat_deg * constants::angle::deg2rad;
 
-    LLA<double> lla_dc = {lon, lat, alt_m};
+    LLA<double> lla_dc{Quantity<units::rad>(lon), Quantity<units::rad>(lat),
+                       Quantity<units::m>(alt_m)};
     std::cout << "Washington DC:\n";
     std::cout << "  LLA: lon=" << lon_deg << " deg, lat=" << lat_deg
               << " deg, alt=" << alt_m << " m\n";
 
     // Convert to ECEF
-    Vec3<double> r_ecef = lla_to_ecef(lla_dc);
-    std::cout << "  ECEF: x=" << r_ecef(0) / 1000.0
-              << " km, y=" << r_ecef(1) / 1000.0
-              << " km, z=" << r_ecef(2) / 1000.0 << " km\n";
+    auto r_ecef_q = lla_to_ecef(lla_dc);
+    std::cout << "  ECEF: x=" << r_ecef_q(0).value() / 1000.0
+              << " km, y=" << r_ecef_q(1).value() / 1000.0
+              << " km, z=" << r_ecef_q(2).value() / 1000.0 << " km\n";
+
+    // Keep a raw Vec3<double> for downstream uses
+    Vec3<double> r_ecef;
+    r_ecef(0) = r_ecef_q(0).value();
+    r_ecef(1) = r_ecef_q(1).value();
+    r_ecef(2) = r_ecef_q(2).value();
 
     // Round-trip back to LLA
-    LLA<double> lla_back = ecef_to_lla(r_ecef);
-    double error_lon = std::abs(lla_back.lon - lon) * constants::angle::rad2deg;
-    double error_lat = std::abs(lla_back.lat - lat) * constants::angle::rad2deg;
-    double error_alt = std::abs(lla_back.alt - alt_m);
+    LLA<double> lla_back = ecef_to_lla(r_ecef_q);
+    double error_lon =
+        std::abs(lla_back.lon.value() - lon) * constants::angle::rad2deg;
+    double error_lat =
+        std::abs(lla_back.lat.value() - lat) * constants::angle::rad2deg;
+    double error_alt = std::abs(lla_back.alt.value() - alt_m);
     std::cout << "  Round-trip errors: lon=" << error_lon * 3600.0
               << " arcsec, lat=" << error_lat * 3600.0
               << " arcsec, alt=" << error_alt * 1000.0 << " mm\n";
 
     // Spherical coordinates
     Spherical<double> sph = ecef_to_spherical(r_ecef);
-    std::cout << "  Spherical: lon=" << sph.lon * constants::angle::rad2deg
-              << " deg, lat_gc=" << sph.lat_gc * constants::angle::rad2deg
-              << " deg, r=" << sph.radius / 1000.0 << " km\n\n";
+    std::cout << "  Spherical: lon="
+              << sph.lon.value() * constants::angle::rad2deg << " deg, lat_gc="
+              << sph.lat_gc.value() * constants::angle::rad2deg
+              << " deg, r=" << sph.radius.value() / 1000.0 << " km\n\n";
 
     // =========================================================================
     // 3. Local Frames
@@ -241,10 +252,16 @@ int main() {
     SymbolicScalar sym_alt = sym("alt");
 
     // Create symbolic LLA struct
-    LLA<SymbolicScalar> lla_sym = {sym_lon, sym_lat, sym_alt};
+    LLA<SymbolicScalar> lla_sym{Quantity<units::rad, SymbolicScalar>(sym_lon),
+                                Quantity<units::rad, SymbolicScalar>(sym_lat),
+                                Quantity<units::m, SymbolicScalar>(sym_alt)};
 
     // Perform symbolic conversion to ECEF using the same function as numeric
-    Vec3<SymbolicScalar> ecef_sym = lla_to_ecef(lla_sym);
+    auto ecef_sym_q = lla_to_ecef(lla_sym);
+    Vec3<SymbolicScalar> ecef_sym;
+    ecef_sym(0) = ecef_sym_q(0).value();
+    ecef_sym(1) = ecef_sym_q(1).value();
+    ecef_sym(2) = ecef_sym_q(2).value();
 
     // Create a Janus Function for this transformation
     // Arguments: [lon, lat, alt]
@@ -306,8 +323,10 @@ int main() {
     SymbolicScalar sym_y_in = sym("y");
     SymbolicScalar sym_z_in = sym("z");
 
-    Vec3<SymbolicScalar> sym_r_ecef;
-    sym_r_ecef << sym_x_in, sym_y_in, sym_z_in;
+    Vec3<Quantity<units::m, SymbolicScalar>> sym_r_ecef;
+    sym_r_ecef(0) = Quantity<units::m, SymbolicScalar>(sym_x_in);
+    sym_r_ecef(1) = Quantity<units::m, SymbolicScalar>(sym_y_in);
+    sym_r_ecef(2) = Quantity<units::m, SymbolicScalar>(sym_z_in);
 
     // Perform symbolic conversion
     // This builds the graph for Vermeille's algorithm
@@ -315,23 +334,24 @@ int main() {
 
     // Group outputs into a vector for visualization
     // [lon, lat, alt]
-    std::vector<SymbolicScalar> lla_outputs = {
-        sym_lla_back.lon, sym_lla_back.lat, sym_lla_back.alt};
+    std::vector<SymbolicScalar> lla_outputs = {sym_lla_back.lon.value(),
+                                               sym_lla_back.lat.value(),
+                                               sym_lla_back.alt.value()};
 
     // Visualize the graph
     // Note: visualize_graph accepts a vector of expressions or a single
     // expression We'll create a single vector expression for clean
     // visualization
     SymbolicVector sym_lla_vec = janus::sym_vec("lla_out", 3);
-    sym_lla_vec(0) = sym_lla_back.lon;
-    sym_lla_vec(1) = sym_lla_back.lat;
-    sym_lla_vec(2) = sym_lla_back.alt;
+    sym_lla_vec(0) = sym_lla_back.lon.value();
+    sym_lla_vec(1) = sym_lla_back.lat.value();
+    sym_lla_vec(2) = sym_lla_back.alt.value();
 
     janus::visualize_graph(janus::as_mx(sym_lla_vec), "ecef_to_lla_graph");
     std::cout << "  Graph saved to 'ecef_to_lla_graph.dot' (and .pdf)\n";
 
     // Export as interactive HTML
-    janus::export_graph_html(sym_lla_back.lat, "graph_ecef_to_lla_lat",
+    janus::export_graph_html(sym_lla_back.lat.value(), "graph_ecef_to_lla_lat",
                              "ECEF_to_LLA_Latitude");
     std::cout << "  -> graph_ecef_to_lla_lat.html (Vermeille algorithm)\n\n";
 

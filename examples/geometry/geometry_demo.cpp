@@ -156,15 +156,21 @@ int main() {
     double lon = -120.0 * constants::angle::deg2rad;
     double alt = 420000.0; // 420 km altitude
 
-    LLA<double> iss_lla(lon, lat, alt);
-    Vec3<double> iss_ecef = lla_to_ecef(iss_lla);
+    LLA<double> iss_lla{Quantity<units::rad>(lon), Quantity<units::rad>(lat),
+                        Quantity<units::m>(alt)};
+    auto iss_ecef_q = lla_to_ecef(iss_lla);
+    Vec3<double> iss_ecef;
+    iss_ecef(0) = iss_ecef_q(0).value();
+    iss_ecef(1) = iss_ecef_q(1).value();
+    iss_ecef(2) = iss_ecef_q(2).value();
 
     LLA<double> ground = ground_track_point(iss_ecef);
     std::cout << "ISS position:   " << lat * constants::angle::rad2deg
               << "° N, " << lon * constants::angle::rad2deg << "° E, "
               << alt / 1000.0 << " km alt\n";
-    std::cout << "Ground track:   " << ground.lat * constants::angle::rad2deg
-              << "° N, " << ground.lon * constants::angle::rad2deg << "° E\n\n";
+    std::cout << "Ground track:   "
+              << ground.lat.value() * constants::angle::rad2deg << "° N, "
+              << ground.lon.value() * constants::angle::rad2deg << "° E\n\n";
 
     // =========================================================================
     // 9. Symbolic Mode (for Optimization)

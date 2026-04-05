@@ -7,6 +7,7 @@
 #include <cmath>
 
 using namespace vulcan;
+using namespace vulcan::units;
 using namespace vulcan::geometry;
 
 // =============================================================================
@@ -320,9 +321,9 @@ TEST(GroundTrack, BasicGroundTrack) {
 
     LLA<double> ground = ground_track_point(r_ecef);
 
-    EXPECT_NEAR(ground.lon, 0.0, 1e-10);
-    EXPECT_NEAR(ground.lat, 0.0, 1e-10);
-    EXPECT_NEAR(ground.alt, 0.0, 1e-10);
+    EXPECT_NEAR(ground.lon.value(), 0.0, 1e-10);
+    EXPECT_NEAR(ground.lat.value(), 0.0, 1e-10);
+    EXPECT_NEAR(ground.alt.value(), 0.0, 1e-10);
 }
 
 TEST(GroundTrack, NonEquatorial) {
@@ -331,14 +332,19 @@ TEST(GroundTrack, NonEquatorial) {
     double lon = 30.0 * M_PI / 180.0;
     double alt = 500000.0; // 500 km
 
-    LLA<double> lla_in(lon, lat, alt);
-    Vec3<double> r_ecef = lla_to_ecef(lla_in);
+    LLA<double> lla_in{Quantity<rad>(lon), Quantity<rad>(lat),
+                       Quantity<m>(alt)};
+    auto r_q = lla_to_ecef(lla_in);
+    Vec3<double> r_ecef;
+    r_ecef(0) = r_q(0).value();
+    r_ecef(1) = r_q(1).value();
+    r_ecef(2) = r_q(2).value();
 
     LLA<double> ground = ground_track_point(r_ecef);
 
-    EXPECT_NEAR(ground.lon, lon, 1e-8);
-    EXPECT_NEAR(ground.lat, lat, 1e-8);
-    EXPECT_NEAR(ground.alt, 0.0, 1e-10);
+    EXPECT_NEAR(ground.lon.value(), lon, 1e-8);
+    EXPECT_NEAR(ground.lat.value(), lat, 1e-8);
+    EXPECT_NEAR(ground.alt.value(), 0.0, 1e-10);
 }
 
 TEST(GroundTrack, ECEFOutput) {
@@ -346,14 +352,23 @@ TEST(GroundTrack, ECEFOutput) {
     double lon = 30.0 * M_PI / 180.0;
     double alt = 500000.0;
 
-    LLA<double> lla_in(lon, lat, alt);
-    Vec3<double> r_ecef = lla_to_ecef(lla_in);
+    LLA<double> lla_in{Quantity<rad>(lon), Quantity<rad>(lat),
+                       Quantity<m>(alt)};
+    auto r_q = lla_to_ecef(lla_in);
+    Vec3<double> r_ecef;
+    r_ecef(0) = r_q(0).value();
+    r_ecef(1) = r_q(1).value();
+    r_ecef(2) = r_q(2).value();
 
     Vec3<double> ground_ecef = ground_track_ecef(r_ecef);
 
-    // Verify this is on the surface
-    LLA<double> ground_lla = ecef_to_lla(ground_ecef);
-    EXPECT_NEAR(ground_lla.alt, 0.0, 1e-6);
+    // Verify this is on the surface -- wrap for ecef_to_lla
+    Vec3<Quantity<m>> ground_ecef_q;
+    ground_ecef_q(0) = Quantity<m>(ground_ecef(0));
+    ground_ecef_q(1) = Quantity<m>(ground_ecef(1));
+    ground_ecef_q(2) = Quantity<m>(ground_ecef(2));
+    LLA<double> ground_lla = ecef_to_lla(ground_ecef_q);
+    EXPECT_NEAR(ground_lla.alt.value(), 0.0, 1e-6);
 }
 
 // =============================================================================
