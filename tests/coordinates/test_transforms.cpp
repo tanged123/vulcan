@@ -84,9 +84,9 @@ TEST(BodyFrames, EulerRoundtrip) {
     // Extract Euler angles back
     auto euler = vulcan::euler_from_body(body, ned);
 
-    EXPECT_NEAR(euler(0), yaw, 1e-10);
-    EXPECT_NEAR(euler(1), pitch, 1e-10);
-    EXPECT_NEAR(euler(2), roll, 1e-10);
+    EXPECT_NEAR(euler(0).value(), yaw, 1e-10);
+    EXPECT_NEAR(euler(1).value(), pitch, 1e-10);
+    EXPECT_NEAR(euler(2).value(), roll, 1e-10);
 }
 
 TEST(BodyFrames, GimbalLock) {
@@ -115,14 +115,15 @@ TEST(BodyFrames, GimbalLock) {
     auto euler = vulcan::euler_from_body(body, ned);
 
     // Pitch should be exactly pi/2
-    EXPECT_NEAR(euler(1), pitch, 1e-6);
+    EXPECT_NEAR(euler(1).value(), pitch, 1e-6);
 
     // Roll should be 0 at gimbal lock (our convention)
-    EXPECT_NEAR(euler(2), 0.0, 1e-6);
+    EXPECT_NEAR(euler(2).value(), 0.0, 1e-6);
 
     // Euler roundtrip: create body from extracted euler and compare
     // Relaxed tolerance due to numerical precision at singularity
-    auto body3 = vulcan::body_from_euler(ned, euler(0), euler(1), euler(2));
+    auto body3 = vulcan::body_from_euler(ned, euler(0).value(),
+                                         euler(1).value(), euler(2).value());
     EXPECT_NEAR(body.x_axis(0), body3.x_axis(0), 1e-6);
     EXPECT_NEAR(body.x_axis(1), body3.x_axis(1), 1e-6);
     EXPECT_NEAR(body.x_axis(2), body3.x_axis(2), 1e-6);

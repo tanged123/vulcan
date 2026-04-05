@@ -3,11 +3,14 @@
 #pragma once
 
 #include <vulcan/core/VulcanTypes.hpp>
+#include <vulcan/quantity/Quantity.hpp>
 
 #include <janus/math/Quaternion.hpp>
 #include <janus/math/Rotations.hpp>
 
 #include <array>
+
+using vulcan::units::rad;
 
 namespace vulcan {
 
@@ -134,22 +137,27 @@ constexpr const char *euler_sequence_name(EulerSequence seq) {
 ///   v_ref = DCM * v_rotated
 ///
 /// @tparam Scalar Scalar type (double or SymbolicScalar)
-/// @param e1 First rotation angle [rad]
-/// @param e2 Second rotation angle [rad]
-/// @param e3 Third rotation angle [rad]
+/// @param e1 First rotation angle
+/// @param e2 Second rotation angle
+/// @param e3 Third rotation angle
 /// @param seq Euler sequence
 /// @return 3x3 rotation matrix (DCM)
 template <typename Scalar>
-Mat3<Scalar> dcm_from_euler(Scalar e1, Scalar e2, Scalar e3,
-                            EulerSequence seq) {
+Mat3<Scalar> dcm_from_euler(Quantity<rad, Scalar> e1, Quantity<rad, Scalar> e2,
+                            Quantity<rad, Scalar> e3, EulerSequence seq) {
     auto axes = euler_axes(seq);
+
+    // Unwrap to raw scalars for Janus math
+    Scalar e1_val = e1.value();
+    Scalar e2_val = e2.value();
+    Scalar e3_val = e3.value();
 
     // R = R_axis[0](e1) * R_axis[1](e2) * R_axis[2](e3)
     // For intrinsic rotations, compose left-to-right
     // janus::rotation_matrix_3d gives R such that v' = R * v
-    Mat3<Scalar> R1 = janus::rotation_matrix_3d(e1, axes[0]);
-    Mat3<Scalar> R2 = janus::rotation_matrix_3d(e2, axes[1]);
-    Mat3<Scalar> R3 = janus::rotation_matrix_3d(e3, axes[2]);
+    Mat3<Scalar> R1 = janus::rotation_matrix_3d(e1_val, axes[0]);
+    Mat3<Scalar> R2 = janus::rotation_matrix_3d(e2_val, axes[1]);
+    Mat3<Scalar> R3 = janus::rotation_matrix_3d(e3_val, axes[2]);
 
     return R1 * R2 * R3;
 }
@@ -161,18 +169,20 @@ Mat3<Scalar> dcm_from_euler(Scalar e1, Scalar e2, Scalar e3,
 /// Create quaternion from Euler angles with specified sequence
 ///
 /// @tparam Scalar Scalar type (double or SymbolicScalar)
-/// @param e1 First rotation angle [rad]
-/// @param e2 Second rotation angle [rad]
-/// @param e3 Third rotation angle [rad]
+/// @param e1 First rotation angle
+/// @param e2 Second rotation angle
+/// @param e3 Third rotation angle
 /// @param seq Euler sequence
 /// @return Unit quaternion representing the rotation
 template <typename Scalar>
-janus::Quaternion<Scalar> quaternion_from_euler(Scalar e1, Scalar e2, Scalar e3,
-                                                EulerSequence seq) {
+janus::Quaternion<Scalar>
+quaternion_from_euler(Quantity<rad, Scalar> e1, Quantity<rad, Scalar> e2,
+                      Quantity<rad, Scalar> e3, EulerSequence seq) {
     // For ZYX, we can use the optimized Janus implementation
     if (seq == EulerSequence::ZYX) {
         // Janus from_euler takes (roll, pitch, yaw) for ZYX intrinsic
-        return janus::Quaternion<Scalar>::from_euler(e3, e2, e1);
+        return janus::Quaternion<Scalar>::from_euler(e3.value(), e2.value(),
+                                                     e1.value());
     }
 
     // For other sequences, build via DCM and convert
@@ -515,37 +525,57 @@ Vec3<Scalar> euler_from_dcm_yzy(const Mat3<Scalar> &R) {
 /// @tparam Scalar Scalar type (double or SymbolicScalar)
 /// @param R 3x3 rotation matrix (DCM)
 /// @param seq Euler sequence
-/// @return [e1, e2, e3] angles [rad]
+/// @return [e1, e2, e3] angles as Vec3<Quantity<rad, Scalar>>
 template <typename Scalar>
-Vec3<Scalar> euler_from_dcm(const Mat3<Scalar> &R, EulerSequence seq) {
+Vec3<Quantity<rad, Scalar>> euler_from_dcm(const Mat3<Scalar> &R,
+                                           EulerSequence seq) {
+    Vec3<Scalar> raw;
     switch (seq) {
     case EulerSequence::ZYX:
-        return detail::euler_from_dcm_zyx(R);
+        raw = detail::euler_from_dcm_zyx(R);
+        break;
     case EulerSequence::XYZ:
-        return detail::euler_from_dcm_xyz(R);
+        raw = detail::euler_from_dcm_xyz(R);
+        break;
     case EulerSequence::XZY:
-        return detail::euler_from_dcm_xzy(R);
+        raw = detail::euler_from_dcm_xzy(R);
+        break;
     case EulerSequence::YXZ:
-        return detail::euler_from_dcm_yxz(R);
+        raw = detail::euler_from_dcm_yxz(R);
+        break;
     case EulerSequence::YZX:
-        return detail::euler_from_dcm_yzx(R);
+        raw = detail::euler_from_dcm_yzx(R);
+        break;
     case EulerSequence::ZXY:
-        return detail::euler_from_dcm_zxy(R);
+        raw = detail::euler_from_dcm_zxy(R);
+        break;
     case EulerSequence::ZXZ:
-        return detail::euler_from_dcm_zxz(R);
+        raw = detail::euler_from_dcm_zxz(R);
+        break;
     case EulerSequence::ZYZ:
-        return detail::euler_from_dcm_zyz(R);
+        raw = detail::euler_from_dcm_zyz(R);
+        break;
     case EulerSequence::XYX:
-        return detail::euler_from_dcm_xyx(R);
+        raw = detail::euler_from_dcm_xyx(R);
+        break;
     case EulerSequence::XZX:
-        return detail::euler_from_dcm_xzx(R);
+        raw = detail::euler_from_dcm_xzx(R);
+        break;
     case EulerSequence::YXY:
-        return detail::euler_from_dcm_yxy(R);
+        raw = detail::euler_from_dcm_yxy(R);
+        break;
     case EulerSequence::YZY:
-        return detail::euler_from_dcm_yzy(R);
+        raw = detail::euler_from_dcm_yzy(R);
+        break;
     default:
-        return detail::euler_from_dcm_zyx(R);
+        raw = detail::euler_from_dcm_zyx(R);
+        break;
     }
+
+    Vec3<Quantity<rad, Scalar>> result;
+    result << Quantity<rad, Scalar>{raw(0)}, Quantity<rad, Scalar>{raw(1)},
+        Quantity<rad, Scalar>{raw(2)};
+    return result;
 }
 
 /// Extract Euler angles from quaternion for specified sequence
@@ -553,17 +583,17 @@ Vec3<Scalar> euler_from_dcm(const Mat3<Scalar> &R, EulerSequence seq) {
 /// @tparam Scalar Scalar type (double or SymbolicScalar)
 /// @param q Unit quaternion
 /// @param seq Euler sequence
-/// @return [e1, e2, e3] angles [rad]
+/// @return [e1, e2, e3] angles as Vec3<Quantity<rad, Scalar>>
 template <typename Scalar>
-Vec3<Scalar> euler_from_quaternion(const janus::Quaternion<Scalar> &q,
-                                   EulerSequence seq) {
+Vec3<Quantity<rad, Scalar>>
+euler_from_quaternion(const janus::Quaternion<Scalar> &q, EulerSequence seq) {
     // For ZYX, we can use the optimized Janus implementation
     if (seq == EulerSequence::ZYX) {
         auto euler_rpy = q.to_euler(); // Returns [roll, pitch, yaw]
-        Vec3<Scalar> euler;
-        euler(0) = euler_rpy(2); // yaw (e1)
-        euler(1) = euler_rpy(1); // pitch (e2)
-        euler(2) = euler_rpy(0); // roll (e3)
+        Vec3<Quantity<rad, Scalar>> euler;
+        euler << Quantity<rad, Scalar>{euler_rpy(2)}, // yaw (e1)
+            Quantity<rad, Scalar>{euler_rpy(1)},      // pitch (e2)
+            Quantity<rad, Scalar>{euler_rpy(0)};      // roll (e3)
         return euler;
     }
 

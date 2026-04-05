@@ -1,5 +1,6 @@
 // Vulcan Rotations Demo
 // Demonstrates the unified rotations library with all 12 Euler sequences
+#include <vulcan/quantity/Quantity.hpp>
 #include <vulcan/rotations/Rotations.hpp>
 
 #include <janus/janus.hpp>
@@ -9,6 +10,7 @@
 #include <numbers>
 
 using namespace vulcan;
+using vulcan::units::rad;
 
 // Helper to print a DCM
 template <typename Scalar>
@@ -28,12 +30,12 @@ void print_dcm(const std::string &name, const Mat3<Scalar> &R) {
 
 // Helper to print Euler angles
 template <typename Scalar>
-void print_euler(const std::string &name, const Vec3<Scalar> &e,
+void print_euler(const std::string &name, const Vec3<Quantity<rad, Scalar>> &e,
                  const char *seq_name) {
     std::cout << name << " (" << seq_name << "): [" << std::fixed
-              << std::setprecision(4) << e(0) * 180.0 / std::numbers::pi
-              << "°, " << e(1) * 180.0 / std::numbers::pi << "°, "
-              << e(2) * 180.0 / std::numbers::pi << "°]\n";
+              << std::setprecision(4) << e(0).value() * 180.0 / std::numbers::pi
+              << "°, " << e(1).value() * 180.0 / std::numbers::pi << "°, "
+              << e(2).value() * 180.0 / std::numbers::pi << "°]\n";
 }
 
 int main() {
@@ -49,11 +51,13 @@ int main() {
         double roll = 10.0 * std::numbers::pi / 180.0;  // 10°
 
         // Create DCM from Euler angles
-        auto R = dcm_from_euler(yaw, pitch, roll, EulerSequence::ZYX);
+        auto R = dcm_from_euler(Quantity<rad>{yaw}, Quantity<rad>{pitch},
+                                Quantity<rad>{roll}, EulerSequence::ZYX);
         print_dcm("DCM from ZYX(30°, 15°, 10°)", R);
 
         // Create quaternion
-        auto q = quaternion_from_euler(yaw, pitch, roll, EulerSequence::ZYX);
+        auto q = quaternion_from_euler(Quantity<rad>{yaw}, Quantity<rad>{pitch},
+                                       Quantity<rad>{roll}, EulerSequence::ZYX);
         std::cout << "Quaternion: [" << q.w << ", " << q.x << ", " << q.y
                   << ", " << q.z << "]\n";
 
@@ -77,7 +81,8 @@ int main() {
         double e2 = 25.0 * std::numbers::pi / 180.0; // Pitch about Y
         double e3 = 35.0 * std::numbers::pi / 180.0; // Yaw about Z
 
-        auto R = dcm_from_euler(e1, e2, e3, EulerSequence::XYZ);
+        auto R = dcm_from_euler(Quantity<rad>{e1}, Quantity<rad>{e2},
+                                Quantity<rad>{e3}, EulerSequence::XYZ);
         print_dcm("DCM from XYZ(20°, 25°, 35°)", R);
 
         auto euler_back = euler_from_dcm(R, EulerSequence::XYZ);
@@ -94,7 +99,9 @@ int main() {
         double nutation = 30.0 * std::numbers::pi / 180.0;
         double spin = 60.0 * std::numbers::pi / 180.0;
 
-        auto R = dcm_from_euler(precession, nutation, spin, EulerSequence::ZXZ);
+        auto R =
+            dcm_from_euler(Quantity<rad>{precession}, Quantity<rad>{nutation},
+                           Quantity<rad>{spin}, EulerSequence::ZXZ);
         print_dcm("DCM from ZXZ(45°, 30°, 60°)", R);
 
         auto euler_back = euler_from_dcm(R, EulerSequence::ZXZ);
@@ -119,12 +126,13 @@ int main() {
 
         for (auto seq : all_sequences) {
             double test_e2 = is_proper_euler(seq) ? e2_proper : e2;
-            auto R = dcm_from_euler(e1, test_e2, e3, seq);
+            auto R = dcm_from_euler(Quantity<rad>{e1}, Quantity<rad>{test_e2},
+                                    Quantity<rad>{e3}, seq);
             auto euler_back = euler_from_dcm(R, seq);
 
-            double err1 = std::abs(euler_back(0) - e1);
-            double err2 = std::abs(euler_back(1) - test_e2);
-            double err3 = std::abs(euler_back(2) - e3);
+            double err1 = std::abs(euler_back(0).value() - e1);
+            double err2 = std::abs(euler_back(1).value() - test_e2);
+            double err3 = std::abs(euler_back(2).value() - e3);
             double max_err = std::max({err1, err2, err3});
 
             std::cout << euler_sequence_name(seq)
@@ -165,7 +173,8 @@ int main() {
     {
         // Identity to 90° about Z
         auto q0 = janus::Quaternion<double>(1, 0, 0, 0);
-        auto q1 = quaternion_from_euler(0.0, 0.0, std::numbers::pi / 2.0,
+        auto q1 = quaternion_from_euler(Quantity<rad>{0.0}, Quantity<rad>{0.0},
+                                        Quantity<rad>{std::numbers::pi / 2.0},
                                         EulerSequence::ZYX);
 
         std::cout << "q0: identity\n";
@@ -175,9 +184,8 @@ int main() {
         for (double t = 0.0; t <= 1.0; t += 0.25) {
             auto q = vulcan::slerp(q0, q1, t);
             auto euler = euler_from_quaternion(q, EulerSequence::ZYX);
-            std::cout << "  t=" << t
-                      << ": roll=" << euler(2) * 180.0 / std::numbers::pi
-                      << "°\n";
+            std::cout << "  t=" << t << ": roll="
+                      << euler(2).value() * 180.0 / std::numbers::pi << "°\n";
         }
         std::cout << "\n";
     }
@@ -193,7 +201,9 @@ int main() {
         Scalar pitch = janus::sym("pitch");
         Scalar roll = janus::sym("roll");
 
-        auto R = dcm_from_euler(yaw, pitch, roll, EulerSequence::ZYX);
+        auto R = dcm_from_euler(
+            Quantity<rad, Scalar>{yaw}, Quantity<rad, Scalar>{pitch},
+            Quantity<rad, Scalar>{roll}, EulerSequence::ZYX);
 
         std::cout << "Created symbolic DCM for ZYX sequence.\n";
         std::cout << "R[0,0] = " << R(0, 0) << "\n";
@@ -217,7 +227,8 @@ int main() {
 
         auto result = f({yaw_val, pitch_val, roll_val});
         auto R_numeric =
-            dcm_from_euler(yaw_val, pitch_val, roll_val, EulerSequence::ZYX);
+            dcm_from_euler(Quantity<rad>{yaw_val}, Quantity<rad>{pitch_val},
+                           Quantity<rad>{roll_val}, EulerSequence::ZYX);
 
         std::cout << "\nEvaluating at yaw=0.5, pitch=0.3, roll=0.2:\n";
         std::cout << "  Symbolic R[0,0]: " << result[0](0, 0)

@@ -139,10 +139,11 @@ int main() {
     std::cout << "Valid: " << (body.is_valid() ? "yes" : "no") << "\n";
 
     // Extract Euler angles back
-    Vec3<double> euler = euler_from_body(body, ned);
-    std::cout << "Extracted: yaw=" << euler(0) * constants::angle::rad2deg
-              << " deg, pitch=" << euler(1) * constants::angle::rad2deg
-              << " deg, roll=" << euler(2) * constants::angle::rad2deg
+    auto euler = euler_from_body(body, ned);
+    std::cout << "Extracted: yaw="
+              << euler(0).value() * constants::angle::rad2deg
+              << " deg, pitch=" << euler(1).value() * constants::angle::rad2deg
+              << " deg, roll=" << euler(2).value() * constants::angle::rad2deg
               << " deg\n\n";
 
     // =========================================================================

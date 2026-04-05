@@ -1,10 +1,14 @@
 #include <gtest/gtest.h>
+#include <vulcan/quantity/Quantity.hpp>
 #include <vulcan/rotations/Rotations.hpp>
 
 #include <janus/janus.hpp>
 
 #include <cmath>
 #include <numbers>
+
+using vulcan::Quantity;
+using vulcan::units::rad;
 
 // =============================================================================
 // Euler Sequence Enum Tests
@@ -55,7 +59,8 @@ TEST(DCMFromEuler, IdentityAllSequences) {
         vulcan::EulerSequence::ZXZ, vulcan::EulerSequence::ZYZ};
 
     for (auto seq : all_sequences) {
-        auto R = vulcan::dcm_from_euler(0.0, 0.0, 0.0, seq);
+        auto R = vulcan::dcm_from_euler(Quantity<rad>{0.0}, Quantity<rad>{0.0},
+                                        Quantity<rad>{0.0}, seq);
         EXPECT_NEAR(R(0, 0), 1.0, 1e-10)
             << "Failed for " << vulcan::euler_sequence_name(seq);
         EXPECT_NEAR(R(1, 1), 1.0, 1e-10)
@@ -74,7 +79,8 @@ TEST(DCMFromEuler, ZYX_MatchesJanus) {
     double yaw = 0.5;
 
     auto R_vulcan =
-        vulcan::dcm_from_euler(yaw, pitch, roll, vulcan::EulerSequence::ZYX);
+        vulcan::dcm_from_euler(Quantity<rad>{yaw}, Quantity<rad>{pitch},
+                               Quantity<rad>{roll}, vulcan::EulerSequence::ZYX);
     auto R_janus = janus::rotation_matrix_from_euler_angles(roll, pitch, yaw);
 
     for (int i = 0; i < 3; ++i) {
@@ -100,14 +106,15 @@ TEST_P(TaitBryanRoundtrip, DCMRoundtrip) {
     double e2 = 0.2;
     double e3 = 0.1;
 
-    auto R = vulcan::dcm_from_euler(e1, e2, e3, seq);
+    auto R = vulcan::dcm_from_euler(Quantity<rad>{e1}, Quantity<rad>{e2},
+                                    Quantity<rad>{e3}, seq);
     auto euler_back = vulcan::euler_from_dcm(R, seq);
 
-    EXPECT_NEAR(euler_back(0), e1, 1e-10)
+    EXPECT_NEAR(euler_back(0).value(), e1, 1e-10)
         << "e1 failed for " << vulcan::euler_sequence_name(seq);
-    EXPECT_NEAR(euler_back(1), e2, 1e-10)
+    EXPECT_NEAR(euler_back(1).value(), e2, 1e-10)
         << "e2 failed for " << vulcan::euler_sequence_name(seq);
-    EXPECT_NEAR(euler_back(2), e3, 1e-10)
+    EXPECT_NEAR(euler_back(2).value(), e3, 1e-10)
         << "e3 failed for " << vulcan::euler_sequence_name(seq);
 }
 
@@ -118,14 +125,15 @@ TEST_P(TaitBryanRoundtrip, QuaternionRoundtrip) {
     double e2 = 0.15;
     double e3 = 0.25;
 
-    auto q = vulcan::quaternion_from_euler(e1, e2, e3, seq);
+    auto q = vulcan::quaternion_from_euler(Quantity<rad>{e1}, Quantity<rad>{e2},
+                                           Quantity<rad>{e3}, seq);
     auto euler_back = vulcan::euler_from_quaternion(q, seq);
 
-    EXPECT_NEAR(euler_back(0), e1, 1e-10)
+    EXPECT_NEAR(euler_back(0).value(), e1, 1e-10)
         << "e1 failed for " << vulcan::euler_sequence_name(seq);
-    EXPECT_NEAR(euler_back(1), e2, 1e-10)
+    EXPECT_NEAR(euler_back(1).value(), e2, 1e-10)
         << "e2 failed for " << vulcan::euler_sequence_name(seq);
-    EXPECT_NEAR(euler_back(2), e3, 1e-10)
+    EXPECT_NEAR(euler_back(2).value(), e3, 1e-10)
         << "e3 failed for " << vulcan::euler_sequence_name(seq);
 }
 
@@ -150,14 +158,15 @@ TEST_P(ProperEulerRoundtrip, DCMRoundtrip) {
     double e2 = 0.8; // Not near 0 or π
     double e3 = 0.25;
 
-    auto R = vulcan::dcm_from_euler(e1, e2, e3, seq);
+    auto R = vulcan::dcm_from_euler(Quantity<rad>{e1}, Quantity<rad>{e2},
+                                    Quantity<rad>{e3}, seq);
     auto euler_back = vulcan::euler_from_dcm(R, seq);
 
-    EXPECT_NEAR(euler_back(0), e1, 1e-10)
+    EXPECT_NEAR(euler_back(0).value(), e1, 1e-10)
         << "e1 failed for " << vulcan::euler_sequence_name(seq);
-    EXPECT_NEAR(euler_back(1), e2, 1e-10)
+    EXPECT_NEAR(euler_back(1).value(), e2, 1e-10)
         << "e2 failed for " << vulcan::euler_sequence_name(seq);
-    EXPECT_NEAR(euler_back(2), e3, 1e-10)
+    EXPECT_NEAR(euler_back(2).value(), e3, 1e-10)
         << "e3 failed for " << vulcan::euler_sequence_name(seq);
 }
 
@@ -178,14 +187,15 @@ TEST(GimbalLock, ZYX_Pitch90) {
     double roll = 0.0; // At gimbal lock, roll is arbitrary; we set to 0
 
     auto R =
-        vulcan::dcm_from_euler(yaw, pitch, roll, vulcan::EulerSequence::ZYX);
+        vulcan::dcm_from_euler(Quantity<rad>{yaw}, Quantity<rad>{pitch},
+                               Quantity<rad>{roll}, vulcan::EulerSequence::ZYX);
     auto euler_back = vulcan::euler_from_dcm(R, vulcan::EulerSequence::ZYX);
 
     // Pitch should be preserved
-    EXPECT_NEAR(euler_back(1), pitch, 1e-6);
+    EXPECT_NEAR(euler_back(1).value(), pitch, 1e-6);
 
     // Roll should be 0 (our convention at gimbal lock)
-    EXPECT_NEAR(euler_back(2), 0.0, 1e-6);
+    EXPECT_NEAR(euler_back(2).value(), 0.0, 1e-6);
 
     // Reconstruct and verify same rotation
     auto R_reconstructed =
@@ -204,15 +214,16 @@ TEST(GimbalLock, ZXZ_Nutation0) {
     double nutation = 0.0; // Singularity
     double spin = 0.3;
 
-    auto R = vulcan::dcm_from_euler(precession, nutation, spin,
-                                    vulcan::EulerSequence::ZXZ);
+    auto R = vulcan::dcm_from_euler(
+        Quantity<rad>{precession}, Quantity<rad>{nutation}, Quantity<rad>{spin},
+        vulcan::EulerSequence::ZXZ);
     auto euler_back = vulcan::euler_from_dcm(R, vulcan::EulerSequence::ZXZ);
 
     // Nutation should be preserved
-    EXPECT_NEAR(euler_back(1), nutation, 1e-6);
+    EXPECT_NEAR(euler_back(1).value(), nutation, 1e-6);
 
     // Spin should be 0 (our convention at gimbal lock)
-    EXPECT_NEAR(euler_back(2), 0.0, 1e-6);
+    EXPECT_NEAR(euler_back(2).value(), 0.0, 1e-6);
 
     // Reconstruct and verify same rotation
     auto R_reconstructed =
@@ -236,7 +247,9 @@ TEST(SymbolicEuler, DCMConstruction) {
     Scalar e2 = janus::sym("e2");
     Scalar e3 = janus::sym("e3");
 
-    auto R = vulcan::dcm_from_euler(e1, e2, e3, vulcan::EulerSequence::ZYX);
+    auto R = vulcan::dcm_from_euler(
+        Quantity<rad, Scalar>{e1}, Quantity<rad, Scalar>{e2},
+        Quantity<rad, Scalar>{e3}, vulcan::EulerSequence::ZYX);
 
     // Verify it's symbolic
     EXPECT_FALSE(R(0, 0).is_constant());
@@ -251,8 +264,9 @@ TEST(SymbolicEuler, DCMConstruction) {
     auto result = f({test_e1, test_e2, test_e3});
 
     // Compare with numeric
-    auto R_numeric = vulcan::dcm_from_euler(test_e1, test_e2, test_e3,
-                                            vulcan::EulerSequence::ZYX);
+    auto R_numeric = vulcan::dcm_from_euler(
+        Quantity<rad>{test_e1}, Quantity<rad>{test_e2}, Quantity<rad>{test_e3},
+        vulcan::EulerSequence::ZYX);
 
     EXPECT_NEAR(result[0](0, 0), R_numeric(0, 0), 1e-12);
     EXPECT_NEAR(result[1](0, 0), R_numeric(1, 0), 1e-12);

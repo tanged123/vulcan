@@ -6,7 +6,10 @@
 #include <vulcan/coordinates/FrameLocal.hpp>
 #include <vulcan/coordinates/FramePrimitives.hpp>
 #include <vulcan/coordinates/Geodetic.hpp>
+#include <vulcan/quantity/Quantity.hpp>
 #include <vulcan/rotations/EulerSequences.hpp>
+
+using vulcan::units::rad;
 
 #include <janus/math/Linalg.hpp>
 #include <janus/math/Quaternion.hpp>
@@ -118,10 +121,11 @@ CoordinateFrame<Scalar> body_from_euler(const CoordinateFrame<Scalar> &ned,
 /// @tparam Scalar Scalar type (double for numeric, SymbolicScalar for symbolic)
 /// @param body Body-fixed frame
 /// @param ned Reference NED frame
-/// @return [yaw, pitch, roll] angles [rad]
+/// @return [yaw, pitch, roll] angles as Vec3<Quantity<rad, Scalar>>
 template <typename Scalar>
-Vec3<Scalar> euler_from_body(const CoordinateFrame<Scalar> &body,
-                             const CoordinateFrame<Scalar> &ned) {
+Vec3<Quantity<rad, Scalar>>
+euler_from_body(const CoordinateFrame<Scalar> &body,
+                const CoordinateFrame<Scalar> &ned) {
     // Build DCM: columns are body axes in NED coordinates
     // v_ned = DCM * v_body
     Mat3<Scalar> dcm;
