@@ -227,7 +227,8 @@ add_executable(test_quantity
     quantity/test_quantity.cpp
     quantity/test_quantity_symbolic.cpp
     quantity/test_quantity_math.cpp
-    quantity/test_quantity_eigen.cpp)
+    quantity/test_quantity_eigen.cpp
+    quantity/test_quantity_format.cpp)
 target_link_libraries(test_quantity PRIVATE vulcan GTest::gtest_main)
 target_precompile_headers(test_quantity REUSE_FROM test_core)
 gtest_discover_tests(test_quantity)
