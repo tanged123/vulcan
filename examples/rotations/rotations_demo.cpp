@@ -151,7 +151,7 @@ int main() {
         Vec3<double> axis;
         axis << 1.0, 1.0, 1.0;
         axis.normalize();
-        double angle = 45.0 * std::numbers::pi / 180.0;
+        Quantity<rad> angle{45.0 * std::numbers::pi / 180.0};
 
         std::cout << "Axis: [" << axis(0) << ", " << axis(1) << ", " << axis(2)
                   << "], Angle: 45°\n";
@@ -163,7 +163,7 @@ int main() {
         std::cout << "Extracted axis: [" << axis_back(0) << ", " << axis_back(1)
                   << ", " << axis_back(2) << "]\n";
         std::cout << "Extracted angle: "
-                  << angle_back * 180.0 / std::numbers::pi << "°\n\n";
+                  << angle_back.value() * 180.0 / std::numbers::pi << "°\n\n";
     }
 
     // =========================================================================
@@ -245,7 +245,7 @@ int main() {
     {
         using Scalar = janus::SymbolicScalar;
 
-        Scalar angle = janus::sym("angle");
+        Quantity<rad, Scalar> angle{janus::sym("angle")};
         Vec3<Scalar> axis;
         axis << Scalar(0), Scalar(0), Scalar(1); // Z-axis (constant)
 

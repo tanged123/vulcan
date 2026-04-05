@@ -1,10 +1,14 @@
 #include <gtest/gtest.h>
+#include <vulcan/quantity/Quantity.hpp>
 #include <vulcan/rotations/Rotations.hpp>
 
 #include <janus/janus.hpp>
 
 #include <cmath>
 #include <numbers>
+
+using vulcan::Quantity;
+using vulcan::units::rad;
 
 // =============================================================================
 // Axis-Angle to Quaternion Tests
@@ -14,13 +18,13 @@ TEST(AxisAngle, QuaternionFromAxisAngle_ZAxis) {
     // 90° rotation about Z
     vulcan::Vec3<double> axis;
     axis << 0.0, 0.0, 1.0;
-    double angle = std::numbers::pi / 2.0;
+    Quantity<rad> angle{std::numbers::pi / 2.0};
 
     auto q = vulcan::quaternion_from_axis_angle(axis, angle);
 
     // Expected: w = cos(45°), x = 0, y = 0, z = sin(45°)
-    double expected_w = std::cos(angle / 2.0);
-    double expected_z = std::sin(angle / 2.0);
+    double expected_w = std::cos(angle.value() / 2.0);
+    double expected_z = std::sin(angle.value() / 2.0);
 
     EXPECT_NEAR(q.w, expected_w, 1e-12);
     EXPECT_NEAR(q.x, 0.0, 1e-12);
@@ -32,7 +36,7 @@ TEST(AxisAngle, QuaternionFromAxisAngle_Identity) {
     // Zero angle should give identity quaternion
     vulcan::Vec3<double> axis;
     axis << 1.0, 0.0, 0.0;
-    double angle = 0.0;
+    Quantity<rad> angle{0.0};
 
     auto q = vulcan::quaternion_from_axis_angle(axis, angle);
 
@@ -49,7 +53,7 @@ TEST(AxisAngle, QuaternionFromAxisAngle_Identity) {
 TEST(AxisAngle, DCMFromAxisAngle_ZAxis) {
     vulcan::Vec3<double> axis;
     axis << 0.0, 0.0, 1.0;
-    double angle = std::numbers::pi / 2.0;
+    Quantity<rad> angle{std::numbers::pi / 2.0};
 
     auto R = vulcan::dcm_from_axis_angle(axis, angle);
 
@@ -66,7 +70,7 @@ TEST(AxisAngle, DCMFromAxisAngle_Arbitrary) {
     vulcan::Vec3<double> axis;
     axis << 1.0, 1.0, 1.0;
     axis.normalize();
-    double angle = 0.7;
+    Quantity<rad> angle{0.7};
 
     auto R = vulcan::dcm_from_axis_angle(axis, angle);
 
@@ -89,20 +93,20 @@ TEST(AxisAngle, DCMFromAxisAngle_Arbitrary) {
 // =============================================================================
 
 TEST(AxisAngle, RotationVectorRoundtrip) {
-    vulcan::Vec3<double> rot_vec;
-    rot_vec << 0.3, -0.2, 0.5;
+    vulcan::Vec3<Quantity<rad>> rot_vec;
+    rot_vec << Quantity<rad>{0.3}, Quantity<rad>{-0.2}, Quantity<rad>{0.5};
 
     auto q = vulcan::quaternion_from_rotation_vector(rot_vec);
     auto rot_vec_back = vulcan::rotation_vector_from_quaternion(q);
 
-    EXPECT_NEAR(rot_vec_back(0), rot_vec(0), 1e-10);
-    EXPECT_NEAR(rot_vec_back(1), rot_vec(1), 1e-10);
-    EXPECT_NEAR(rot_vec_back(2), rot_vec(2), 1e-10);
+    EXPECT_NEAR(rot_vec_back(0).value(), rot_vec(0).value(), 1e-10);
+    EXPECT_NEAR(rot_vec_back(1).value(), rot_vec(1).value(), 1e-10);
+    EXPECT_NEAR(rot_vec_back(2).value(), rot_vec(2).value(), 1e-10);
 }
 
 TEST(AxisAngle, DCMFromRotationVector) {
-    vulcan::Vec3<double> rot_vec;
-    rot_vec << 0.4, 0.3, 0.2;
+    vulcan::Vec3<Quantity<rad>> rot_vec;
+    rot_vec << Quantity<rad>{0.4}, Quantity<rad>{0.3}, Quantity<rad>{0.2};
 
     auto R = vulcan::dcm_from_rotation_vector(rot_vec);
     auto q = vulcan::quaternion_from_rotation_vector(rot_vec);
@@ -122,12 +126,12 @@ TEST(AxisAngle, DCMFromRotationVector) {
 TEST(AxisAngle, ExtractFromQuaternion) {
     vulcan::Vec3<double> axis;
     axis << 0.0, 1.0, 0.0; // Y-axis
-    double angle = 0.8;
+    Quantity<rad> angle{0.8};
 
     auto q = vulcan::quaternion_from_axis_angle(axis, angle);
     auto [axis_back, angle_back] = vulcan::axis_angle_from_quaternion(q);
 
-    EXPECT_NEAR(angle_back, angle, 1e-10);
+    EXPECT_NEAR(angle_back.value(), angle.value(), 1e-10);
     EXPECT_NEAR(axis_back(0), axis(0), 1e-10);
     EXPECT_NEAR(axis_back(1), axis(1), 1e-10);
     EXPECT_NEAR(axis_back(2), axis(2), 1e-10);
@@ -136,27 +140,27 @@ TEST(AxisAngle, ExtractFromQuaternion) {
 TEST(AxisAngle, ExtractFromDCM) {
     vulcan::Vec3<double> axis;
     axis << 1.0, 0.0, 0.0; // X-axis
-    double angle = 1.2;
+    Quantity<rad> angle{1.2};
 
     auto R = vulcan::dcm_from_axis_angle(axis, angle);
     auto [axis_back, angle_back] = vulcan::axis_angle_from_dcm(R);
 
-    EXPECT_NEAR(angle_back, angle, 1e-10);
+    EXPECT_NEAR(angle_back.value(), angle.value(), 1e-10);
     EXPECT_NEAR(std::abs(axis_back(0)), 1.0, 1e-10);
     EXPECT_NEAR(axis_back(1), 0.0, 1e-10);
     EXPECT_NEAR(axis_back(2), 0.0, 1e-10);
 }
 
 TEST(AxisAngle, RotationVectorFromDCM) {
-    vulcan::Vec3<double> rot_vec;
-    rot_vec << 0.5, 0.3, -0.4;
+    vulcan::Vec3<Quantity<rad>> rot_vec;
+    rot_vec << Quantity<rad>{0.5}, Quantity<rad>{0.3}, Quantity<rad>{-0.4};
 
     auto R = vulcan::dcm_from_rotation_vector(rot_vec);
     auto rot_vec_back = vulcan::rotation_vector_from_dcm(R);
 
-    EXPECT_NEAR(rot_vec_back(0), rot_vec(0), 1e-10);
-    EXPECT_NEAR(rot_vec_back(1), rot_vec(1), 1e-10);
-    EXPECT_NEAR(rot_vec_back(2), rot_vec(2), 1e-10);
+    EXPECT_NEAR(rot_vec_back(0).value(), rot_vec(0).value(), 1e-10);
+    EXPECT_NEAR(rot_vec_back(1).value(), rot_vec(1).value(), 1e-10);
+    EXPECT_NEAR(rot_vec_back(2).value(), rot_vec(2).value(), 1e-10);
 }
 
 // =============================================================================
@@ -167,7 +171,7 @@ TEST(AxisAngle, SmallAngle) {
     // Very small angle
     vulcan::Vec3<double> axis;
     axis << 0.0, 0.0, 1.0;
-    double angle = 1e-8;
+    Quantity<rad> angle{1e-8};
 
     auto q = vulcan::quaternion_from_axis_angle(axis, angle);
     EXPECT_NEAR(q.w, 1.0, 1e-10);
@@ -178,7 +182,7 @@ TEST(AxisAngle, PiRotation) {
     // 180° rotation
     vulcan::Vec3<double> axis;
     axis << 1.0, 0.0, 0.0;
-    double angle = std::numbers::pi;
+    Quantity<rad> angle{std::numbers::pi};
 
     auto R = vulcan::dcm_from_axis_angle(axis, angle);
     EXPECT_TRUE(vulcan::is_valid_dcm(R));
@@ -196,7 +200,7 @@ TEST(AxisAngle, PiRotation) {
 TEST(AxisAngle, SymbolicRodrigues) {
     using Scalar = janus::SymbolicScalar;
 
-    Scalar angle = janus::sym("angle");
+    Quantity<rad, Scalar> angle{janus::sym("angle")};
 
     vulcan::Vec3<Scalar> axis;
     axis << Scalar(0), Scalar(0), Scalar(1); // Fixed Z-axis
@@ -207,7 +211,7 @@ TEST(AxisAngle, SymbolicRodrigues) {
     EXPECT_FALSE(R(0, 0).is_constant());
 
     // Create function
-    janus::Function f("rodrigues_z", {angle},
+    janus::Function f("rodrigues_z", {angle.value()},
                       {R(0, 0), R(0, 1), R(1, 0), R(1, 1)});
 
     double test_angle = std::numbers::pi / 4.0;

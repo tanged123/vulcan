@@ -3,10 +3,13 @@
 #pragma once
 
 #include <vulcan/core/VulcanTypes.hpp>
+#include <vulcan/quantity/Quantity.hpp>
 #include <vulcan/rotations/AxisAngle.hpp>
 #include <vulcan/rotations/DCMUtils.hpp>
 
 #include <janus/math/Quaternion.hpp>
+
+using vulcan::units::rad;
 
 namespace vulcan {
 
@@ -152,8 +155,9 @@ relative_rotation(const janus::Quaternion<Scalar> &q_from,
 /// @param q_desired Desired orientation
 /// @return Rotation vector representing error [rad]
 template <typename Scalar>
-Vec3<Scalar> rotation_error(const janus::Quaternion<Scalar> &q_actual,
-                            const janus::Quaternion<Scalar> &q_desired) {
+Vec3<Quantity<rad, Scalar>>
+rotation_error(const janus::Quaternion<Scalar> &q_actual,
+               const janus::Quaternion<Scalar> &q_desired) {
     // q_error = q_desired * q_actual^(-1)
     auto q_error = q_desired * q_actual.conjugate();
     return rotation_vector_from_quaternion(q_error);

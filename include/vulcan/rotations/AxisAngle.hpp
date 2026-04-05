@@ -3,6 +3,7 @@
 #pragma once
 
 #include <vulcan/core/VulcanTypes.hpp>
+#include <vulcan/quantity/Quantity.hpp>
 #include <vulcan/rotations/DCMUtils.hpp>
 
 #include <janus/math/Arithmetic.hpp>
@@ -12,6 +13,8 @@
 #include <janus/math/Trig.hpp>
 
 #include <utility>
+
+using vulcan::units::rad;
 
 namespace vulcan {
 
@@ -26,9 +29,10 @@ namespace vulcan {
 /// @param angle Rotation angle [rad]
 /// @return Unit quaternion
 template <typename Scalar>
-janus::Quaternion<Scalar> quaternion_from_axis_angle(const Vec3<Scalar> &axis,
-                                                     Scalar angle) {
-    return janus::Quaternion<Scalar>::from_axis_angle(axis, angle);
+janus::Quaternion<Scalar>
+quaternion_from_axis_angle(const Vec3<Scalar> &axis,
+                           Quantity<rad, Scalar> angle) {
+    return janus::Quaternion<Scalar>::from_axis_angle(axis, angle.value());
 }
 
 /// Create quaternion from rotation vector (axis × angle)
@@ -38,8 +42,13 @@ janus::Quaternion<Scalar> quaternion_from_axis_angle(const Vec3<Scalar> &axis,
 /// @return Unit quaternion
 template <typename Scalar>
 janus::Quaternion<Scalar>
-quaternion_from_rotation_vector(const Vec3<Scalar> &rot_vec) {
-    return janus::Quaternion<Scalar>::from_rotation_vector(rot_vec);
+quaternion_from_rotation_vector(const Vec3<Quantity<rad, Scalar>> &rot_vec) {
+    // Unwrap Quantity components to raw Scalar
+    Vec3<Scalar> raw;
+    raw(0) = rot_vec(0).value();
+    raw(1) = rot_vec(1).value();
+    raw(2) = rot_vec(2).value();
+    return janus::Quaternion<Scalar>::from_rotation_vector(raw);
 }
 
 // =============================================================================
@@ -53,11 +62,12 @@ quaternion_from_rotation_vector(const Vec3<Scalar> &rot_vec) {
 /// where k is the unit rotation axis and θ is the angle.
 ///
 /// @tparam Scalar Scalar type (double or SymbolicScalar)
-/// @param axis Rotation axis (will be normalized)
+/// @param axis Rotation axis (will be normalized), dimensionless unit vector
 /// @param angle Rotation angle [rad]
 /// @return 3x3 rotation matrix
 template <typename Scalar>
-Mat3<Scalar> dcm_from_axis_angle(const Vec3<Scalar> &axis, Scalar angle) {
+Mat3<Scalar> dcm_from_axis_angle(const Vec3<Scalar> &axis,
+                                 Quantity<rad, Scalar> angle) {
     // Normalize axis (with small-angle protection)
     Scalar axis_norm = janus::norm(axis);
     Scalar eps = Scalar(1e-12);
@@ -73,8 +83,9 @@ Mat3<Scalar> dcm_from_axis_angle(const Vec3<Scalar> &axis, Scalar angle) {
     Mat3<Scalar> K2 = K * K;
 
     // Rodrigues' formula
-    Scalar s = janus::sin(angle);
-    Scalar c = janus::cos(angle);
+    Scalar a = angle.value();
+    Scalar s = janus::sin(a);
+    Scalar c = janus::cos(a);
 
     return Mat3<Scalar>::Identity() + s * K + (Scalar(1) - c) * K2;
 }
@@ -85,17 +96,24 @@ Mat3<Scalar> dcm_from_axis_angle(const Vec3<Scalar> &axis, Scalar angle) {
 /// @param rot_vec Rotation vector [rad]
 /// @return 3x3 rotation matrix
 template <typename Scalar>
-Mat3<Scalar> dcm_from_rotation_vector(const Vec3<Scalar> &rot_vec) {
-    Scalar angle = janus::norm(rot_vec);
+Mat3<Scalar>
+dcm_from_rotation_vector(const Vec3<Quantity<rad, Scalar>> &rot_vec) {
+    // Unwrap to raw Scalar for norm computation
+    Vec3<Scalar> raw;
+    raw(0) = rot_vec(0).value();
+    raw(1) = rot_vec(1).value();
+    raw(2) = rot_vec(2).value();
+
+    Scalar angle = janus::norm(raw);
     Scalar eps = Scalar(1e-12);
     Scalar safe_angle = angle + eps;
 
     Vec3<Scalar> axis;
-    axis(0) = rot_vec(0) / safe_angle;
-    axis(1) = rot_vec(1) / safe_angle;
-    axis(2) = rot_vec(2) / safe_angle;
+    axis(0) = raw(0) / safe_angle;
+    axis(1) = raw(1) / safe_angle;
+    axis(2) = raw(2) / safe_angle;
 
-    return dcm_from_axis_angle(axis, angle);
+    return dcm_from_axis_angle(axis, Quantity<rad, Scalar>{angle});
 }
 
 // =============================================================================
@@ -106,9 +124,9 @@ Mat3<Scalar> dcm_from_rotation_vector(const Vec3<Scalar> &rot_vec) {
 ///
 /// @tparam Scalar Scalar type (double or SymbolicScalar)
 /// @param q Unit quaternion
-/// @return Pair of (axis, angle) where axis is unit vector
+/// @return Pair of (axis, angle) where axis is dimensionless unit vector
 template <typename Scalar>
-std::pair<Vec3<Scalar>, Scalar>
+std::pair<Vec3<Scalar>, Quantity<rad, Scalar>>
 axis_angle_from_quaternion(const janus::Quaternion<Scalar> &q) {
     // angle = 2 * acos(w)
     Scalar w = q.w;
@@ -130,7 +148,7 @@ axis_angle_from_quaternion(const janus::Quaternion<Scalar> &q) {
     axis(1) = janus::where(is_small, Scalar(0), axis(1));
     axis(2) = janus::where(is_small, Scalar(1), axis(2));
 
-    return {axis, angle};
+    return {axis, Quantity<rad, Scalar>{angle}};
 }
 
 /// Extract rotation vector from quaternion
@@ -139,13 +157,14 @@ axis_angle_from_quaternion(const janus::Quaternion<Scalar> &q) {
 /// @param q Unit quaternion
 /// @return Rotation vector (axis × angle) [rad]
 template <typename Scalar>
-Vec3<Scalar>
+Vec3<Quantity<rad, Scalar>>
 rotation_vector_from_quaternion(const janus::Quaternion<Scalar> &q) {
     auto [axis, angle] = axis_angle_from_quaternion(q);
-    Vec3<Scalar> rot_vec;
-    rot_vec(0) = axis(0) * angle;
-    rot_vec(1) = axis(1) * angle;
-    rot_vec(2) = axis(2) * angle;
+    Scalar a = angle.value();
+    Vec3<Quantity<rad, Scalar>> rot_vec;
+    rot_vec(0) = Quantity<rad, Scalar>{axis(0) * a};
+    rot_vec(1) = Quantity<rad, Scalar>{axis(1) * a};
+    rot_vec(2) = Quantity<rad, Scalar>{axis(2) * a};
     return rot_vec;
 }
 
@@ -160,9 +179,10 @@ rotation_vector_from_quaternion(const janus::Quaternion<Scalar> &q) {
 ///
 /// @tparam Scalar Scalar type (double or SymbolicScalar)
 /// @param R 3x3 rotation matrix
-/// @return Pair of (axis, angle) where axis is unit vector
+/// @return Pair of (axis, angle) where axis is dimensionless unit vector
 template <typename Scalar>
-std::pair<Vec3<Scalar>, Scalar> axis_angle_from_dcm(const Mat3<Scalar> &R) {
+std::pair<Vec3<Scalar>, Quantity<rad, Scalar>>
+axis_angle_from_dcm(const Mat3<Scalar> &R) {
     // angle from trace: trace(R) = 1 + 2*cos(θ) => cos(θ) = (trace - 1) / 2
     Scalar trace = R.trace();
     Scalar cos_angle = (trace - Scalar(1)) * Scalar(0.5);
@@ -201,7 +221,7 @@ std::pair<Vec3<Scalar>, Scalar> axis_angle_from_dcm(const Mat3<Scalar> &R) {
     axis(1) = janus::where(is_small, Scalar(0), axis(1));
     axis(2) = janus::where(is_small, Scalar(1), axis(2));
 
-    return {axis, angle};
+    return {axis, Quantity<rad, Scalar>{angle}};
 }
 
 /// Extract rotation vector from DCM
@@ -210,12 +230,13 @@ std::pair<Vec3<Scalar>, Scalar> axis_angle_from_dcm(const Mat3<Scalar> &R) {
 /// @param R 3x3 rotation matrix
 /// @return Rotation vector (axis × angle) [rad]
 template <typename Scalar>
-Vec3<Scalar> rotation_vector_from_dcm(const Mat3<Scalar> &R) {
+Vec3<Quantity<rad, Scalar>> rotation_vector_from_dcm(const Mat3<Scalar> &R) {
     auto [axis, angle] = axis_angle_from_dcm(R);
-    Vec3<Scalar> rot_vec;
-    rot_vec(0) = axis(0) * angle;
-    rot_vec(1) = axis(1) * angle;
-    rot_vec(2) = axis(2) * angle;
+    Scalar a = angle.value();
+    Vec3<Quantity<rad, Scalar>> rot_vec;
+    rot_vec(0) = Quantity<rad, Scalar>{axis(0) * a};
+    rot_vec(1) = Quantity<rad, Scalar>{axis(1) * a};
+    rot_vec(2) = Quantity<rad, Scalar>{axis(2) * a};
     return rot_vec;
 }
 

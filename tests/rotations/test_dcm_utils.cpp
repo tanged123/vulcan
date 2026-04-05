@@ -1,10 +1,14 @@
 #include <gtest/gtest.h>
+#include <vulcan/quantity/Quantity.hpp>
 #include <vulcan/rotations/Rotations.hpp>
 
 #include <janus/janus.hpp>
 
 #include <cmath>
 #include <numbers>
+
+using vulcan::Quantity;
+using vulcan::units::rad;
 
 // =============================================================================
 // Skew Matrix Tests
@@ -111,8 +115,8 @@ TEST(DCMUtils, RelativeDCM_Inverse) {
 
 TEST(DCMUtils, SmallAngleDCM) {
     // For very small angles, should be close to exact
-    vulcan::Vec3<double> theta;
-    theta << 0.001, 0.002, 0.003;
+    vulcan::Vec3<Quantity<rad>> theta;
+    theta << Quantity<rad>{0.001}, Quantity<rad>{0.002}, Quantity<rad>{0.003};
 
     auto R_approx = vulcan::dcm_from_small_angle(theta);
 
@@ -128,16 +132,16 @@ TEST(DCMUtils, SmallAngleDCM) {
 }
 
 TEST(DCMUtils, SmallAngleRoundtrip) {
-    vulcan::Vec3<double> theta;
-    theta << 0.01, -0.02, 0.015;
+    vulcan::Vec3<Quantity<rad>> theta;
+    theta << Quantity<rad>{0.01}, Quantity<rad>{-0.02}, Quantity<rad>{0.015};
 
     auto R = vulcan::dcm_from_small_angle(theta);
     auto theta_back = vulcan::small_angle_from_dcm(R);
 
     // Should be exact for first-order approximation
-    EXPECT_NEAR(theta_back(0), theta(0), 1e-6);
-    EXPECT_NEAR(theta_back(1), theta(1), 1e-6);
-    EXPECT_NEAR(theta_back(2), theta(2), 1e-6);
+    EXPECT_NEAR(theta_back(0).value(), theta(0).value(), 1e-6);
+    EXPECT_NEAR(theta_back(1).value(), theta(1).value(), 1e-6);
+    EXPECT_NEAR(theta_back(2).value(), theta(2).value(), 1e-6);
 }
 
 // =============================================================================

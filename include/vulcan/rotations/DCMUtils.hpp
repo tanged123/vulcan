@@ -4,12 +4,15 @@
 #pragma once
 
 #include <vulcan/core/VulcanTypes.hpp>
+#include <vulcan/quantity/Quantity.hpp>
 
 #include <janus/math/Arithmetic.hpp>
 #include <janus/math/Linalg.hpp>
 #include <janus/math/Logic.hpp>
 #include <janus/math/Rotations.hpp>
 #include <janus/math/Trig.hpp>
+
+using vulcan::units::rad;
 
 namespace vulcan {
 
@@ -109,8 +112,13 @@ Mat3<Scalar> relative_dcm(const Mat3<Scalar> &R_A, const Mat3<Scalar> &R_B) {
 /// @param theta Small rotation angles [rad]
 /// @return Approximate DCM (not exactly orthonormal)
 template <typename Scalar>
-Mat3<Scalar> dcm_from_small_angle(const Vec3<Scalar> &theta) {
-    return Mat3<Scalar>::Identity() + skew(theta);
+Mat3<Scalar> dcm_from_small_angle(const Vec3<Quantity<rad, Scalar>> &theta) {
+    // Unwrap Quantity components to raw Scalar for skew
+    Vec3<Scalar> raw;
+    raw(0) = theta(0).value();
+    raw(1) = theta(1).value();
+    raw(2) = theta(2).value();
+    return Mat3<Scalar>::Identity() + skew(raw);
 }
 
 /// Extract small-angle vector from near-identity DCM
@@ -125,12 +133,12 @@ Mat3<Scalar> dcm_from_small_angle(const Vec3<Scalar> &theta) {
 /// @param R Near-identity rotation matrix
 /// @return Small rotation angles [rad]
 template <typename Scalar>
-Vec3<Scalar> small_angle_from_dcm(const Mat3<Scalar> &R) {
+Vec3<Quantity<rad, Scalar>> small_angle_from_dcm(const Mat3<Scalar> &R) {
     Scalar half = Scalar(0.5);
-    Vec3<Scalar> theta;
-    theta(0) = half * (R(2, 1) - R(1, 2));
-    theta(1) = half * (R(0, 2) - R(2, 0));
-    theta(2) = half * (R(1, 0) - R(0, 1));
+    Vec3<Quantity<rad, Scalar>> theta;
+    theta(0) = Quantity<rad, Scalar>{half * (R(2, 1) - R(1, 2))};
+    theta(1) = Quantity<rad, Scalar>{half * (R(0, 2) - R(2, 0))};
+    theta(2) = Quantity<rad, Scalar>{half * (R(1, 0) - R(0, 1))};
     return theta;
 }
 
@@ -164,8 +172,8 @@ auto is_valid_dcm(const Eigen::MatrixBase<Derived> &R, double tol = 1e-9) {
 /// @param axis Axis index: 0=X, 1=Y, 2=Z
 /// @return 3x3 rotation matrix
 template <typename Scalar>
-Mat3<Scalar> dcm_principal_axis(Scalar theta, int axis) {
-    return janus::rotation_matrix_3d(theta, axis);
+Mat3<Scalar> dcm_principal_axis(Quantity<rad, Scalar> theta, int axis) {
+    return janus::rotation_matrix_3d(theta.value(), axis);
 }
 
 } // namespace vulcan
