@@ -12,7 +12,7 @@ TEST(AnalyticalEphemeris, SunPosition_J2000) {
     double dist = janus::norm(r_sun);
 
     // Sun should be ~1 AU away
-    double AU = vulcan::constants::sun::AU;
+    double AU = vulcan::constants::sun::AU.value();
     EXPECT_NEAR(dist / AU, 1.0, 0.02); // Within 2%
 }
 
@@ -23,7 +23,7 @@ TEST(AnalyticalEphemeris, SunDistance_Range) {
     for (int day = 0; day < 365; day += 30) {
         double jd = jd_start + day;
         double dist = sun_distance(jd);
-        double dist_au = dist / vulcan::constants::sun::AU;
+        double dist_au = dist / vulcan::constants::sun::AU.value();
 
         EXPECT_GT(dist_au, 0.98);
         EXPECT_LT(dist_au, 1.02);
@@ -38,7 +38,7 @@ TEST(AnalyticalEphemeris, MoonPosition_Distance) {
     double dist = janus::norm(r_moon);
 
     // Moon should be ~384,000 km away
-    double expected = vulcan::constants::moon::mean_distance;
+    double expected = vulcan::constants::moon::mean_distance.value();
     EXPECT_NEAR(dist, expected, expected * 0.1); // Within 10%
 }
 

@@ -31,19 +31,20 @@ int main() {
     {
         // ISS orbit altitude (~400 km)
         Vec3<double> r_iss;
-        r_iss << constants::earth::R_eq + 400000.0, 0.0, 0.0;
+        r_iss << constants::earth::R_eq.value() + 400000.0, 0.0, 0.0;
 
         auto g = point_mass::acceleration(r_iss);
         print_vec3("ISS gravity (point mass)", g);
 
         // Verify inverse-square law
         double g_surface =
-            point_mass::acceleration_magnitude(constants::earth::R_eq);
+            point_mass::acceleration_magnitude(constants::earth::R_eq.value());
         double g_iss = point_mass::acceleration_magnitude(janus::norm(r_iss));
         std::cout << "Surface gravity: " << g_surface << " m/s²\n";
         std::cout << "ISS gravity: " << g_iss << " m/s²\n";
         std::cout << "Ratio (r_iss/R_eq)²: "
-                  << std::pow(janus::norm(r_iss) / constants::earth::R_eq, 2)
+                  << std::pow(
+                         janus::norm(r_iss) / constants::earth::R_eq.value(), 2)
                   << "\n";
         std::cout << "Ratio g_surface/g_iss: " << g_surface / g_iss << "\n\n";
     }
@@ -57,8 +58,8 @@ int main() {
         double alt = 500000.0; // 500 km
 
         Vec3<double> r_equator, r_pole;
-        r_equator << constants::earth::R_eq + alt, 0.0, 0.0;
-        r_pole << 0.0, 0.0, constants::earth::R_pol + alt;
+        r_equator << constants::earth::R_eq.value() + alt, 0.0, 0.0;
+        r_pole << 0.0, 0.0, constants::earth::R_pol.value() + alt;
 
         auto g_eq = j2::acceleration(r_equator);
         auto g_pole = j2::acceleration(r_pole);
@@ -122,8 +123,8 @@ int main() {
     std::cout << "--- 5. Gravitational Potential ---\n";
     {
         Vec3<double> r_leo, r_geo;
-        r_leo << constants::earth::R_eq + 400000.0, 0.0, 0.0;
-        r_geo << constants::earth::R_eq + 35786000.0, 0.0, 0.0;
+        r_leo << constants::earth::R_eq.value() + 400000.0, 0.0, 0.0;
+        r_geo << constants::earth::R_eq.value() + 35786000.0, 0.0, 0.0;
 
         auto U_leo = j2::potential(r_leo);
         auto U_geo = j2::potential(r_geo);

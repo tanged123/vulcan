@@ -23,7 +23,7 @@ TEST(OrbitalQuantities, Period_LEO) {
 
 // Test circular velocity
 TEST(OrbitalQuantities, CircularVelocity_LEO) {
-    double r = vulcan::constants::earth::R_eq + 400.0e3;
+    double r = vulcan::constants::earth::R_eq.value() + 400.0e3;
     double v = circular_velocity(r);
 
     // LEO velocity ~ 7.7 km/s
@@ -32,7 +32,7 @@ TEST(OrbitalQuantities, CircularVelocity_LEO) {
 
 // Test escape velocity
 TEST(OrbitalQuantities, EscapeVelocity_Surface) {
-    double r = vulcan::constants::earth::R_eq;
+    double r = vulcan::constants::earth::R_eq.value();
     double v_esc = escape_velocity(r);
 
     // Earth surface escape velocity ~ 11.2 km/s
@@ -41,7 +41,7 @@ TEST(OrbitalQuantities, EscapeVelocity_Surface) {
 
 // Test relationship: v_esc = sqrt(2) * v_circ
 TEST(OrbitalQuantities, EscapeCircularRelation) {
-    double r = vulcan::constants::earth::R_eq + 500.0e3;
+    double r = vulcan::constants::earth::R_eq.value() + 500.0e3;
     double v_circ = circular_velocity(r);
     double v_esc = escape_velocity(r);
 

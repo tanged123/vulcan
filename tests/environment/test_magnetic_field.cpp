@@ -17,7 +17,7 @@ using namespace vulcan::environment;
 // Equatorial surface - minimum field strength
 TEST(MagneticField, EquatorSurface) {
     Vec3<double> r_eq;
-    r_eq << constants::earth::R_eq, 0.0, 0.0;
+    r_eq << constants::earth::R_eq.value(), 0.0, 0.0;
 
     double B = magnetic::field_magnitude(r_eq);
 
@@ -28,7 +28,7 @@ TEST(MagneticField, EquatorSurface) {
 // Polar surface - maximum field strength (2x equator for dipole)
 TEST(MagneticField, PoleSurface) {
     Vec3<double> r_pole;
-    r_pole << 0.0, 0.0, constants::earth::R_pol;
+    r_pole << 0.0, 0.0, constants::earth::R_pol.value();
 
     double B = magnetic::field_magnitude(r_pole);
 
@@ -39,7 +39,7 @@ TEST(MagneticField, PoleSurface) {
 // Field direction at equator should be horizontal (northward)
 TEST(MagneticField, EquatorFieldDirection) {
     Vec3<double> r_eq;
-    r_eq << constants::earth::R_eq, 0.0, 0.0;
+    r_eq << constants::earth::R_eq.value(), 0.0, 0.0;
 
     auto B = magnetic::dipole_field_ecef(r_eq);
 
@@ -55,7 +55,7 @@ TEST(MagneticField, EquatorFieldDirection) {
 // model
 TEST(MagneticField, NorthPoleFieldDirection) {
     Vec3<double> r_pole;
-    r_pole << 0.0, 0.0, constants::earth::R_pol;
+    r_pole << 0.0, 0.0, constants::earth::R_pol.value();
 
     auto B = magnetic::dipole_field_ecef(r_pole);
 
@@ -73,7 +73,7 @@ TEST(MagneticField, NorthPoleFieldDirection) {
 // Field should decrease as r^-3
 TEST(MagneticField, FieldDecreaseWithAltitude) {
     Vec3<double> r_surface, r_leo;
-    double R = constants::earth::R_eq;
+    double R = constants::earth::R_eq.value();
     r_surface << R, 0.0, 0.0;
     r_leo << R + 400e3, 0.0, 0.0; // 400 km altitude
 
@@ -90,7 +90,7 @@ TEST(MagneticField, FieldDecreaseWithAltitude) {
 TEST(MagneticField, GEOAltitude) {
     double GEO_alt = 35786e3; // GEO altitude
     Vec3<double> r_geo;
-    r_geo << constants::earth::R_eq + GEO_alt, 0.0, 0.0;
+    r_geo << constants::earth::R_eq.value() + GEO_alt, 0.0, 0.0;
 
     double B = magnetic::field_magnitude(r_geo);
 
@@ -202,7 +202,7 @@ TEST(MagneticField, SymbolicEvaluation) {
     janus::Function f("mag_field", {x, y, z}, {B(0), B(1), B(2)});
 
     // Evaluate at equator
-    double R = constants::earth::R_eq;
+    double R = constants::earth::R_eq.value();
     auto result = f({R, 0.0, 0.0});
 
     EXPECT_NEAR(result[0](0, 0), 0.0, 1e-10);
@@ -225,7 +225,7 @@ TEST(MagneticField, SymbolicGradient) {
     janus::Function f("mag_grad", {x}, {dB_dx});
 
     // Evaluate at surface
-    double R = constants::earth::R_eq;
+    double R = constants::earth::R_eq.value();
     auto result = f({R});
     double grad = result[0](0, 0);
 

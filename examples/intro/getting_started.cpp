@@ -46,9 +46,9 @@ int main() {
     // 3. Physical Constants
     // ========================================
     std::cout << "\n=== Constants ===" << std::endl;
-    std::cout << "  Earth mu: " << vulcan::constants::earth::mu << " m^3/s^2"
-              << std::endl;
-    std::cout << "  WGS84 a: " << vulcan::constants::wgs84::a << " m"
+    std::cout << "  Earth mu: " << vulcan::constants::earth::mu.value()
+              << " m^3/s^2" << std::endl;
+    std::cout << "  WGS84 a: " << vulcan::constants::wgs84::a.value() << " m"
               << std::endl;
     std::cout << "  Sea level density: " << vulcan::constants::atmosphere::rho0
               << " kg/m^3" << std::endl;

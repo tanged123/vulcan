@@ -89,8 +89,9 @@ void demo_eclipse() {
         {"LEO sunlit (subsolar)", 7000e3, 0.0, 0.0},
         {"LEO in shadow", -7000e3, 0.0, 0.0},
         {"LEO edge of shadow", -7000e3, 6400e3, 0.0},
-        {"GEO in shadow", -(constants::earth::R_eq + 35786e3), 0.0, 0.0},
-        {"GEO sunlit", 0.0, constants::earth::R_eq + 35786e3, 0.0},
+        {"GEO in shadow", -(constants::earth::R_eq.value() + 35786e3), 0.0,
+         0.0},
+        {"GEO sunlit", 0.0, constants::earth::R_eq.value() + 35786e3, 0.0},
     };
 
     std::cout << std::setw(25) << "Position" << std::setw(15) << "Cylindrical"
@@ -142,7 +143,7 @@ void demo_magnetic_field() {
     double alts_km[] = {0, 400, 2000, 20000, 35786};
     for (double alt_km : alts_km) {
         Vec3<double> r;
-        r << constants::earth::R_eq + alt_km * 1e3, 0.0, 0.0;
+        r << constants::earth::R_eq.value() + alt_km * 1e3, 0.0, 0.0;
         double B = magnetic::field_magnitude(r);
 
         std::cout << "  " << std::setw(6) << static_cast<int>(alt_km)

@@ -1,8 +1,11 @@
 #pragma once
 
 #include <janus/janus.hpp>
+#include <vulcan/quantity/Quantity.hpp>
 
 namespace vulcan::propulsion::electric {
+
+using namespace vulcan::units;
 
 /**
  * @brief Calculates thrust for power-limited propulsion.
@@ -13,13 +16,15 @@ namespace vulcan::propulsion::electric {
  * @tparam Scalar Variable type
  * @param power Input power [W]
  * @param Ve Effective exhaust velocity [m/s]
- * @param efficiency Thruster efficiency (0 to 1)
+ * @param efficiency Thruster efficiency (0 to 1) [dimensionless]
  * @return Thrust [N]
  */
 template <typename Scalar>
-Scalar thrust_from_power(const Scalar &power, const Scalar &Ve,
-                         const Scalar &efficiency) {
-    return 2.0 * efficiency * power / Ve;
+Quantity<N, Scalar>
+thrust_from_power(Quantity<W, Scalar> power, Quantity<mps, Scalar> Ve,
+                  Quantity<dimensionless, Scalar> efficiency) {
+    return Quantity<N, Scalar>{2.0 * efficiency.value() * power.value() /
+                               Ve.value()};
 }
 
 /**
@@ -30,13 +35,15 @@ Scalar thrust_from_power(const Scalar &power, const Scalar &Ve,
  * @tparam Scalar Variable type
  * @param power Input power [W]
  * @param Ve Effective exhaust velocity [m/s]
- * @param efficiency Thruster efficiency (0 to 1)
+ * @param efficiency Thruster efficiency (0 to 1) [dimensionless]
  * @return Mass flow rate [kg/s]
  */
 template <typename Scalar>
-Scalar mass_flow_from_power(const Scalar &power, const Scalar &Ve,
-                            const Scalar &efficiency) {
-    return (2.0 * power * efficiency) / (Ve * Ve);
+Quantity<kg_per_s, Scalar>
+mass_flow_from_power(Quantity<W, Scalar> power, Quantity<mps, Scalar> Ve,
+                     Quantity<dimensionless, Scalar> efficiency) {
+    return Quantity<kg_per_s, Scalar>{
+        (2.0 * power.value() * efficiency.value()) / (Ve.value() * Ve.value())};
 }
 
 /**
@@ -47,14 +54,17 @@ Scalar mass_flow_from_power(const Scalar &power, const Scalar &Ve,
  *
  * @tparam Scalar Variable type
  * @param power Input power [W]
- * @param efficiency Thruster efficiency (0 to 1)
+ * @param efficiency Thruster efficiency (0 to 1) [dimensionless]
  * @param mdot Mass flow rate [kg/s]
  * @return Characteristic velocity (Exhaust Velocity) [m/s]
  */
 template <typename Scalar>
-Scalar characteristic_velocity(const Scalar &power, const Scalar &efficiency,
-                               const Scalar &mdot) {
-    return janus::sqrt(2.0 * efficiency * power / mdot);
+Quantity<mps, Scalar>
+characteristic_velocity(Quantity<W, Scalar> power,
+                        Quantity<dimensionless, Scalar> efficiency,
+                        Quantity<kg_per_s, Scalar> mdot) {
+    return Quantity<mps, Scalar>{
+        janus::sqrt(2.0 * efficiency.value() * power.value() / mdot.value())};
 }
 
 } // namespace vulcan::propulsion::electric

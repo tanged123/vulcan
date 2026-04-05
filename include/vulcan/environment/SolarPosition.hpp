@@ -9,7 +9,7 @@ namespace vulcan::environment::solar {
 
 // Re-export from orbital module for backwards compatibility
 namespace constants {
-using vulcan::constants::sun::AU;
+inline constexpr double AU = vulcan::constants::sun::AU.value();
 } // namespace constants
 
 // Convenience aliases to maintain old API

@@ -36,9 +36,9 @@ inline constexpr double pole_longitude =
  * @return Magnetic field vector in ECEF [T]
  */
 template <typename Scalar>
-Vec3<Scalar> dipole_field_ecef(const Vec3<Scalar> &r_ecef,
-                               double B0 = constants::B0,
-                               double R = vulcan::constants::earth::R_eq) {
+Vec3<Scalar>
+dipole_field_ecef(const Vec3<Scalar> &r_ecef, double B0 = constants::B0,
+                  double R = vulcan::constants::earth::R_eq.value()) {
     const Scalar x = r_ecef(0);
     const Scalar y = r_ecef(1);
     const Scalar z = r_ecef(2);
@@ -69,7 +69,7 @@ Vec3<Scalar> dipole_field_ecef(const Vec3<Scalar> &r_ecef,
  */
 template <typename Scalar>
 Scalar field_magnitude(const Vec3<Scalar> &r_ecef, double B0 = constants::B0,
-                       double R = vulcan::constants::earth::R_eq) {
+                       double R = vulcan::constants::earth::R_eq.value()) {
     const Vec3<Scalar> B = dipole_field_ecef(r_ecef, B0, R);
     return janus::norm(B);
 }
@@ -87,7 +87,7 @@ Scalar field_magnitude(const Vec3<Scalar> &r_ecef, double B0 = constants::B0,
 template <typename Scalar>
 Vec3<Scalar> field_ned(const Scalar &lat, [[maybe_unused]] const Scalar &lon,
                        const Scalar &alt, double B0 = constants::B0,
-                       double R = vulcan::constants::earth::R_eq) {
+                       double R = vulcan::constants::earth::R_eq.value()) {
     // Spherical approximation: r = R + alt
     const Scalar r = R + alt;
 

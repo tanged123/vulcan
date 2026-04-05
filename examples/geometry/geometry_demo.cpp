@@ -73,7 +73,7 @@ int main() {
     Vec3<double> sat_pos(0, 0, -42164000); // GEO altitude above North Pole
     Vec3<double> look_dir(0, 0, 1);        // Looking down
 
-    double earth_radius = constants::earth::R_mean;
+    double earth_radius = constants::earth::R_mean.value();
     Vec3<double> earth_center(0, 0, 0);
 
     double t_hit =

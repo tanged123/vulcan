@@ -36,7 +36,7 @@ TEST(BodyFrames, ZeroEulerAngles) {
 TEST(BodyFrames, PureYaw) {
     // 90 degree yaw: body X should point East (NED Y), body Y should point
     // South (-NED X)
-    double yaw = vulcan::constants::angle::pi / 2.0;
+    double yaw = vulcan::constants::angle::pi.value() / 2.0;
     auto ned = vulcan::CoordinateFrame<double>::ned(0.0, 0.0);
     auto body = vulcan::body_from_euler(ned, yaw, 0.0, 0.0);
 
@@ -55,7 +55,7 @@ TEST(BodyFrames, PureYaw) {
 
 TEST(BodyFrames, PurePitch) {
     // 30 degree pitch up
-    double pitch = vulcan::constants::angle::pi / 6.0;
+    double pitch = vulcan::constants::angle::pi.value() / 6.0;
     auto ned = vulcan::CoordinateFrame<double>::ned(0.0, 0.0);
     auto body = vulcan::body_from_euler(ned, 0.0, pitch, 0.0);
 
@@ -93,7 +93,7 @@ TEST(BodyFrames, GimbalLock) {
     // Pitch = 90 degrees (gimbal lock)
     // At gimbal lock, yaw and roll become coupled in euler representation
     // Our custom euler extraction handles this by setting roll=0
-    double pitch = vulcan::constants::angle::pi / 2.0;
+    double pitch = vulcan::constants::angle::pi.value() / 2.0;
     double yaw = 0.3;
     double roll = 0.0;
 
@@ -182,7 +182,7 @@ TEST(FlightPathAngles, LevelNorth) {
 TEST(FlightPathAngles, ClimbingEast) {
     // 45 degree climb, heading East
     double speed = 100.0;
-    double gamma = vulcan::constants::angle::pi / 4.0;
+    double gamma = vulcan::constants::angle::pi.value() / 4.0;
 
     vulcan::Vec3<double> v_ned;
     v_ned << 0.0, speed * std::cos(gamma), -speed * std::sin(gamma);
@@ -190,14 +190,14 @@ TEST(FlightPathAngles, ClimbingEast) {
     auto angles = vulcan::flight_path_angles(v_ned);
 
     EXPECT_NEAR(angles(0), gamma, 1e-10); // gamma
-    EXPECT_NEAR(angles(1), vulcan::constants::angle::pi / 2.0,
+    EXPECT_NEAR(angles(1), vulcan::constants::angle::pi.value() / 2.0,
                 1e-10); // psi = East
 }
 
 TEST(FlightPathAngles, Descending) {
     // 30 degree descent, heading South
     double speed = 100.0;
-    double gamma = -vulcan::constants::angle::pi / 6.0;
+    double gamma = -vulcan::constants::angle::pi.value() / 6.0;
 
     vulcan::Vec3<double> v_ned;
     v_ned << -speed * std::cos(gamma), 0.0, -speed * std::sin(gamma);
@@ -205,7 +205,7 @@ TEST(FlightPathAngles, Descending) {
     auto angles = vulcan::flight_path_angles(v_ned);
 
     EXPECT_NEAR(angles(0), gamma, 1e-10);
-    EXPECT_NEAR(angles(1), vulcan::constants::angle::pi, 1e-6); // South
+    EXPECT_NEAR(angles(1), vulcan::constants::angle::pi.value(), 1e-6); // South
 }
 
 // ============================================
@@ -224,7 +224,7 @@ TEST(AeroAngles, ZeroAngles) {
 
 TEST(AeroAngles, PositiveAlpha) {
     // Flow from below (nose up)
-    double alpha_input = vulcan::constants::angle::pi / 6.0; // 30 deg
+    double alpha_input = vulcan::constants::angle::pi.value() / 6.0; // 30 deg
     double speed = 100.0;
 
     vulcan::Vec3<double> v_body;
@@ -238,7 +238,7 @@ TEST(AeroAngles, PositiveAlpha) {
 
 TEST(AeroAngles, PositiveBeta) {
     // Sideslip from right
-    double beta_input = vulcan::constants::angle::pi / 12.0; // 15 deg
+    double beta_input = vulcan::constants::angle::pi.value() / 12.0; // 15 deg
     double speed = 100.0;
 
     vulcan::Vec3<double> v_body;
@@ -267,7 +267,7 @@ TEST(VelocityTransforms, ECEF_ECI_ZeroGMST) {
 
     // v_eci = v_ecef + omega x r
     // omega x r = [0, 0, omega] x [r, 0, 0] = [0, omega*r, 0]
-    double omega_r = vulcan::constants::wgs84::omega * r_ecef(0);
+    double omega_r = vulcan::constants::wgs84::omega.value() * r_ecef(0);
     EXPECT_NEAR(v_eci(0), 0.0, 1e-6);
     EXPECT_NEAR(v_eci(1), 7000.0 + omega_r, 1e-6);
     EXPECT_NEAR(v_eci(2), 0.0, 1e-6);
@@ -305,7 +305,7 @@ TEST(NonInertial, Coriolis_Eastward) {
 
     // Coriolis = -2(omega x v) = -2 * [0,0,omega] x [0,v,0] = -2 * [-omega*v,
     // 0, 0] = [2*omega*v, 0, 0]
-    double expected_x = 2.0 * vulcan::constants::wgs84::omega * 1000.0;
+    double expected_x = 2.0 * vulcan::constants::wgs84::omega.value() * 1000.0;
     EXPECT_NEAR(a_coriolis(0), expected_x, 1e-10);
     EXPECT_NEAR(a_coriolis(1), 0.0, 1e-10);
     EXPECT_NEAR(a_coriolis(2), 0.0, 1e-10);
@@ -322,7 +322,7 @@ TEST(NonInertial, Centrifugal_Equator) {
     // omega x r = [0,0,omega] x [r,0,0] = [0, omega*r, 0]
     // omega x (omega x r) = [0,0,omega] x [0, omega*r, 0] = [-omega^2*r, 0, 0]
     // -omega x (omega x r) = [omega^2*r, 0, 0]
-    double omega = vulcan::constants::wgs84::omega;
+    double omega = vulcan::constants::wgs84::omega.value();
     double expected_x = omega * omega * r_ecef(0);
     EXPECT_NEAR(a_centrifugal(0), expected_x, 1e-8);
     EXPECT_NEAR(a_centrifugal(1), 0.0, 1e-10);
@@ -556,7 +556,7 @@ TEST(TransportRate, Omega_NED_ECI) {
     auto omega = vulcan::omega_ned_wrt_eci(v_ned, 0.0, 0.0);
 
     // Earth rotation in NED at equator: [omega, 0, 0]
-    EXPECT_NEAR(omega(0), vulcan::constants::wgs84::omega, 1e-14);
+    EXPECT_NEAR(omega(0), vulcan::constants::wgs84::omega.value(), 1e-14);
     EXPECT_NEAR(omega(1), 0.0, 1e-14);
     EXPECT_NEAR(omega(2), 0.0, 1e-14);
 }
@@ -628,20 +628,21 @@ TEST(Quaternion, QuaternionEulerConsistency) {
 
 TEST(Quaternion, ComposeRotations) {
     // Two 90-degree rotations about Z should give 180-degree rotation
-    double angle = vulcan::constants::angle::pi / 2.0;
+    double angle = vulcan::constants::angle::pi.value() / 2.0;
     auto q1 = janus::Quaternion<double>::from_euler(0.0, 0.0, angle);
     auto q2 = janus::Quaternion<double>::from_euler(0.0, 0.0, angle);
 
     auto q_composed = vulcan::compose_rotations(q1, q2);
     auto euler = q_composed.to_euler();
 
-    EXPECT_NEAR(std::abs(euler(2)), vulcan::constants::angle::pi, 1e-10);
+    EXPECT_NEAR(std::abs(euler(2)), vulcan::constants::angle::pi.value(),
+                1e-10);
 }
 
 TEST(Quaternion, RelativeRotation) {
     // Relative rotation from identity to 90 deg yaw
     auto q_identity = janus::Quaternion<double>();
-    double yaw = vulcan::constants::angle::pi / 2.0;
+    double yaw = vulcan::constants::angle::pi.value() / 2.0;
     auto q_rotated = janus::Quaternion<double>::from_euler(0.0, 0.0, yaw);
 
     auto q_rel = vulcan::relative_rotation(q_identity, q_rotated);
@@ -655,13 +656,13 @@ TEST(Quaternion, RelativeRotation) {
 TEST(Quaternion, Slerp) {
     // Interpolate between identity and 90 deg yaw
     auto q0 = janus::Quaternion<double>();
-    double yaw = vulcan::constants::angle::pi / 2.0;
+    double yaw = vulcan::constants::angle::pi.value() / 2.0;
     auto q1 = janus::Quaternion<double>::from_euler(0.0, 0.0, yaw);
 
     auto q_half = vulcan::slerp(q0, q1, 0.5);
     auto euler = q_half.to_euler();
 
-    EXPECT_NEAR(euler(2), vulcan::constants::angle::pi / 4.0, 1e-10);
+    EXPECT_NEAR(euler(2), vulcan::constants::angle::pi.value() / 4.0, 1e-10);
 }
 
 TEST(Quaternion, SymbolicQuaternionBody) {

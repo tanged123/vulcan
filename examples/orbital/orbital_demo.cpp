@@ -19,7 +19,7 @@ int main() {
     std::cout << "--- 1. Orbital Quantities ---\n\n";
 
     // ISS orbit parameters
-    double r_iss = constants::earth::R_eq + 400.0e3; // 400 km altitude
+    double r_iss = constants::earth::R_eq.value() + 400.0e3; // 400 km altitude
     double T_iss = quantities::period(r_iss);
     double v_iss = quantities::circular_velocity(r_iss);
     double v_esc = quantities::escape_velocity(r_iss);
@@ -100,7 +100,7 @@ int main() {
     // =========================================================================
     std::cout << "--- 4. Transfer Mechanics ---\n\n";
 
-    double r_leo = constants::earth::R_eq + 300.0e3;
+    double r_leo = constants::earth::R_eq.value() + 300.0e3;
 
     auto [dv1, dv2] = transfer::hohmann_delta_v(r_leo, r_geo);
     double t_transfer = transfer::hohmann_transfer_time(r_leo, r_geo);
@@ -131,7 +131,7 @@ int main() {
     Vec3<double> r_sun = ephemeris::analytical::sun_position_eci(jd_j2000);
     Vec3<double> r_moon = ephemeris::analytical::moon_position_eci(jd_j2000);
 
-    double sun_dist_au = janus::norm(r_sun) / constants::sun::AU;
+    double sun_dist_au = janus::norm(r_sun) / constants::sun::AU.value();
     double moon_dist_km = janus::norm(r_moon) / 1000.0;
 
     std::cout << "At J2000 epoch (2000-01-01 12:00 TT):\n\n";

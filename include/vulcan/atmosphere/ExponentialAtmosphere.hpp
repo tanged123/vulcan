@@ -3,8 +3,12 @@
 #pragma once
 
 #include <janus/janus.hpp>
+#include <vulcan/quantity/Quantity.hpp>
+#include <vulcan/quantity/Units.hpp>
 
 namespace vulcan::exponential_atmosphere {
+
+using namespace vulcan::units;
 
 // ============================================================================
 // Physical Constants
@@ -45,10 +49,10 @@ inline constexpr double GAMMA = 1.4;
  * @tparam Scalar double or casadi::MX for symbolic computation
  */
 template <typename Scalar> struct AtmosphericState {
-    Scalar temperature;    ///< Temperature [K]
-    Scalar pressure;       ///< Pressure [Pa]
-    Scalar density;        ///< Air density [kg/m³]
-    Scalar speed_of_sound; ///< Speed of sound [m/s]
+    Quantity<K, Scalar> temperature;      ///< Temperature [K]
+    Quantity<Pa, Scalar> pressure;        ///< Pressure [Pa]
+    Quantity<kg_per_m3, Scalar> density;  ///< Air density [kg/m³]
+    Quantity<mps, Scalar> speed_of_sound; ///< Speed of sound [m/s]
 };
 
 // ============================================================================
@@ -73,9 +77,11 @@ template <typename Scalar> struct AtmosphericState {
  *       For very high altitudes, density approaches 0.
  */
 template <typename Scalar>
-Scalar density(const Scalar &altitude,
-               double scale_height = DEFAULT_SCALE_HEIGHT) {
-    return RHO_0 * janus::exp(-altitude / scale_height);
+Quantity<kg_per_m3, Scalar>
+density(Quantity<m, Scalar> altitude,
+        double scale_height = DEFAULT_SCALE_HEIGHT) {
+    auto h = altitude.value();
+    return Quantity<kg_per_m3, Scalar>{RHO_0 * janus::exp(-h / scale_height)};
 }
 
 /**
@@ -93,9 +99,10 @@ Scalar density(const Scalar &altitude,
  * @return Pressure [Pa]
  */
 template <typename Scalar>
-Scalar pressure(const Scalar &altitude,
-                double scale_height = DEFAULT_SCALE_HEIGHT) {
-    return P_0 * janus::exp(-altitude / scale_height);
+Quantity<Pa, Scalar> pressure(Quantity<m, Scalar> altitude,
+                              double scale_height = DEFAULT_SCALE_HEIGHT) {
+    auto h = altitude.value();
+    return Quantity<Pa, Scalar>{P_0 * janus::exp(-h / scale_height)};
 }
 
 /**
@@ -111,12 +118,13 @@ Scalar pressure(const Scalar &altitude,
  * @return Temperature [K] - always returns T_0 = 288.15 K
  */
 template <typename Scalar>
-Scalar temperature(const Scalar &altitude,
-                   double scale_height = DEFAULT_SCALE_HEIGHT) {
+Quantity<K, Scalar> temperature(Quantity<m, Scalar> altitude,
+                                double scale_height = DEFAULT_SCALE_HEIGHT) {
     // Isothermal assumption - return constant temperature
     // Use janus multiplication to ensure proper type for symbolic inputs
     (void)scale_height; // Unused
-    return altitude * 0.0 + T_0;
+    auto h = altitude.value();
+    return Quantity<K, Scalar>{h * 0.0 + T_0};
 }
 
 /**
@@ -133,12 +141,13 @@ Scalar temperature(const Scalar &altitude,
  * @return Speed of sound [m/s] - constant at ~340.3 m/s
  */
 template <typename Scalar>
-Scalar speed_of_sound(const Scalar &altitude,
-                      double scale_height = DEFAULT_SCALE_HEIGHT) {
+Quantity<mps, Scalar>
+speed_of_sound(Quantity<m, Scalar> altitude,
+               double scale_height = DEFAULT_SCALE_HEIGHT) {
     // a = sqrt(gamma * R * T)
     // For isothermal atmosphere, this is constant
-    Scalar T = temperature(altitude, scale_height);
-    return janus::sqrt(GAMMA * R_AIR * T);
+    auto T = temperature(altitude, scale_height).value();
+    return Quantity<mps, Scalar>{janus::sqrt(GAMMA * R_AIR * T)};
 }
 
 // ============================================================================
@@ -157,16 +166,18 @@ Scalar speed_of_sound(const Scalar &altitude,
  * @return AtmosphericState containing T, P, ρ, a
  */
 template <typename Scalar>
-AtmosphericState<Scalar> state(const Scalar &altitude,
+AtmosphericState<Scalar> state(Quantity<m, Scalar> altitude,
                                double scale_height = DEFAULT_SCALE_HEIGHT) {
-    Scalar T = temperature(altitude, scale_height);
-    Scalar exp_factor = janus::exp(-altitude / scale_height);
+    auto h = altitude.value();
+    Scalar T = h * 0.0 + T_0; // Isothermal: ensures proper symbolic type
+    Scalar exp_factor = janus::exp(-h / scale_height);
 
-    return AtmosphericState<Scalar>{.temperature = T,
-                                    .pressure = P_0 * exp_factor,
-                                    .density = RHO_0 * exp_factor,
-                                    .speed_of_sound =
-                                        janus::sqrt(GAMMA * R_AIR * T)};
+    return AtmosphericState<Scalar>{
+        .temperature = Quantity<K, Scalar>{T},
+        .pressure = Quantity<Pa, Scalar>{P_0 * exp_factor},
+        .density = Quantity<kg_per_m3, Scalar>{RHO_0 * exp_factor},
+        .speed_of_sound =
+            Quantity<mps, Scalar>{janus::sqrt(GAMMA * R_AIR * T)}};
 }
 
 // ============================================================================
@@ -200,9 +211,11 @@ inline double compute_scale_height(double temperature = T_0,
  * @return Altitude [m]
  */
 template <typename Scalar>
-Scalar altitude_from_density(const Scalar &rho,
-                             double scale_height = DEFAULT_SCALE_HEIGHT) {
-    return -scale_height * janus::log(rho / RHO_0);
+Quantity<m, Scalar>
+altitude_from_density(Quantity<kg_per_m3, Scalar> rho,
+                      double scale_height = DEFAULT_SCALE_HEIGHT) {
+    auto r = rho.value();
+    return Quantity<m, Scalar>{-scale_height * janus::log(r / RHO_0)};
 }
 
 /**
@@ -217,9 +230,11 @@ Scalar altitude_from_density(const Scalar &rho,
  * @return Altitude [m]
  */
 template <typename Scalar>
-Scalar altitude_from_pressure(const Scalar &P,
-                              double scale_height = DEFAULT_SCALE_HEIGHT) {
-    return -scale_height * janus::log(P / P_0);
+Quantity<m, Scalar>
+altitude_from_pressure(Quantity<Pa, Scalar> P,
+                       double scale_height = DEFAULT_SCALE_HEIGHT) {
+    auto p = P.value();
+    return Quantity<m, Scalar>{-scale_height * janus::log(p / P_0)};
 }
 
 } // namespace vulcan::exponential_atmosphere

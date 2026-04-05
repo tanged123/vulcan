@@ -5,6 +5,9 @@
 #include <janus/janus.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
+#include <vulcan/quantity/Quantity.hpp>
+#include <vulcan/quantity/QuantityEigen.hpp>
+#include <vulcan/quantity/Units.hpp>
 
 namespace vulcan::gravity::j2j4 {
 
@@ -18,23 +21,24 @@ namespace vulcan::gravity::j2j4 {
  *
  * @tparam Scalar double or casadi::MX
  * @param r_ecef Position in ECEF frame [m]
- * @param mu Gravitational parameter [m³/s²]
+ * @param mu Gravitational parameter [m^3/s^2]
  * @param J2_coeff J2 zonal harmonic coefficient
  * @param J3_coeff J3 zonal harmonic coefficient
  * @param J4_coeff J4 zonal harmonic coefficient
  * @param R_eq Equatorial radius [m]
- * @return Gravitational acceleration in ECEF [m/s²]
+ * @return Gravitational acceleration in ECEF [m/s^2]
  */
 template <typename Scalar>
-Vec3<Scalar> acceleration(const Vec3<Scalar> &r_ecef,
-                          double mu = constants::earth::mu,
-                          double J2_coeff = constants::earth::J2,
-                          double J3_coeff = constants::earth::J3,
-                          double J4_coeff = constants::earth::J4,
-                          double R_eq = constants::earth::R_eq) {
-    const Scalar x = r_ecef(0);
-    const Scalar y = r_ecef(1);
-    const Scalar z = r_ecef(2);
+Vec3<Quantity<units::m / (units::s * units::s), Scalar>>
+acceleration(const Vec3<Quantity<units::m, Scalar>> &r_ecef,
+             double mu = constants::earth::mu.value(),
+             double J2_coeff = constants::earth::J2.value(),
+             double J3_coeff = constants::earth::J3.value(),
+             double J4_coeff = constants::earth::J4.value(),
+             double R_eq = constants::earth::R_eq.value()) {
+    const Scalar x = r_ecef(0).value();
+    const Scalar y = r_ecef(1).value();
+    const Scalar z = r_ecef(2).value();
 
     const Scalar r2 = x * x + y * y + z * z;
     const Scalar r = janus::sqrt(r2);
@@ -82,10 +86,11 @@ Vec3<Scalar> acceleration(const Vec3<Scalar> &r_ecef,
     const Scalar factor_xy = 1.0 + J2_xy + J3_xy + J4_xy;
     const Scalar factor_z = 1.0 + J2_z + J3_z + J4_z;
 
-    Vec3<Scalar> accel;
-    accel(0) = base * x * factor_xy;
-    accel(1) = base * y * factor_xy;
-    accel(2) = base * z * factor_z;
+    using AccelQ = Quantity<units::m / (units::s * units::s), Scalar>;
+    Vec3<AccelQ> accel;
+    accel(0) = AccelQ{base * x * factor_xy};
+    accel(1) = AccelQ{base * y * factor_xy};
+    accel(2) = AccelQ{base * z * factor_z};
 
     return accel;
 }
@@ -93,31 +98,33 @@ Vec3<Scalar> acceleration(const Vec3<Scalar> &r_ecef,
 /**
  * @brief J2/J3/J4 gravitational potential
  *
- * U = -μ/r · [1 - Σ Jn·(R_eq/r)^n·Pn(sin φ)]
+ * U = -mu/r * [1 - Sum Jn*(R_eq/r)^n*Pn(sin phi)]
  *
  * @tparam Scalar double or casadi::MX
  * @param r_ecef Position in ECEF frame [m]
- * @param mu Gravitational parameter [m³/s²]
+ * @param mu Gravitational parameter [m^3/s^2]
  * @param J2_coeff J2 zonal harmonic coefficient
  * @param J3_coeff J3 zonal harmonic coefficient
  * @param J4_coeff J4 zonal harmonic coefficient
  * @param R_eq Equatorial radius [m]
- * @return Gravitational potential [m²/s²]
+ * @return Gravitational potential [m^2/s^2]
  */
 template <typename Scalar>
-Scalar potential(const Vec3<Scalar> &r_ecef, double mu = constants::earth::mu,
-                 double J2_coeff = constants::earth::J2,
-                 double J3_coeff = constants::earth::J3,
-                 double J4_coeff = constants::earth::J4,
-                 double R_eq = constants::earth::R_eq) {
-    const Scalar x = r_ecef(0);
-    const Scalar y = r_ecef(1);
-    const Scalar z = r_ecef(2);
+Quantity<units::m * units::m / (units::s * units::s), Scalar>
+potential(const Vec3<Quantity<units::m, Scalar>> &r_ecef,
+          double mu = constants::earth::mu.value(),
+          double J2_coeff = constants::earth::J2.value(),
+          double J3_coeff = constants::earth::J3.value(),
+          double J4_coeff = constants::earth::J4.value(),
+          double R_eq = constants::earth::R_eq.value()) {
+    const Scalar x = r_ecef(0).value();
+    const Scalar y = r_ecef(1).value();
+    const Scalar z = r_ecef(2).value();
 
     const Scalar r2 = x * x + y * y + z * z;
     const Scalar r = janus::sqrt(r2);
 
-    // sin(φ) = z/r
+    // sin(phi) = z/r
     const Scalar sin_phi = z / r;
     const Scalar sin_phi2 = sin_phi * sin_phi;
     const Scalar sin_phi3 = sin_phi2 * sin_phi;
@@ -129,16 +136,17 @@ Scalar potential(const Vec3<Scalar> &r_ecef, double mu = constants::earth::mu,
     const Scalar Re_r3 = Re_r2 * Re_r;
     const Scalar Re_r4 = Re_r2 * Re_r2;
 
-    // Legendre polynomials P_n(sin φ)
+    // Legendre polynomials P_n(sin phi)
     const Scalar P2 = (3.0 * sin_phi2 - 1.0) / 2.0;
     const Scalar P3 = (5.0 * sin_phi3 - 3.0 * sin_phi) / 2.0;
     const Scalar P4 = (35.0 * sin_phi4 - 30.0 * sin_phi2 + 3.0) / 8.0;
 
-    // U = -μ/r · [1 - Σ Jn·(R_eq/r)^n·Pn(sin φ)]
+    // U = -mu/r * [1 - Sum Jn*(R_eq/r)^n*Pn(sin phi)]
     const Scalar correction =
         J2_coeff * Re_r2 * P2 + J3_coeff * Re_r3 * P3 + J4_coeff * Re_r4 * P4;
 
-    return -mu / r * (1.0 - correction);
+    return Quantity<units::m * units::m / (units::s * units::s), Scalar>{
+        -mu / r * (1.0 - correction)};
 }
 
 } // namespace vulcan::gravity::j2j4

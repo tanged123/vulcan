@@ -121,7 +121,7 @@ TEST(Benchmarks, WGS84_ZeroZeroZero) {
     vulcan::LLA<double> lla(0.0, 0.0, 0.0);
     auto r = vulcan::lla_to_ecef(lla);
 
-    EXPECT_DOUBLE_EQ(r(0), vulcan::constants::wgs84::a);
+    EXPECT_DOUBLE_EQ(r(0), vulcan::constants::wgs84::a.value());
     EXPECT_DOUBLE_EQ(r(1), 0.0);
     EXPECT_DOUBLE_EQ(r(2), 0.0);
 }
@@ -130,7 +130,8 @@ TEST(Benchmarks, WGS84_NorthPole) {
     // 90 deg N, 0 lon, 0 alt
     // Should be [0, 0, b] exactly (b = a * sqrt(1-e^2)) -> Actually b is
     // semi-minor axis
-    vulcan::LLA<double> lla(0.0, vulcan::constants::angle::pi / 2.0, 0.0);
+    vulcan::LLA<double> lla(0.0, vulcan::constants::angle::pi.value() / 2.0,
+                            0.0);
     auto r = vulcan::lla_to_ecef(lla);
 
     // b = 6356752.3142 m for WGS84
@@ -251,8 +252,8 @@ TEST(Benchmarks, Velocity_StationaryEquator) {
 
     vulcan::CoordinateFrame<double> eci =
         vulcan::CoordinateFrame<double>::eci(0.0); // GMST = 0
-    double R = vulcan::constants::earth::R_eq;
-    double omega = vulcan::constants::earth::omega;
+    double R = vulcan::constants::earth::R_eq.value();
+    double omega = vulcan::constants::earth::omega.value();
 
     vulcan::Vec3<double> r_ecef, v_ecef;
     r_ecef << R, 0.0, 0.0;   // On X-axis
@@ -271,7 +272,7 @@ TEST(Benchmarks, Velocity_NorthPole) {
     // axis)
     vulcan::CoordinateFrame<double> eci =
         vulcan::CoordinateFrame<double>::eci(0.0);
-    double b = vulcan::constants::wgs84::b;
+    double b = vulcan::constants::wgs84::b.value();
 
     vulcan::Vec3<double> r_ecef, v_ecef;
     r_ecef << 0.0, 0.0, b;
@@ -294,7 +295,7 @@ TEST(Benchmarks, ECI_Rotation_GMST90) {
     // CoordinateFrame::eci(gmst) constructs frame axes.
     // x_eci should be [cos(gmst), -sin(gmst), 0] in ECEF.
 
-    double gmst = vulcan::constants::angle::pi / 2.0;
+    double gmst = vulcan::constants::angle::pi.value() / 2.0;
     auto eci = vulcan::CoordinateFrame<double>::eci(gmst);
 
     // At GMST=90:
@@ -336,10 +337,10 @@ TEST(Benchmarks, MerryGoRoundOppositeHorses) {
                       std::make_shared<RigidOffsetProvider<double>>(
                           vulcan::Mat3<double>::Identity(), horse_a_offset));
 
-    const auto horse_b_id =
-        ctx.add_frame("HorseB", carousel_id,
-                      std::make_shared<RigidOffsetProvider<double>>(
-                          rot_z(vulcan::constants::angle::pi), horse_b_offset));
+    const auto horse_b_id = ctx.add_frame(
+        "HorseB", carousel_id,
+        std::make_shared<RigidOffsetProvider<double>>(
+            rot_z(vulcan::constants::angle::pi.value()), horse_b_offset));
 
     // Horse origins in ECI should be opposite.
     const vulcan::Vec3<double> origin = vulcan::Vec3<double>::Zero();

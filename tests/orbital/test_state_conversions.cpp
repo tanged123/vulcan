@@ -35,7 +35,7 @@ TEST(StateConversions, RoundTrip_Elliptical) {
 TEST(StateConversions, CircularEquatorial) {
     // Circular equatorial orbit
     double r_mag = 7000.0e3;
-    double v_mag = std::sqrt(vulcan::constants::earth::mu / r_mag);
+    double v_mag = std::sqrt(vulcan::constants::earth::mu.value() / r_mag);
 
     vulcan::Vec3<double> r, v;
     r << r_mag, 0.0, 0.0;
@@ -51,7 +51,7 @@ TEST(StateConversions, CircularEquatorial) {
 TEST(StateConversions, PolarOrbit) {
     // Polar orbit (i = 90°)
     double r_mag = 7000.0e3;
-    double v_mag = std::sqrt(vulcan::constants::earth::mu / r_mag);
+    double v_mag = std::sqrt(vulcan::constants::earth::mu.value() / r_mag);
 
     vulcan::Vec3<double> r, v;
     r << r_mag, 0.0, 0.0;
@@ -71,8 +71,8 @@ TEST(StateConversions, Elliptical) {
     double e = (r_apo - r_peri) / (r_apo + r_peri);
 
     // At periapsis
-    double v_peri =
-        std::sqrt(vulcan::constants::earth::mu * (2.0 / r_peri - 1.0 / a));
+    double v_peri = std::sqrt(vulcan::constants::earth::mu.value() *
+                              (2.0 / r_peri - 1.0 / a));
 
     vulcan::Vec3<double> r, v;
     r << r_peri, 0.0, 0.0;

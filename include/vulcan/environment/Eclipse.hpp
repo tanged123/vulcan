@@ -29,8 +29,9 @@ inline constexpr double AU = 149597870700.0;
  * @return Shadow function ν ∈ [0,1]
  */
 template <typename Scalar>
-Scalar shadow_cylindrical(const Vec3<Scalar> &r_sat, const Vec3<Scalar> &r_sun,
-                          double R_body = vulcan::constants::earth::R_eq) {
+Scalar
+shadow_cylindrical(const Vec3<Scalar> &r_sat, const Vec3<Scalar> &r_sun,
+                   double R_body = vulcan::constants::earth::R_eq.value()) {
     // Sun direction (unit vector from Earth to Sun)
     const Scalar r_sun_mag = janus::norm(r_sun);
     const Vec3<Scalar> s_hat = r_sun / r_sun_mag;
@@ -72,7 +73,7 @@ Scalar shadow_cylindrical(const Vec3<Scalar> &r_sat, const Vec3<Scalar> &r_sun,
  */
 template <typename Scalar>
 Scalar shadow_conical(const Vec3<Scalar> &r_sat, const Vec3<Scalar> &r_sun,
-                      double R_body = vulcan::constants::earth::R_eq,
+                      double R_body = vulcan::constants::earth::R_eq.value(),
                       double R_sun = constants::R_sun) {
     // Vector from satellite to Sun
     const Vec3<Scalar> r_sat_to_sun = r_sun - r_sat;
@@ -123,7 +124,7 @@ Scalar shadow_conical(const Vec3<Scalar> &r_sat, const Vec3<Scalar> &r_sun,
  */
 template <typename Scalar>
 Scalar is_in_shadow(const Vec3<Scalar> &r_sat, const Vec3<Scalar> &r_sun,
-                    double R_body = vulcan::constants::earth::R_eq) {
+                    double R_body = vulcan::constants::earth::R_eq.value()) {
     const Scalar nu = shadow_cylindrical(r_sat, r_sun, R_body);
     return janus::where(nu < 0.5, Scalar(1.0), Scalar(0.0));
 }
@@ -134,7 +135,7 @@ Scalar is_in_shadow(const Vec3<Scalar> &r_sat, const Vec3<Scalar> &r_sun,
  */
 template <typename Scalar>
 Scalar is_sunlit(const Vec3<Scalar> &r_sat, const Vec3<Scalar> &r_sun,
-                 double R_body = vulcan::constants::earth::R_eq) {
+                 double R_body = vulcan::constants::earth::R_eq.value()) {
     return shadow_cylindrical(r_sat, r_sun, R_body);
 }
 

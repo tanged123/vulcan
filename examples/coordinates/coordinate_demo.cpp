@@ -95,7 +95,7 @@ int main() {
     auto rotation = ConstantOmegaRotation::from_wgs84();
 
     // Sidereal day
-    double sidereal_day = 2.0 * constants::angle::pi / wgs84.omega;
+    double sidereal_day = 2.0 * constants::angle::pi.value() / wgs84.omega;
     std::cout << "Sidereal day: " << sidereal_day / 3600.0 << " hours\n";
 
     // ECI at t=0 (aligned with ECEF)

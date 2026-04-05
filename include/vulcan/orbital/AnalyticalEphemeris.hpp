@@ -79,7 +79,7 @@ template <typename Scalar> Scalar sun_distance(const Scalar &jd) {
     const Scalar r_au = 1.000140612 - 0.016708617 * janus::cos(M) -
                         0.000139589 * janus::cos(2.0 * M);
 
-    return r_au * constants::sun::AU;
+    return r_au * constants::sun::AU.value();
 }
 
 /**

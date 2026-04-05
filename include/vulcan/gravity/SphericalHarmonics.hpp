@@ -6,6 +6,9 @@
 #include <vulcan/coordinates/Geodetic.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
+#include <vulcan/quantity/Quantity.hpp>
+#include <vulcan/quantity/QuantityEigen.hpp>
+#include <vulcan/quantity/Units.hpp>
 
 #include <vector>
 
@@ -21,13 +24,13 @@ struct GravityCoefficients {
     int n_max;                          ///< Maximum degree
     std::vector<std::vector<double>> C; ///< Cosine coefficients C[n][m]
     std::vector<std::vector<double>> S; ///< Sine coefficients S[n][m]
-    double mu;                          ///< Gravitational parameter [m³/s²]
+    double mu;                          ///< Gravitational parameter [m^3/s^2]
     double R_eq;                        ///< Reference radius [m]
 
     /// Initialize with given maximum degree
-    explicit GravityCoefficients(int n_max_val = 20,
-                                 double mu_val = constants::earth::mu,
-                                 double R_eq_val = constants::earth::R_eq)
+    explicit GravityCoefficients(
+        int n_max_val = 20, double mu_val = constants::earth::mu.value(),
+        double R_eq_val = constants::earth::R_eq.value())
         : n_max(n_max_val), mu(mu_val), R_eq(R_eq_val) {
         C.resize(static_cast<size_t>(n_max + 1));
         S.resize(static_cast<size_t>(n_max + 1));
@@ -40,11 +43,11 @@ struct GravityCoefficients {
 
         // J2, J3, J4 as zonal harmonics (m=0)
         if (n_max >= 2)
-            C[2][0] = -constants::earth::J2;
+            C[2][0] = -constants::earth::J2.value();
         if (n_max >= 3)
-            C[3][0] = -constants::earth::J3;
+            C[3][0] = -constants::earth::J3.value();
         if (n_max >= 4)
-            C[4][0] = -constants::earth::J4;
+            C[4][0] = -constants::earth::J4.value();
     }
 };
 
@@ -72,7 +75,7 @@ template <typename Scalar> Scalar legendre_Pnm(int n, int m, const Scalar &x) {
         return Scalar(0.0);
 
     // P_mm: diagonal recurrence
-    // P_mm = (-1)^m (2m-1)!! (1-x²)^(m/2)
+    // P_mm = (-1)^m (2m-1)!! (1-x^2)^(m/2)
     Scalar pmm = Scalar(1.0);
     if (m > 0) {
         Scalar somx2 = janus::sqrt((1.0 - x) * (1.0 + x));
@@ -112,16 +115,22 @@ template <typename Scalar> Scalar legendre_Pnm(int n, int m, const Scalar &x) {
  * @tparam Scalar double or casadi::MX
  * @param r_ecef Position in ECEF [m]
  * @param coeffs Gravity coefficients (C, S, n_max)
- * @return Acceleration in ECEF [m/s²]
+ * @return Acceleration in ECEF [m/s^2]
  *
  * @note For symbolic mode, n_max must be fixed at trace time (structural loop).
  */
 template <typename Scalar>
-Vec3<Scalar>
-acceleration(const Vec3<Scalar> &r_ecef,
+Vec3<Quantity<units::m / (units::s * units::s), Scalar>>
+acceleration(const Vec3<Quantity<units::m, Scalar>> &r_ecef,
              const GravityCoefficients &coeffs = default_coefficients()) {
+    // Unwrap Quantity inputs to raw Vec3<Scalar>
+    Vec3<Scalar> r_raw;
+    r_raw(0) = r_ecef(0).value();
+    r_raw(1) = r_ecef(1).value();
+    r_raw(2) = r_ecef(2).value();
+
     // Convert to spherical coordinates
-    const Spherical<Scalar> sph = ecef_to_spherical(r_ecef);
+    const Spherical<Scalar> sph = ecef_to_spherical(r_raw);
     const Scalar r = sph.radius;
     const Scalar lon = sph.lon;
     const Scalar lat_gc = sph.lat_gc;
@@ -134,9 +143,9 @@ acceleration(const Vec3<Scalar> &r_ecef,
     const int n_max = coeffs.n_max;
 
     // Initialize partial derivatives of potential
-    Scalar dU_dr = Scalar(0.0);   // ∂U/∂r
-    Scalar dU_dlat = Scalar(0.0); // ∂U/∂φ
-    Scalar dU_dlon = Scalar(0.0); // ∂U/∂λ
+    Scalar dU_dr = Scalar(0.0);   // dU/dr
+    Scalar dU_dlat = Scalar(0.0); // dU/dphi
+    Scalar dU_dlon = Scalar(0.0); // dU/dlambda
 
     // Summation over degrees and orders
     // Loop bounds are structural (n_max is int, not Scalar)
@@ -176,14 +185,14 @@ acceleration(const Vec3<Scalar> &r_ecef,
         }
     }
 
-    // Scale by μ/r
+    // Scale by mu/r
     const Scalar scale = mu / r;
     dU_dr = dU_dr * scale;
     dU_dlat = dU_dlat * scale;
     dU_dlon = dU_dlon * scale;
 
     // Convert spherical gradient to ECEF acceleration
-    // g = -∇U
+    // g = -nabla U
     const Scalar sin_lon = janus::sin(lon);
     const Scalar cos_lon = janus::cos(lon);
 
@@ -193,12 +202,13 @@ acceleration(const Vec3<Scalar> &r_ecef,
     const Scalar g_lon = -dU_dlon / (r * cos_lat);
 
     // Transform to ECEF
-    Vec3<Scalar> g_ecef;
-    g_ecef(0) =
-        cos_lat * cos_lon * g_r - sin_lat * cos_lon * g_lat - sin_lon * g_lon;
-    g_ecef(1) =
-        cos_lat * sin_lon * g_r - sin_lat * sin_lon * g_lat + cos_lon * g_lon;
-    g_ecef(2) = sin_lat * g_r + cos_lat * g_lat;
+    using AccelQ = Quantity<units::m / (units::s * units::s), Scalar>;
+    Vec3<AccelQ> g_ecef;
+    g_ecef(0) = AccelQ{cos_lat * cos_lon * g_r - sin_lat * cos_lon * g_lat -
+                       sin_lon * g_lon};
+    g_ecef(1) = AccelQ{cos_lat * sin_lon * g_r - sin_lat * sin_lon * g_lat +
+                       cos_lon * g_lon};
+    g_ecef(2) = AccelQ{sin_lat * g_r + cos_lat * g_lat};
 
     return g_ecef;
 }
@@ -206,17 +216,25 @@ acceleration(const Vec3<Scalar> &r_ecef,
 /**
  * @brief Spherical harmonic gravitational potential
  *
- * U = μ/r Σ Σ (R_eq/r)^n [C_nm cos(mλ) + S_nm sin(mλ)] P_nm(sin φ)
+ * U = mu/r Sum Sum (R_eq/r)^n [C_nm cos(m*lambda) + S_nm sin(m*lambda)]
+ * P_nm(sin phi)
  *
  * @tparam Scalar double or casadi::MX
  * @param r_ecef Position in ECEF [m]
  * @param coeffs Gravity coefficients (C, S, n_max)
- * @return Gravitational potential [m²/s²]
+ * @return Gravitational potential [m^2/s^2]
  */
 template <typename Scalar>
-Scalar potential(const Vec3<Scalar> &r_ecef,
-                 const GravityCoefficients &coeffs = default_coefficients()) {
-    const Spherical<Scalar> sph = ecef_to_spherical(r_ecef);
+Quantity<units::m * units::m / (units::s * units::s), Scalar>
+potential(const Vec3<Quantity<units::m, Scalar>> &r_ecef,
+          const GravityCoefficients &coeffs = default_coefficients()) {
+    // Unwrap Quantity inputs to raw Vec3<Scalar>
+    Vec3<Scalar> r_raw;
+    r_raw(0) = r_ecef(0).value();
+    r_raw(1) = r_ecef(1).value();
+    r_raw(2) = r_ecef(2).value();
+
+    const Spherical<Scalar> sph = ecef_to_spherical(r_raw);
     const Scalar r = sph.radius;
     const Scalar lon = sph.lon;
     const Scalar lat_gc = sph.lat_gc;
@@ -250,7 +268,7 @@ Scalar potential(const Vec3<Scalar> &r_ecef,
         }
     }
 
-    return U;
+    return Quantity<units::m * units::m / (units::s * units::s), Scalar>{U};
 }
 
 } // namespace vulcan::gravity::spherical_harmonics

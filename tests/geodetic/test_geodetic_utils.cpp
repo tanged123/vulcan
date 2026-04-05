@@ -24,7 +24,7 @@ TEST(GeodesicUtils, Haversine_SamePoint) {
 TEST(GeodesicUtils, Haversine_Equator_90Degrees) {
     // Quarter of Earth circumference along equator
     LLA<double> p1(0.0, 0.0, 0.0);
-    LLA<double> p2(constants::angle::pi / 2.0, 0.0, 0.0);
+    LLA<double> p2(constants::angle::pi.value() / 2.0, 0.0, 0.0);
 
     auto d = haversine_distance(p1, p2);
     // Expected: ~10,007 km (quarter circumference using mean radius 6371km)
@@ -33,8 +33,8 @@ TEST(GeodesicUtils, Haversine_Equator_90Degrees) {
 
 TEST(GeodesicUtils, Haversine_Poles) {
     // North to South pole
-    LLA<double> north(0.0, constants::angle::pi / 2.0, 0.0);
-    LLA<double> south(0.0, -constants::angle::pi / 2.0, 0.0);
+    LLA<double> north(0.0, constants::angle::pi.value() / 2.0, 0.0);
+    LLA<double> south(0.0, -constants::angle::pi.value() / 2.0, 0.0);
 
     auto d = haversine_distance(north, south);
     // Expected: half circumference using mean radius ~20,015 km
@@ -122,7 +122,8 @@ TEST(GeodesicUtils, InitialBearing_DueEast) {
     LLA<double> p2(10.0 * constants::angle::deg2rad, 0.0, 0.0);
 
     auto bearing = initial_bearing(p1, p2);
-    EXPECT_NEAR(bearing, constants::angle::pi / 2.0, 0.001); // Due East = 90°
+    EXPECT_NEAR(bearing, constants::angle::pi.value() / 2.0,
+                0.001); // Due East = 90°
 }
 
 TEST(GeodesicUtils, InitialBearing_DueSouth) {
@@ -130,7 +131,8 @@ TEST(GeodesicUtils, InitialBearing_DueSouth) {
     LLA<double> p2(0.0, 0.0, 0.0);
 
     auto bearing = initial_bearing(p1, p2);
-    EXPECT_NEAR(bearing, constants::angle::pi, 0.001); // Due South = 180°
+    EXPECT_NEAR(bearing, constants::angle::pi.value(),
+                0.001); // Due South = 180°
 }
 
 TEST(GeodesicUtils, InitialBearing_DueWest) {
@@ -138,7 +140,7 @@ TEST(GeodesicUtils, InitialBearing_DueWest) {
     LLA<double> p2(0.0, 0.0, 0.0);
 
     auto bearing = initial_bearing(p1, p2);
-    EXPECT_NEAR(bearing, 3.0 * constants::angle::pi / 2.0,
+    EXPECT_NEAR(bearing, 3.0 * constants::angle::pi.value() / 2.0,
                 0.001); // Due West = 270°
 }
 
@@ -158,7 +160,7 @@ TEST(GeodesicUtils, FinalBearing_GreatCircle) {
     // Both bearings should be in the western hemisphere for London->NYC
     // Initial: heading northwest (between 270° and 360° or ~288°)
     // Final: heading southwest (could be > 180° depending on normalization)
-    EXPECT_GT(init, constants::angle::pi); // Northwest > 180°
+    EXPECT_GT(init, constants::angle::pi.value()); // Northwest > 180°
 }
 
 // =============================================================================
@@ -192,7 +194,7 @@ TEST(GeodesicUtils, DestinationPoint_Cardinal) {
 
     // Go due East
     auto dest_e =
-        destination_point(start, constants::angle::pi / 2.0, distance);
+        destination_point(start, constants::angle::pi.value() / 2.0, distance);
     EXPECT_NEAR(dest_e.lat, 0.0, 0.01);
     EXPECT_NEAR(dest_e.lon, 1.0 * constants::angle::deg2rad, 0.01);
 }
@@ -258,7 +260,8 @@ TEST(GeodesicUtils, IsVisible_HighAltitude) {
 TEST(GeodesicUtils, RayEllipsoid_VerticalDown) {
     // Origin above surface, pointing down
     Vec3<double> origin;
-    origin << constants::wgs84::a + 100000.0, 0.0, 0.0; // 100km above equator
+    origin << constants::wgs84::a.value() + 100000.0, 0.0,
+        0.0; // 100km above equator
 
     Vec3<double> direction;
     direction << -1.0, 0.0, 0.0; // Pointing toward Earth center
@@ -276,7 +279,7 @@ TEST(GeodesicUtils, RayEllipsoid_VerticalDown) {
 TEST(GeodesicUtils, RayEllipsoid_Miss) {
     // Origin above surface, pointing away
     Vec3<double> origin;
-    origin << constants::wgs84::a + 100000.0, 0.0, 0.0;
+    origin << constants::wgs84::a.value() + 100000.0, 0.0, 0.0;
 
     Vec3<double> direction;
     direction << 1.0, 0.0, 0.0; // Pointing away from Earth
@@ -289,7 +292,7 @@ TEST(GeodesicUtils, RayEllipsoid_Miss) {
 TEST(GeodesicUtils, RayEllipsoid_Tangent) {
     // Ray tangent to surface (roughly)
     Vec3<double> origin;
-    origin << constants::wgs84::a + 1000.0, 0.0, 0.0;
+    origin << constants::wgs84::a.value() + 1000.0, 0.0, 0.0;
 
     // Direction tangent to sphere at equator
     Vec3<double> direction;
@@ -322,8 +325,8 @@ TEST(CDAFrame, FromBearing_North) {
 
 TEST(CDAFrame, FromBearing_East) {
     // CDA with bearing = 90° (East)
-    LLA<double> origin(0.0, 0.0, 0.0);           // Equator, prime meridian
-    double bearing = constants::angle::pi / 2.0; // Due East
+    LLA<double> origin(0.0, 0.0, 0.0); // Equator, prime meridian
+    double bearing = constants::angle::pi.value() / 2.0; // Due East
 
     auto frame = local_cda(origin, bearing);
 
@@ -380,7 +383,7 @@ TEST(CDAFrame, CrossRange_Offset) {
     double distance = 10000.0; // 10 km
 
     // Point due East (90° from North)
-    double cross_bearing = constants::angle::pi / 2.0;
+    double cross_bearing = constants::angle::pi.value() / 2.0;
     auto dest = destination_point(origin, cross_bearing, distance);
     Vec3<double> dest_ecef = lla_to_ecef(dest);
 

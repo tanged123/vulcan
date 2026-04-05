@@ -34,7 +34,7 @@ namespace vulcan::geodetic {
 /// @return Distance along sphere surface [m]
 template <typename Scalar>
 Scalar haversine_distance(const LLA<Scalar> &lla1, const LLA<Scalar> &lla2,
-                          double radius = constants::earth::R_mean) {
+                          double radius = constants::earth::R_mean.value()) {
     const Scalar dlat = lla2.lat - lla1.lat;
     const Scalar dlon = lla2.lon - lla1.lon;
 
@@ -184,7 +184,7 @@ initial_bearing(const LLA<Scalar> &lla1, const LLA<Scalar> &lla2,
     Scalar bearing = janus::atan2(x, y);
 
     // Normalize to [0, 2π) using: bearing = bearing - floor(bearing / 2π) * 2π
-    constexpr double two_pi = 2.0 * constants::angle::pi;
+    constexpr double two_pi = 2.0 * constants::angle::pi.value();
     // Add 2π first to handle negative bearings, then use atan2's periodicity
     // Since atan2 returns [-π, π], adding 2π and taking modulo gives [0, 2π)
     bearing = bearing + Scalar(two_pi);
@@ -213,10 +213,10 @@ Scalar final_bearing(const LLA<Scalar> &lla1, const LLA<Scalar> &lla2,
                      const EarthModel &m = EarthModel::WGS84()) {
     // Final bearing is the reverse of initial bearing from lla2 to lla1, + 180°
     Scalar bearing =
-        initial_bearing(lla2, lla1, m) + Scalar(constants::angle::pi);
+        initial_bearing(lla2, lla1, m) + Scalar(constants::angle::pi.value());
 
     // Normalize to [0, 2π)
-    constexpr double two_pi = 2.0 * constants::angle::pi;
+    constexpr double two_pi = 2.0 * constants::angle::pi.value();
     bearing = janus::where(bearing >= Scalar(two_pi), bearing - Scalar(two_pi),
                            bearing);
 

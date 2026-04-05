@@ -5,8 +5,12 @@
 #include <array>
 #include <cstddef>
 #include <vulcan/core/TableInterpolator.hpp>
+#include <vulcan/quantity/Quantity.hpp>
+#include <vulcan/quantity/Units.hpp>
 
 namespace vulcan::ussa1976 {
+
+using namespace vulcan::units;
 
 // ============================================================================
 // Atmospheric State Struct
@@ -21,12 +25,12 @@ namespace vulcan::ussa1976 {
  * @tparam Scalar double or casadi::MX for symbolic computation
  */
 template <typename Scalar> struct AtmosphericState {
-    Scalar temperature;       ///< Kinetic temperature [K]
-    Scalar pressure;          ///< Pressure [Pa]
-    Scalar density;           ///< Air density [kg/m³]
-    Scalar speed_of_sound;    ///< Speed of sound [m/s]
-    Scalar gravity;           ///< Gravitational acceleration [m/s²]
-    Scalar dynamic_viscosity; ///< Dynamic viscosity [Pa·s]
+    Quantity<K, Scalar> temperature;      ///< Kinetic temperature [K]
+    Quantity<Pa, Scalar> pressure;        ///< Pressure [Pa]
+    Quantity<kg_per_m3, Scalar> density;  ///< Air density [kg/m³]
+    Quantity<mps, Scalar> speed_of_sound; ///< Speed of sound [m/s]
+    Quantity<m_per_s2, Scalar> gravity;   ///< Gravitational acceleration [m/s²]
+    Quantity<Pa_s, Scalar> dynamic_viscosity; ///< Dynamic viscosity [Pa·s]
 };
 
 // ============================================================================
@@ -199,8 +203,10 @@ inline constexpr double SUTHERLAND_S = 110.4;       ///< K
  * @param altitude Geometric altitude [m]
  * @return Temperature [K]
  */
-template <typename Scalar> Scalar temperature(const Scalar &altitude) {
-    return detail::temperature_table()(altitude);
+template <typename Scalar>
+Quantity<K, Scalar> temperature(Quantity<m, Scalar> altitude) {
+    auto h = altitude.value();
+    return Quantity<K, Scalar>{detail::temperature_table()(h)};
 }
 
 /**
@@ -210,8 +216,10 @@ template <typename Scalar> Scalar temperature(const Scalar &altitude) {
  * @param altitude Geometric altitude [m]
  * @return Pressure [Pa]
  */
-template <typename Scalar> Scalar pressure(const Scalar &altitude) {
-    return detail::pressure_table()(altitude);
+template <typename Scalar>
+Quantity<Pa, Scalar> pressure(Quantity<m, Scalar> altitude) {
+    auto h = altitude.value();
+    return Quantity<Pa, Scalar>{detail::pressure_table()(h)};
 }
 
 /**
@@ -221,8 +229,10 @@ template <typename Scalar> Scalar pressure(const Scalar &altitude) {
  * @param altitude Geometric altitude [m]
  * @return Density [kg/m³]
  */
-template <typename Scalar> Scalar density(const Scalar &altitude) {
-    return detail::density_table()(altitude);
+template <typename Scalar>
+Quantity<kg_per_m3, Scalar> density(Quantity<m, Scalar> altitude) {
+    auto h = altitude.value();
+    return Quantity<kg_per_m3, Scalar>{detail::density_table()(h)};
 }
 
 /**
@@ -232,8 +242,10 @@ template <typename Scalar> Scalar density(const Scalar &altitude) {
  * @param altitude Geometric altitude [m]
  * @return Speed of sound [m/s]
  */
-template <typename Scalar> Scalar speed_of_sound(const Scalar &altitude) {
-    return detail::speed_of_sound_table()(altitude);
+template <typename Scalar>
+Quantity<mps, Scalar> speed_of_sound(Quantity<m, Scalar> altitude) {
+    auto h = altitude.value();
+    return Quantity<mps, Scalar>{detail::speed_of_sound_table()(h)};
 }
 
 /**
@@ -245,8 +257,10 @@ template <typename Scalar> Scalar speed_of_sound(const Scalar &altitude) {
  * @param altitude Geometric altitude [m]
  * @return Gravitational acceleration [m/s²]
  */
-template <typename Scalar> Scalar gravity(const Scalar &altitude) {
-    return detail::gravity_table()(altitude);
+template <typename Scalar>
+Quantity<m_per_s2, Scalar> gravity(Quantity<m, Scalar> altitude) {
+    auto h = altitude.value();
+    return Quantity<m_per_s2, Scalar>{detail::gravity_table()(h)};
 }
 
 /**
@@ -259,10 +273,13 @@ template <typename Scalar> Scalar gravity(const Scalar &altitude) {
  * @param altitude Geometric altitude [m]
  * @return Dynamic viscosity [Pa·s]
  */
-template <typename Scalar> Scalar dynamic_viscosity(const Scalar &altitude) {
-    Scalar T = detail::temperature_table()(altitude);
+template <typename Scalar>
+Quantity<Pa_s, Scalar> dynamic_viscosity(Quantity<m, Scalar> altitude) {
+    auto h = altitude.value();
+    Scalar T = detail::temperature_table()(h);
     // Sutherland's formula: μ = β·T^(3/2) / (T + S)
-    return SUTHERLAND_BETA * janus::pow(T, 1.5) / (T + SUTHERLAND_S);
+    return Quantity<Pa_s, Scalar>{SUTHERLAND_BETA * janus::pow(T, 1.5) /
+                                  (T + SUTHERLAND_S)};
 }
 
 // ============================================================================
@@ -277,19 +294,21 @@ template <typename Scalar> Scalar dynamic_viscosity(const Scalar &altitude) {
  *
  * @tparam Scalar double or casadi::MX for symbolic computation
  * @param altitude Geometric altitude [m]
- * @return AtmosphericState containing T, P, ρ, a, g
+ * @return AtmosphericState containing T, P, ρ, a, g, μ
  */
 template <typename Scalar>
-AtmosphericState<Scalar> state(const Scalar &altitude) {
-    Scalar T = detail::temperature_table()(altitude);
+AtmosphericState<Scalar> state(Quantity<m, Scalar> altitude) {
+    auto h = altitude.value();
+    Scalar T = detail::temperature_table()(h);
     return AtmosphericState<Scalar>{
-        .temperature = T,
-        .pressure = detail::pressure_table()(altitude),
-        .density = detail::density_table()(altitude),
-        .speed_of_sound = detail::speed_of_sound_table()(altitude),
-        .gravity = detail::gravity_table()(altitude),
-        .dynamic_viscosity =
-            SUTHERLAND_BETA * janus::pow(T, 1.5) / (T + SUTHERLAND_S)};
+        .temperature = Quantity<K, Scalar>{T},
+        .pressure = Quantity<Pa, Scalar>{detail::pressure_table()(h)},
+        .density = Quantity<kg_per_m3, Scalar>{detail::density_table()(h)},
+        .speed_of_sound =
+            Quantity<mps, Scalar>{detail::speed_of_sound_table()(h)},
+        .gravity = Quantity<m_per_s2, Scalar>{detail::gravity_table()(h)},
+        .dynamic_viscosity = Quantity<Pa_s, Scalar>{
+            SUTHERLAND_BETA * janus::pow(T, 1.5) / (T + SUTHERLAND_S)}};
 }
 
 } // namespace vulcan::ussa1976

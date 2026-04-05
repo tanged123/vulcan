@@ -21,7 +21,7 @@ void run_3dof_numeric() {
     std::cout << "\n=== 3-DOF Point Mass (Numeric) ===\n";
 
     // Initial state (ECEF)
-    Vec3<double> r_ecef{constants::earth::R_eq + 400000.0, 0.0,
+    Vec3<double> r_ecef{constants::earth::R_eq.value() + 400000.0, 0.0,
                         0.0};              // 400km alt
     Vec3<double> v_ecef{0.0, 7670.0, 0.0}; // Orbital velocity
     double mass = 1000.0;
@@ -34,12 +34,12 @@ void run_3dof_numeric() {
     Vec3<double> f_ecef = thrust_body(0) * v_hat; // Thrust along velocity
 
     // Gravity
-    double mu = constants::earth::mu;
+    double mu = constants::earth::mu.value();
     Vec3<double> a_grav = -mu * r_ecef / std::pow(r_ecef.norm(), 3);
     Vec3<double> f_grav = mass * a_grav;
 
     // Environment
-    Vec3<double> omega_earth{0.0, 0.0, constants::earth::omega};
+    Vec3<double> omega_earth{0.0, 0.0, constants::earth::omega.value()};
 
     // Compute acceleration
     Vec3<double> accel = point_mass_acceleration_ecef(

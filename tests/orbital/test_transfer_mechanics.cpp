@@ -6,7 +6,7 @@ using namespace vulcan::orbital::transfer;
 
 // Test Hohmann transfer
 TEST(TransferMechanics, Hohmann_LEOtoGEO) {
-    double r_leo = vulcan::constants::earth::R_eq + 300.0e3;
+    double r_leo = vulcan::constants::earth::R_eq.value() + 300.0e3;
     double r_geo = 42164.0e3;
 
     auto [dv1, dv2] = hohmann_delta_v(r_leo, r_geo);
@@ -30,7 +30,7 @@ TEST(TransferMechanics, Hohmann_Symmetric) {
 
 // Test transfer time
 TEST(TransferMechanics, HohmannTime_LEOtoGEO) {
-    double r_leo = vulcan::constants::earth::R_eq + 300.0e3;
+    double r_leo = vulcan::constants::earth::R_eq.value() + 300.0e3;
     double r_geo = 42164.0e3;
 
     double t = hohmann_transfer_time(r_leo, r_geo);

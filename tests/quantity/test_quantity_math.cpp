@@ -15,7 +15,7 @@
 namespace vu = vulcan::units;
 using Sym = janus::SymbolicScalar;
 
-static constexpr double PI = vulcan::constants::angle::pi;
+static constexpr double PI = vulcan::constants::angle::pi.value();
 
 // ============================================================================
 // Tier 2 — Dimension-preserving (numeric)

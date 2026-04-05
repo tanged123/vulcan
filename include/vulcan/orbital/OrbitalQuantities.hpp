@@ -18,7 +18,7 @@ namespace vulcan::orbital::quantities {
  * @return Period [s]
  */
 template <typename Scalar>
-Scalar period(const Scalar &a, double mu = constants::earth::mu) {
+Scalar period(const Scalar &a, double mu = constants::earth::mu.value()) {
     return 2.0 * M_PI * janus::sqrt(a * a * a / mu);
 }
 
@@ -33,7 +33,7 @@ Scalar period(const Scalar &a, double mu = constants::earth::mu) {
  */
 template <typename Scalar>
 Scalar velocity(const Scalar &r, const Scalar &a,
-                double mu = constants::earth::mu) {
+                double mu = constants::earth::mu.value()) {
     return janus::sqrt(mu * (2.0 / r - 1.0 / a));
 }
 
@@ -46,7 +46,7 @@ Scalar velocity(const Scalar &r, const Scalar &a,
  * @return Specific energy [J/kg]
  */
 template <typename Scalar>
-Scalar energy(const Scalar &a, double mu = constants::earth::mu) {
+Scalar energy(const Scalar &a, double mu = constants::earth::mu.value()) {
     return -mu / (2.0 * a);
 }
 
@@ -59,7 +59,8 @@ Scalar energy(const Scalar &a, double mu = constants::earth::mu) {
  * @return Escape velocity [m/s]
  */
 template <typename Scalar>
-Scalar escape_velocity(const Scalar &r, double mu = constants::earth::mu) {
+Scalar escape_velocity(const Scalar &r,
+                       double mu = constants::earth::mu.value()) {
     return janus::sqrt(2.0 * mu / r);
 }
 
@@ -72,7 +73,8 @@ Scalar escape_velocity(const Scalar &r, double mu = constants::earth::mu) {
  * @return Circular velocity [m/s]
  */
 template <typename Scalar>
-Scalar circular_velocity(const Scalar &r, double mu = constants::earth::mu) {
+Scalar circular_velocity(const Scalar &r,
+                         double mu = constants::earth::mu.value()) {
     return janus::sqrt(mu / r);
 }
 
@@ -85,7 +87,7 @@ Scalar circular_velocity(const Scalar &r, double mu = constants::earth::mu) {
  * @return Mean motion [rad/s]
  */
 template <typename Scalar>
-Scalar mean_motion(const Scalar &a, double mu = constants::earth::mu) {
+Scalar mean_motion(const Scalar &a, double mu = constants::earth::mu.value()) {
     return janus::sqrt(mu / (a * a * a));
 }
 

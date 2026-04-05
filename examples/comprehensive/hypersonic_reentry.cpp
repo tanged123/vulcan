@@ -86,11 +86,11 @@ ReentryOutputs<Scalar> reentry_physics(const Scalar &altitude,
     Scalar q = aero::dynamic_pressure(rho, velocity);
     Scalar L = q * Scalar(vehicle.Sref) * Scalar(vehicle.CL);
     Scalar D = q * Scalar(vehicle.Sref) * Scalar(vehicle.CD);
-    Scalar W = Scalar(vehicle.mass) * Scalar(physics::g0);
+    Scalar W = Scalar(vehicle.mass) * Scalar(physics::g0.value());
 
     // 3. Gravity - spherical model with altitude correction
-    Scalar r = Scalar(earth::R_eq) + altitude;
-    Scalar g = Scalar(earth::mu) / (r * r);
+    Scalar r = Scalar(earth::R_eq.value()) + altitude;
+    Scalar g = Scalar(earth::mu.value()) / (r * r);
     Scalar weight = Scalar(vehicle.mass) * g;
 
     // 4. Dynamics using Vulcan 5DOF utilities
@@ -222,7 +222,7 @@ CrossRangeResult<Scalar> estimate_cross_range(const Scalar &bank_angle,
     }
 
     // Convert heading angle (radians) to distance (meters): d = R × θ
-    Scalar cross_range_m = cross_range * Scalar(earth::R_eq);
+    Scalar cross_range_m = cross_range * Scalar(earth::R_eq.value());
 
     return {cross_range_m, total_heating, max_load, max_heat_rate};
 }

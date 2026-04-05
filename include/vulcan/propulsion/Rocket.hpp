@@ -1,8 +1,11 @@
 #pragma once
 
 #include <janus/janus.hpp>
+#include <vulcan/quantity/Quantity.hpp>
 
 namespace vulcan::propulsion::rocket {
+
+using namespace vulcan::units;
 
 /**
  * @brief Calculates thrust from mass flow rate and effective exhaust velocity.
@@ -15,8 +18,9 @@ namespace vulcan::propulsion::rocket {
  * @return Thrust [N]
  */
 template <typename Scalar>
-Scalar thrust_from_mdot(const Scalar &mdot, const Scalar &Ve) {
-    return mdot * Ve;
+Quantity<N, Scalar> thrust_from_mdot(Quantity<kg_per_s, Scalar> mdot,
+                                     Quantity<mps, Scalar> Ve) {
+    return Quantity<N, Scalar>{mdot.value() * Ve.value()};
 }
 
 /**
@@ -30,8 +34,9 @@ Scalar thrust_from_mdot(const Scalar &mdot, const Scalar &Ve) {
  * @return Effective exhaust velocity [m/s]
  */
 template <typename Scalar>
-Scalar exhaust_velocity(const Scalar &Isp, double g0 = 9.80665) {
-    return Isp * g0;
+Quantity<mps, Scalar> exhaust_velocity(Quantity<s, Scalar> Isp,
+                                       double g0 = 9.80665) {
+    return Quantity<mps, Scalar>{Isp.value() * g0};
 }
 
 /**
@@ -46,9 +51,10 @@ Scalar exhaust_velocity(const Scalar &Isp, double g0 = 9.80665) {
  * @return Specific impulse [s]
  */
 template <typename Scalar>
-Scalar specific_impulse(const Scalar &thrust, const Scalar &mdot,
-                        double g0 = 9.80665) {
-    return thrust / (mdot * g0);
+Quantity<s, Scalar> specific_impulse(Quantity<N, Scalar> thrust,
+                                     Quantity<kg_per_s, Scalar> mdot,
+                                     double g0 = 9.80665) {
+    return Quantity<s, Scalar>{thrust.value() / (mdot.value() * g0)};
 }
 
 /**
@@ -63,8 +69,10 @@ Scalar specific_impulse(const Scalar &thrust, const Scalar &mdot,
  * @return Delta-V [m/s]
  */
 template <typename Scalar>
-Scalar delta_v(const Scalar &Ve, const Scalar &m0, const Scalar &mf) {
-    return Ve * janus::log(m0 / mf);
+Quantity<mps, Scalar> delta_v(Quantity<mps, Scalar> Ve, Quantity<kg, Scalar> m0,
+                              Quantity<kg, Scalar> mf) {
+    return Quantity<mps, Scalar>{Ve.value() *
+                                 janus::log(m0.value() / mf.value())};
 }
 
 /**
@@ -79,9 +87,11 @@ Scalar delta_v(const Scalar &Ve, const Scalar &m0, const Scalar &mf) {
  * @return Propellant mass required [kg]
  */
 template <typename Scalar>
-Scalar propellant_mass(const Scalar &delta_v, const Scalar &m0,
-                       const Scalar &Ve) {
-    return m0 * (1.0 - janus::exp(-delta_v / Ve));
+Quantity<kg, Scalar> propellant_mass(Quantity<mps, Scalar> delta_v,
+                                     Quantity<kg, Scalar> m0,
+                                     Quantity<mps, Scalar> Ve) {
+    return Quantity<kg, Scalar>{
+        m0.value() * (1.0 - janus::exp(-delta_v.value() / Ve.value()))};
 }
 
 /**
@@ -95,8 +105,9 @@ Scalar propellant_mass(const Scalar &delta_v, const Scalar &m0,
  * @return Mass flow rate [kg/s]
  */
 template <typename Scalar>
-Scalar mass_flow_rate(const Scalar &thrust, const Scalar &Ve) {
-    return thrust / Ve;
+Quantity<kg_per_s, Scalar> mass_flow_rate(Quantity<N, Scalar> thrust,
+                                          Quantity<mps, Scalar> Ve) {
+    return Quantity<kg_per_s, Scalar>{thrust.value() / Ve.value()};
 }
 
 /**
@@ -110,8 +121,9 @@ Scalar mass_flow_rate(const Scalar &thrust, const Scalar &Ve) {
  * @return Burn time [s]
  */
 template <typename Scalar>
-Scalar burn_time(const Scalar &propellant_mass, const Scalar &mdot) {
-    return propellant_mass / mdot;
+Quantity<s, Scalar> burn_time(Quantity<kg, Scalar> propellant_mass,
+                              Quantity<kg_per_s, Scalar> mdot) {
+    return Quantity<s, Scalar>{propellant_mass.value() / mdot.value()};
 }
 
 } // namespace vulcan::propulsion::rocket

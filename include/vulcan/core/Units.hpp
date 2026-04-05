@@ -24,7 +24,7 @@ template <typename Scalar> constexpr Scalar rad_to_deg(const Scalar &rad) {
 
 /// Wrap angle to [0, 2π)
 template <typename Scalar> constexpr Scalar wrap_to_2pi(const Scalar &angle) {
-    const double two_pi = 2.0 * constants::angle::pi;
+    const double two_pi = 2.0 * constants::angle::pi.value();
     Scalar wrapped = janus::fmod(angle, Scalar(two_pi));
     return janus::where(wrapped < 0.0, wrapped + two_pi, wrapped);
 }
@@ -36,7 +36,8 @@ template <typename Scalar> constexpr Scalar wrap_to_pi(const Scalar &angle) {
     // angle - 2pi * floor((angle + pi) / 2pi)
     // janus doesn't guarantee floor?
     // let's use the 2pi wrap shifting.
-    return wrap_to_2pi(angle + constants::angle::pi) - constants::angle::pi;
+    return wrap_to_2pi(angle + constants::angle::pi.value()) -
+           constants::angle::pi.value();
 }
 
 /// Wrap angle to [-180, 180) degrees

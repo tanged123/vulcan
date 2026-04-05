@@ -26,7 +26,7 @@ namespace vulcan::orbital::elements {
 template <typename Scalar>
 OrbitalElements<Scalar>
 cartesian_to_keplerian(const Vec3<Scalar> &r, const Vec3<Scalar> &v,
-                       double mu = constants::earth::mu) {
+                       double mu = constants::earth::mu.value()) {
     OrbitalElements<Scalar> oe;
 
     const Scalar r_mag = janus::norm(r);
@@ -96,7 +96,7 @@ cartesian_to_keplerian(const Vec3<Scalar> &r, const Vec3<Scalar> &v,
 template <typename Scalar>
 std::pair<Vec3<Scalar>, Vec3<Scalar>>
 keplerian_to_cartesian(const OrbitalElements<Scalar> &oe,
-                       double mu = constants::earth::mu) {
+                       double mu = constants::earth::mu.value()) {
 
     // Semi-latus rectum
     const Scalar p = oe.a * (1.0 - oe.e * oe.e);

@@ -9,32 +9,34 @@ using namespace vulcan::units;
 using namespace vulcan::constants;
 
 TEST(UnitsTest, AngleConversions) {
-    EXPECT_NEAR(deg_to_rad(180.0), angle::pi, 1e-15);
-    EXPECT_NEAR(rad_to_deg(angle::pi), 180.0, 1e-13);
-    EXPECT_NEAR(deg_to_rad(45.0), angle::pi / 4.0, 1e-15);
+    EXPECT_NEAR(deg_to_rad(180.0), angle::pi.value(), 1e-15);
+    EXPECT_NEAR(rad_to_deg(angle::pi.value()), 180.0, 1e-13);
+    EXPECT_NEAR(deg_to_rad(45.0), angle::pi.value() / 4.0, 1e-15);
 }
 
 TEST(UnitsTest, AngleWrapping) {
     // wrap_to_2pi
     EXPECT_NEAR(wrap_to_2pi(0.0), 0.0, 1e-15);
-    EXPECT_NEAR(wrap_to_2pi(angle::pi), angle::pi, 1e-15);
-    EXPECT_NEAR(wrap_to_2pi(2.0 * angle::pi), 0.0, 1e-15);
-    EXPECT_NEAR(wrap_to_2pi(2.0 * angle::pi + 0.1), 0.1, 1e-15);
-    EXPECT_NEAR(wrap_to_2pi(-0.1), 2.0 * angle::pi - 0.1, 1e-15);
-    EXPECT_NEAR(wrap_to_2pi(-2.0 * angle::pi), 0.0, 1e-15);
+    EXPECT_NEAR(wrap_to_2pi(angle::pi.value()), angle::pi.value(), 1e-15);
+    EXPECT_NEAR(wrap_to_2pi(2.0 * angle::pi.value()), 0.0, 1e-15);
+    EXPECT_NEAR(wrap_to_2pi(2.0 * angle::pi.value() + 0.1), 0.1, 1e-15);
+    EXPECT_NEAR(wrap_to_2pi(-0.1), 2.0 * angle::pi.value() - 0.1, 1e-15);
+    EXPECT_NEAR(wrap_to_2pi(-2.0 * angle::pi.value()), 0.0, 1e-15);
 
     // wrap_to_pi
     EXPECT_NEAR(wrap_to_pi(0.0), 0.0, 1e-15);
     EXPECT_NEAR(wrap_to_pi(0.1), 0.1, 1e-15);
-    EXPECT_NEAR(wrap_to_pi(angle::pi - 0.1), angle::pi - 0.1, 1e-15);
+    EXPECT_NEAR(wrap_to_pi(angle::pi.value() - 0.1), angle::pi.value() - 0.1,
+                1e-15);
     // Boundary behavior depends on implementation, usually [-pi, pi) or similar
     // implementation: wrap_to_2pi(x + pi) - pi
     // wrap_to_2pi(pi + pi) = wrap_to_2pi(2pi) = 0. -> -pi.
     // So usually returns -pi for pi.
-    EXPECT_NEAR(wrap_to_pi(angle::pi), -angle::pi, 1e-15);
-    EXPECT_NEAR(wrap_to_pi(-angle::pi), -angle::pi, 1e-15);
-    EXPECT_NEAR(wrap_to_pi(angle::pi + 0.1), -angle::pi + 0.1, 1e-15);
-    EXPECT_NEAR(wrap_to_pi(3.0 * angle::pi), -angle::pi, 1e-15);
+    EXPECT_NEAR(wrap_to_pi(angle::pi.value()), -angle::pi.value(), 1e-15);
+    EXPECT_NEAR(wrap_to_pi(-angle::pi.value()), -angle::pi.value(), 1e-15);
+    EXPECT_NEAR(wrap_to_pi(angle::pi.value() + 0.1), -angle::pi.value() + 0.1,
+                1e-15);
+    EXPECT_NEAR(wrap_to_pi(3.0 * angle::pi.value()), -angle::pi.value(), 1e-15);
 
     // wrap_to_180
     EXPECT_NEAR(wrap_to_180(0.0), 0.0, 1e-15);

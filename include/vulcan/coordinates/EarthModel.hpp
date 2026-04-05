@@ -43,19 +43,19 @@ struct EarthModel {
 
     /// WGS84 reference ellipsoid (most common for GPS/navigation)
     static constexpr EarthModel WGS84() {
-        return EarthModel(constants::wgs84::a,     // 6378137.0 m
-                          constants::wgs84::f,     // 1/298.257223563
-                          constants::wgs84::omega, // 7.292115e-5 rad/s
-                          constants::wgs84::mu     // 3.986004418e14 m³/s²
+        return EarthModel(constants::wgs84::a.value(),     // 6378137.0 m
+                          constants::wgs84::f.value(),     // 1/298.257223563
+                          constants::wgs84::omega.value(), // 7.292115e-5 rad/s
+                          constants::wgs84::mu.value() // 3.986004418e14 m³/s²
         );
     }
 
     /// Spherical Earth (for simplified calculations)
     static constexpr EarthModel Spherical() {
-        return EarthModel(constants::earth::R_mean, // 6371008.8 m
+        return EarthModel(constants::earth::R_mean.value(), // 6371008.8 m
                           0.0, // No flattening (perfect sphere)
-                          constants::earth::omega, // 7.292115e-5 rad/s
-                          constants::earth::mu     // 3.986004418e14 m³/s²
+                          constants::earth::omega.value(), // 7.292115e-5 rad/s
+                          constants::earth::mu.value() // 3.986004418e14 m³/s²
         );
     }
 };
@@ -116,7 +116,7 @@ struct ConstantOmegaRotation : EarthRotationModel {
 
     /// Create rotation model using WGS84 angular velocity
     static constexpr ConstantOmegaRotation from_wgs84(double theta0 = 0.0) {
-        return ConstantOmegaRotation(constants::wgs84::omega, theta0);
+        return ConstantOmegaRotation(constants::wgs84::omega.value(), theta0);
     }
 
     /// Create rotation model using specified Earth model
@@ -155,8 +155,9 @@ struct GMSTRotation : EarthRotationModel {
 
         // Convert seconds of time to radians
         // 1 second of time = 15 arcsec = 15/3600 deg = π/(43200) rad
-        constexpr double sec_to_rad = constants::angle::pi / 43200.0;
-        return std::fmod(gmst_sec * sec_to_rad, 2.0 * constants::angle::pi);
+        constexpr double sec_to_rad = constants::angle::pi.value() / 43200.0;
+        return std::fmod(gmst_sec * sec_to_rad,
+                         2.0 * constants::angle::pi.value());
     }
 };
 

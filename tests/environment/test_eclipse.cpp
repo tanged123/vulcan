@@ -68,7 +68,7 @@ TEST(Eclipse, GEOShadow) {
     // GEO satellite in shadow
     double GEO_alt = 35786e3; // GEO altitude
     Vec3<double> r_sat;
-    r_sat << -(constants::earth::R_eq + GEO_alt), 0.0, 0.0;
+    r_sat << -(constants::earth::R_eq.value() + GEO_alt), 0.0, 0.0;
 
     Vec3<double> r_sun;
     r_sun << 1.5e11, 0.0, 0.0;

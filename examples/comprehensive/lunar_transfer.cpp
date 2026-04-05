@@ -35,8 +35,10 @@ using namespace vulcan::orbital;
 // =============================================================================
 
 struct LunarMissionParams {
-    double r_parking = earth::R_eq + 400.0e3;      // 400 km parking orbit [m]
-    double r_lunar_orbit = 100.0e3 + moon::radius; // 100 km lunar orbit [m]
+    double r_parking =
+        earth::R_eq.value() + 400.0e3; // 400 km parking orbit [m]
+    double r_lunar_orbit =
+        100.0e3 + moon::radius.value();   // 100 km lunar orbit [m]
     double departure_jd_base = 2460000.0; // Base Julian date for search
 };
 
@@ -76,8 +78,8 @@ compute_lunar_transfer(const Scalar &departure_jd, const Scalar &tof_days,
 
     // 2. Moon phase geometry using Vulcan's mean motion calculation
     // Moon's mean motion: n = sqrt(mu/a³) ≈ 2.66e-6 rad/s
-    Scalar moon_a = Scalar(moon::mean_distance); // Semi-major axis
-    Scalar moon_n = quantities::mean_motion(moon_a, earth::mu);
+    Scalar moon_a = Scalar(moon::mean_distance.value()); // Semi-major axis
+    Scalar moon_n = quantities::mean_motion(moon_a, earth::mu.value());
 
     // Phase angle at departure and arrival (simplified circular orbit)
     Scalar days_dep = departure_jd - Scalar(2451545.0); // Days from J2000
@@ -95,10 +97,11 @@ compute_lunar_transfer(const Scalar &departure_jd, const Scalar &tof_days,
 
     // 4. TLI delta-V using Vulcan's Hohmann utilities
     Scalar r_park = Scalar(params.r_parking);
-    Scalar r_moon = Scalar(moon::mean_distance);
+    Scalar r_moon = Scalar(moon::mean_distance.value());
 
     // Use Vulcan's transfer mechanics (avoid structured binding for CasADi)
-    auto hohmann_dvs = transfer::hohmann_delta_v(r_park, r_moon, earth::mu);
+    auto hohmann_dvs =
+        transfer::hohmann_delta_v(r_park, r_moon, earth::mu.value());
     Scalar dv_tli_base = hohmann_dvs.first; // First burn (TLI)
 
     // Phase correction penalty: non-optimal timing requires extra delta-V
@@ -111,8 +114,9 @@ compute_lunar_transfer(const Scalar &departure_jd, const Scalar &tof_days,
     // 5. V_infinity at Moon (approach velocity)
     // Using vis-viva for velocity at Moon's distance
     Scalar a_transfer = (r_park + r_moon) / Scalar(2.0);
-    Scalar v_arrival = quantities::velocity(r_moon, a_transfer, earth::mu);
-    Scalar v_moon = quantities::circular_velocity(r_moon, earth::mu);
+    Scalar v_arrival =
+        quantities::velocity(r_moon, a_transfer, earth::mu.value());
+    Scalar v_moon = quantities::circular_velocity(r_moon, earth::mu.value());
 
     // Relative velocity depends on approach geometry
     Scalar geometry_factor =
@@ -121,9 +125,10 @@ compute_lunar_transfer(const Scalar &departure_jd, const Scalar &tof_days,
 
     // 6. LOI delta-V (capture into lunar orbit)
     Scalar r_lunar_orbit = Scalar(params.r_lunar_orbit);
-    Scalar v_hyp =
-        janus::sqrt(v_inf * v_inf + Scalar(2.0 * moon::mu) / r_lunar_orbit);
-    Scalar v_circ_moon = quantities::circular_velocity(r_lunar_orbit, moon::mu);
+    Scalar v_hyp = janus::sqrt(v_inf * v_inf +
+                               Scalar(2.0 * moon::mu.value()) / r_lunar_orbit);
+    Scalar v_circ_moon =
+        quantities::circular_velocity(r_lunar_orbit, moon::mu.value());
     Scalar dv_loi = v_hyp - v_circ_moon;
 
     // 7. Total delta-V
@@ -159,7 +164,8 @@ Scalar compute_c3(const Scalar &departure_jd, const Scalar &tof_days,
     Scalar v_tli_total = v_parking + result.dv_tli;
 
     // v_inf² = v² - v_escape²
-    Scalar v_escape = janus::sqrt(Scalar(2.0) * earth::mu / params.r_parking);
+    Scalar v_escape =
+        janus::sqrt(Scalar(2.0) * earth::mu.value() / params.r_parking);
     Scalar c3 = v_tli_total * v_tli_total - v_escape * v_escape;
 
     return c3;
@@ -181,11 +187,12 @@ int main() {
 
     std::cout << "Mission Configuration:\n";
     std::cout << "  Parking orbit:  "
-              << (params.r_parking - earth::R_eq) / 1000.0 << " km altitude\n";
-    std::cout << "  Lunar orbit:    "
-              << (params.r_lunar_orbit - moon::radius) / 1000.0
+              << (params.r_parking - earth::R_eq.value()) / 1000.0
               << " km altitude\n";
-    std::cout << "  Moon distance:  " << moon::mean_distance / 1000.0
+    std::cout << "  Lunar orbit:    "
+              << (params.r_lunar_orbit - moon::radius.value()) / 1000.0
+              << " km altitude\n";
+    std::cout << "  Moon distance:  " << moon::mean_distance.value() / 1000.0
               << " km\n\n";
 
     // =========================================================================

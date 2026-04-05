@@ -41,7 +41,7 @@ TEST(Geodetic, LLA_to_ECEF_Equator) {
     auto r = vulcan::lla_to_ecef(lla);
 
     // Should be at X = semi-major axis, Y = 0, Z = 0
-    const double a = vulcan::constants::wgs84::a;
+    const double a = vulcan::constants::wgs84::a.value();
     EXPECT_NEAR(r(0), a, 0.001);
     EXPECT_NEAR(r(1), 0.0, 0.001);
     EXPECT_NEAR(r(2), 0.0, 0.001);
@@ -49,11 +49,12 @@ TEST(Geodetic, LLA_to_ECEF_Equator) {
 
 TEST(Geodetic, LLA_to_ECEF_NorthPole) {
     // North Pole at sea level
-    vulcan::LLA<double> lla(0.0, vulcan::constants::angle::pi / 2.0, 0.0);
+    vulcan::LLA<double> lla(0.0, vulcan::constants::angle::pi.value() / 2.0,
+                            0.0);
     auto r = vulcan::lla_to_ecef(lla);
 
     // Should be at X = 0, Y = 0, Z = semi-minor axis
-    const double b = vulcan::constants::wgs84::b;
+    const double b = vulcan::constants::wgs84::b.value();
     EXPECT_NEAR(r(0), 0.0, 0.001);
     EXPECT_NEAR(r(1), 0.0, 0.001);
     EXPECT_NEAR(r(2), b, 0.001);
@@ -61,11 +62,12 @@ TEST(Geodetic, LLA_to_ECEF_NorthPole) {
 
 TEST(Geodetic, LLA_to_ECEF_SouthPole) {
     // South Pole at sea level
-    vulcan::LLA<double> lla(0.0, -vulcan::constants::angle::pi / 2.0, 0.0);
+    vulcan::LLA<double> lla(0.0, -vulcan::constants::angle::pi.value() / 2.0,
+                            0.0);
     auto r = vulcan::lla_to_ecef(lla);
 
     // Should be at X = 0, Y = 0, Z = -semi-minor axis
-    const double b = vulcan::constants::wgs84::b;
+    const double b = vulcan::constants::wgs84::b.value();
     EXPECT_NEAR(r(0), 0.0, 0.001);
     EXPECT_NEAR(r(1), 0.0, 0.001);
     EXPECT_NEAR(r(2), -b, 0.001);
@@ -73,11 +75,12 @@ TEST(Geodetic, LLA_to_ECEF_SouthPole) {
 
 TEST(Geodetic, LLA_to_ECEF_90East) {
     // Equator at 90 degrees East, sea level
-    vulcan::LLA<double> lla(vulcan::constants::angle::pi / 2.0, 0.0, 0.0);
+    vulcan::LLA<double> lla(vulcan::constants::angle::pi.value() / 2.0, 0.0,
+                            0.0);
     auto r = vulcan::lla_to_ecef(lla);
 
     // Should be at X = 0, Y = semi-major axis, Z = 0
-    const double a = vulcan::constants::wgs84::a;
+    const double a = vulcan::constants::wgs84::a.value();
     EXPECT_NEAR(r(0), 0.0, 0.001);
     EXPECT_NEAR(r(1), a, 0.001);
     EXPECT_NEAR(r(2), 0.0, 0.001);
@@ -90,7 +93,7 @@ TEST(Geodetic, LLA_to_ECEF_WithAltitude) {
     auto r = vulcan::lla_to_ecef(lla);
 
     // Should be at X = a + alt, Y = 0, Z = 0
-    const double a = vulcan::constants::wgs84::a;
+    const double a = vulcan::constants::wgs84::a.value();
     EXPECT_NEAR(r(0), a + alt, 0.001);
     EXPECT_NEAR(r(1), 0.0, 0.001);
     EXPECT_NEAR(r(2), 0.0, 0.001);
@@ -101,7 +104,7 @@ TEST(Geodetic, LLA_to_ECEF_WithAltitude) {
 // ============================================
 TEST(Geodetic, ECEF_to_LLA_Equator) {
     // ECEF on equator at prime meridian
-    const double a = vulcan::constants::wgs84::a;
+    const double a = vulcan::constants::wgs84::a.value();
     vulcan::Vec3<double> r;
     r << a, 0.0, 0.0;
 
@@ -114,13 +117,13 @@ TEST(Geodetic, ECEF_to_LLA_Equator) {
 
 TEST(Geodetic, ECEF_to_LLA_NorthPole) {
     // ECEF at North Pole
-    const double b = vulcan::constants::wgs84::b;
+    const double b = vulcan::constants::wgs84::b.value();
     vulcan::Vec3<double> r;
     r << 0.0, 0.0, b;
 
     auto lla = vulcan::ecef_to_lla(r);
 
-    EXPECT_NEAR(lla.lat, vulcan::constants::angle::pi / 2.0, 1e-10);
+    EXPECT_NEAR(lla.lat, vulcan::constants::angle::pi.value() / 2.0, 1e-10);
     EXPECT_NEAR(lla.alt, 0.0, 0.001);
     // Longitude is undefined at poles, but we set it to 0
     EXPECT_NEAR(lla.lon, 0.0, 1e-10);
@@ -128,25 +131,25 @@ TEST(Geodetic, ECEF_to_LLA_NorthPole) {
 
 TEST(Geodetic, ECEF_to_LLA_SouthPole) {
     // ECEF at South Pole
-    const double b = vulcan::constants::wgs84::b;
+    const double b = vulcan::constants::wgs84::b.value();
     vulcan::Vec3<double> r;
     r << 0.0, 0.0, -b;
 
     auto lla = vulcan::ecef_to_lla(r);
 
-    EXPECT_NEAR(lla.lat, -vulcan::constants::angle::pi / 2.0, 1e-10);
+    EXPECT_NEAR(lla.lat, -vulcan::constants::angle::pi.value() / 2.0, 1e-10);
     EXPECT_NEAR(lla.alt, 0.0, 0.001);
 }
 
 TEST(Geodetic, ECEF_to_LLA_90East) {
     // ECEF on equator at 90°E
-    const double a = vulcan::constants::wgs84::a;
+    const double a = vulcan::constants::wgs84::a.value();
     vulcan::Vec3<double> r;
     r << 0.0, a, 0.0;
 
     auto lla = vulcan::ecef_to_lla(r);
 
-    EXPECT_NEAR(lla.lon, vulcan::constants::angle::pi / 2.0, 1e-10);
+    EXPECT_NEAR(lla.lon, vulcan::constants::angle::pi.value() / 2.0, 1e-10);
     EXPECT_NEAR(lla.lat, 0.0, 1e-10);
     EXPECT_NEAR(lla.alt, 0.0, 0.001);
 }
@@ -161,7 +164,7 @@ TEST(Geodetic, ECEF_to_LLA_Geostationary) {
 
     EXPECT_NEAR(lla.lon, 0.0, 1e-10);
     EXPECT_NEAR(lla.lat, 0.0, 1e-10);
-    EXPECT_NEAR(lla.alt, r_geo - vulcan::constants::wgs84::a, 100.0);
+    EXPECT_NEAR(lla.alt, r_geo - vulcan::constants::wgs84::a.value(), 100.0);
 }
 
 // ============================================
@@ -262,7 +265,7 @@ TEST(Geodetic, GeocentricToGeodetic_Equator) {
 
 TEST(Geodetic, GeocentricToGeodetic_Pole) {
     // At poles, geodetic ≈ geocentric (singularity)
-    double lat_gc = vulcan::constants::angle::pi / 2.0;
+    double lat_gc = vulcan::constants::angle::pi.value() / 2.0;
     double lat_gd = vulcan::geocentric_to_geodetic_lat(lat_gc);
     EXPECT_NEAR(lat_gd, lat_gc, 1e-10);
 }
@@ -290,23 +293,24 @@ TEST(Geodetic, LatitudeConversion_Roundtrip) {
 TEST(Geodetic, RadiusN_Equator) {
     // At equator, N = a
     double N = vulcan::radius_of_curvature_N(0.0);
-    EXPECT_NEAR(N, vulcan::constants::wgs84::a, 0.001);
+    EXPECT_NEAR(N, vulcan::constants::wgs84::a.value(), 0.001);
 }
 
 TEST(Geodetic, RadiusN_Pole) {
     // At poles, N = a / sqrt(1 - e²) = a² / b
-    double N =
-        vulcan::radius_of_curvature_N(vulcan::constants::angle::pi / 2.0);
-    double expected = vulcan::constants::wgs84::a *
-                      vulcan::constants::wgs84::a / vulcan::constants::wgs84::b;
+    double N = vulcan::radius_of_curvature_N(
+        vulcan::constants::angle::pi.value() / 2.0);
+    double expected = vulcan::constants::wgs84::a.value() *
+                      vulcan::constants::wgs84::a.value() /
+                      vulcan::constants::wgs84::b.value();
     EXPECT_NEAR(N, expected, 0.001);
 }
 
 TEST(Geodetic, RadiusM_Equator) {
     // At equator, M = a(1-e²)
     double M = vulcan::radius_of_curvature_M(0.0);
-    double expected =
-        vulcan::constants::wgs84::a * (1.0 - vulcan::constants::wgs84::e2);
+    double expected = vulcan::constants::wgs84::a.value() *
+                      (1.0 - vulcan::constants::wgs84::e2.value());
     EXPECT_NEAR(M, expected, 0.001);
 }
 
@@ -336,7 +340,7 @@ TEST(Geodetic, Symbolic_LLA_to_ECEF) {
     // Test with equator values
     auto result = f({0.0, 0.0, 0.0});
 
-    const double a = vulcan::constants::wgs84::a;
+    const double a = vulcan::constants::wgs84::a.value();
     EXPECT_NEAR(result[0](0, 0), a, 0.001);
     EXPECT_NEAR(result[1](0, 0), 0.0, 0.001);
     EXPECT_NEAR(result[2](0, 0), 0.0, 0.001);
@@ -364,7 +368,7 @@ TEST(Geodetic, Symbolic_ECEF_to_LLA) {
     janus::Function f("ecef_to_lla", {x, y, z}, {lla.lon, lla.lat, lla.alt});
 
     // Test with equator values
-    const double a = vulcan::constants::wgs84::a;
+    const double a = vulcan::constants::wgs84::a.value();
     auto result = f({a, 0.0, 0.0});
 
     EXPECT_NEAR(result[0](0, 0), 0.0, 1e-10); // lon

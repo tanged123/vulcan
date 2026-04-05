@@ -25,8 +25,9 @@ namespace vulcan::orbital::transfer {
  * @return Pair of (dv1, dv2) at periapsis and apoapsis [m/s]
  */
 template <typename Scalar>
-std::pair<Scalar, Scalar> hohmann_delta_v(const Scalar &r1, const Scalar &r2,
-                                          double mu = constants::earth::mu) {
+std::pair<Scalar, Scalar>
+hohmann_delta_v(const Scalar &r1, const Scalar &r2,
+                double mu = constants::earth::mu.value()) {
     // Transfer orbit semi-major axis
     const Scalar a_t = (r1 + r2) / 2.0;
 
@@ -54,7 +55,7 @@ std::pair<Scalar, Scalar> hohmann_delta_v(const Scalar &r1, const Scalar &r2,
  */
 template <typename Scalar>
 Scalar hohmann_total_delta_v(const Scalar &r1, const Scalar &r2,
-                             double mu = constants::earth::mu) {
+                             double mu = constants::earth::mu.value()) {
     auto [dv1, dv2] = hohmann_delta_v(r1, r2, mu);
     return dv1 + dv2;
 }
@@ -70,7 +71,7 @@ Scalar hohmann_total_delta_v(const Scalar &r1, const Scalar &r2,
  */
 template <typename Scalar>
 Scalar hohmann_transfer_time(const Scalar &r1, const Scalar &r2,
-                             double mu = constants::earth::mu) {
+                             double mu = constants::earth::mu.value()) {
     const Scalar a_t = (r1 + r2) / 2.0;
     return M_PI * janus::sqrt(a_t * a_t * a_t / mu);
 }
@@ -91,7 +92,7 @@ Scalar hohmann_transfer_time(const Scalar &r1, const Scalar &r2,
 template <typename Scalar>
 std::tuple<Scalar, Scalar, Scalar>
 bielliptic_delta_v(const Scalar &r1, const Scalar &r2, const Scalar &r_b,
-                   double mu = constants::earth::mu) {
+                   double mu = constants::earth::mu.value()) {
     // First transfer orbit: r1 to r_b
     const Scalar a1 = (r1 + r_b) / 2.0;
     // Second transfer orbit: r_b to r2

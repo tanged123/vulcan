@@ -3,44 +3,46 @@
 #include <vulcan/propulsion/Electric.hpp>
 
 using namespace vulcan::propulsion::electric;
+using namespace vulcan::units;
+using vulcan::Quantity;
 
 TEST(ElectricPropulsionTest, ThrustFromPower) {
-    double P = 2000.0;   // 2 kW
-    double Ve = 30000.0; // 30 km/s
-    double eff = 0.7;
+    Quantity<W, double> P{2000.0};     // 2 kW
+    Quantity<mps, double> Ve{30000.0}; // 30 km/s
+    Quantity<dimensionless, double> eff{0.7};
 
     // F = 2 * 0.7 * 2000 / 30000 = 2800 / 30000 = 0.09333... N
-    double expected = 2.0 * eff * P / Ve;
-    EXPECT_NEAR(thrust_from_power(P, Ve, eff), expected, 1e-6);
+    double expected = 2.0 * 0.7 * 2000.0 / 30000.0;
+    EXPECT_NEAR(thrust_from_power(P, Ve, eff).value(), expected, 1e-6);
 }
 
 TEST(ElectricPropulsionTest, MassFlowFromPower) {
-    double P = 2000.0;
-    double Ve = 30000.0;
-    double eff = 0.7;
+    Quantity<W, double> P{2000.0};
+    Quantity<mps, double> Ve{30000.0};
+    Quantity<dimensionless, double> eff{0.7};
 
     // mdot = 2 * 0.7 * 2000 / 30000^2
-    double expected = (2.0 * eff * P) / (Ve * Ve);
-    EXPECT_NEAR(mass_flow_from_power(P, Ve, eff), expected, 1e-9);
+    double expected = (2.0 * 0.7 * 2000.0) / (30000.0 * 30000.0);
+    EXPECT_NEAR(mass_flow_from_power(P, Ve, eff).value(), expected, 1e-9);
 }
 
 TEST(ElectricPropulsionTest, CharacteristicVelocity) {
-    double P = 2000.0;
-    double eff = 0.7;
-    double Ve = 30000.0;
+    Quantity<W, double> P{2000.0};
+    Quantity<dimensionless, double> eff{0.7};
+    Quantity<mps, double> Ve{30000.0};
     // Calculate mdot consistent with Ve
-    double mdot = mass_flow_from_power(P, Ve, eff);
+    auto mdot = mass_flow_from_power(P, Ve, eff);
 
     // c* should recover Ve
-    EXPECT_NEAR(characteristic_velocity(P, eff, mdot), Ve, 1e-6);
+    EXPECT_NEAR(characteristic_velocity(P, eff, mdot).value(), 30000.0, 1e-6);
 }
 
 TEST(ElectricPropulsionTest, SymbolicInstantiation) {
-    casadi::MX P = casadi::MX::sym("P");
-    casadi::MX Ve = casadi::MX::sym("Ve");
-    casadi::MX eff = casadi::MX::sym("eff");
+    Quantity<W, casadi::MX> P{casadi::MX::sym("P")};
+    Quantity<mps, casadi::MX> Ve{casadi::MX::sym("Ve")};
+    Quantity<dimensionless, casadi::MX> eff{casadi::MX::sym("eff")};
 
-    casadi::MX F = thrust_from_power(P, Ve, eff);
-    EXPECT_FALSE(F.is_constant());
-    EXPECT_EQ(F.size1(), 1);
+    auto F = thrust_from_power(P, Ve, eff);
+    EXPECT_FALSE(F.value().is_constant());
+    EXPECT_EQ(F.value().size1(), 1);
 }

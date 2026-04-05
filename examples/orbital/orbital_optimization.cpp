@@ -124,7 +124,7 @@ int main() {
 
     // For simplicity: minimize deviation from mean lunar distance at intercept
     auto moon_dist = janus::norm(r_moon);
-    auto dist_error = (moon_dist - constants::moon::mean_distance);
+    auto dist_error = (moon_dist - constants::moon::mean_distance.value());
 
     // Also consider Moon phase for lighting (simplified: x-component favorable)
     // Want Moon ahead of Earth in orbit for favorable approach geometry
@@ -164,8 +164,10 @@ int main() {
     // Two satellites in circular coplanar orbits at different altitudes.
     // Optimize the phase angle for a Hohmann rendezvous.
 
-    double r_chaser = constants::earth::R_eq + 400.0e3; // Chaser at 400 km
-    double r_target = constants::earth::R_eq + 450.0e3; // Target at 450 km
+    double r_chaser =
+        constants::earth::R_eq.value() + 400.0e3; // Chaser at 400 km
+    double r_target =
+        constants::earth::R_eq.value() + 450.0e3; // Target at 450 km
 
     std::cout << "Chaser altitude:  400 km\n";
     std::cout << "Target altitude:  450 km\n\n";

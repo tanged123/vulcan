@@ -1,8 +1,11 @@
 #pragma once
 
 #include <janus/janus.hpp>
+#include <vulcan/quantity/Quantity.hpp>
 
 namespace vulcan::propulsion {
+
+using namespace vulcan::units;
 
 /**
  * @brief Calculates thrust adjusted for ambient pressure (altitude).
@@ -25,12 +28,11 @@ namespace vulcan::propulsion {
  * @return Altitude-compensated thrust [N]
  */
 template <typename Scalar>
-Scalar altitude_thrust(const Scalar &F_vac, const Scalar &P_atm, double P_exit,
-                       double A_exit) {
-    // Suppress unused parameter warning for P_exit if needed,
-    // or we could use it if we were given F_mom instead of F_vac.
+Quantity<N, Scalar> altitude_thrust(Quantity<N, Scalar> F_vac,
+                                    Quantity<Pa, Scalar> P_atm, double P_exit,
+                                    double A_exit) {
     (void)P_exit;
-    return F_vac - P_atm * A_exit;
+    return Quantity<N, Scalar>{F_vac.value() - P_atm.value() * A_exit};
 }
 
 /**
@@ -45,9 +47,11 @@ Scalar altitude_thrust(const Scalar &F_vac, const Scalar &P_atm, double P_exit,
  * @return Thrust coefficient [dimensionless]
  */
 template <typename Scalar>
-Scalar thrust_coefficient(const Scalar &thrust, const Scalar &P_chamber,
-                          double A_throat) {
-    return thrust / (P_chamber * A_throat);
+Quantity<dimensionless, Scalar>
+thrust_coefficient(Quantity<N, Scalar> thrust, Quantity<Pa, Scalar> P_chamber,
+                   double A_throat) {
+    return Quantity<dimensionless, Scalar>{thrust.value() /
+                                           (P_chamber.value() * A_throat)};
 }
 
 } // namespace vulcan::propulsion

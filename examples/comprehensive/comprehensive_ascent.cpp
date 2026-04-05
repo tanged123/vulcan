@@ -96,7 +96,8 @@ ascent_physics(const Scalar &altitude, const Scalar &velocity,
     // Effective Isp interpolates between SL and vacuum
     Scalar Isp =
         params.Isp_vac - (params.Isp_vac - params.Isp_sl) * pressure_ratio;
-    Scalar mdot_max = params.thrust_vac / (params.Isp_vac * physics::g0);
+    Scalar mdot_max =
+        params.thrust_vac / (params.Isp_vac * physics::g0.value());
     Scalar mdot = throttle * mdot_max;
     Scalar thrust =
         throttle * (params.thrust_vac -
@@ -105,8 +106,8 @@ ascent_physics(const Scalar &altitude, const Scalar &velocity,
                         pressure_ratio);
 
     // 4. Gravity (simplified: inverse square at altitude)
-    Scalar r = earth::R_eq + altitude;
-    Scalar g = earth::mu / (r * r);
+    Scalar r = earth::R_eq.value() + altitude;
+    Scalar g = earth::mu.value() / (r * r);
 
     // 5. Net acceleration (along velocity vector for simplified 2D model)
     // a = (T - D)/m - g*sin(gamma)
@@ -154,7 +155,7 @@ Scalar fuel_consumption(const Scalar &turn_alt, const Scalar &turn_rate,
 
     // Velocity at turn altitude (from constant acceleration approximation)
     Scalar net_accel =
-        Scalar(params.thrust_vac * 0.9) / mass0 - Scalar(physics::g0);
+        Scalar(params.thrust_vac * 0.9) / mass0 - Scalar(physics::g0.value());
     net_accel = janus::where(net_accel < Scalar(5.0), Scalar(5.0), net_accel);
     Scalar v_at_turn = janus::sqrt(Scalar(2.0) * turn_alt * net_accel);
 
@@ -213,7 +214,7 @@ Scalar max_q_estimate(const Scalar &turn_alt, const VehicleParams &params) {
 
     Scalar mass0 = Scalar(params.m_dry + params.m_prop);
     Scalar net_accel =
-        Scalar(params.thrust_vac * 0.9) / mass0 - Scalar(physics::g0);
+        Scalar(params.thrust_vac * 0.9) / mass0 - Scalar(physics::g0.value());
     net_accel = janus::where(net_accel < Scalar(5.0), Scalar(5.0), net_accel);
 
     Scalar h_maxq = Scalar(12000.0);

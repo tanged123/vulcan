@@ -57,6 +57,20 @@ inline constexpr auto deg_s = deg / s;                   // degrees per second
 inline constexpr auto kph = km / mp_units::non_si::hour; // km/h
 
 // =============================================================================
+// Propulsion compound units
+// =============================================================================
+inline constexpr auto kg_per_s = kg / s;         // mass flow rate [kg/s]
+inline constexpr auto m2 = m * m;                // area [m²]
+inline constexpr auto per_s = mp_units::one / s; // inverse seconds [1/s]
+
+// =============================================================================
+// Atmosphere / fluid dynamics compound units
+// =============================================================================
+inline constexpr auto m_per_s2 = m / (s * s);       // acceleration [m/s²]
+inline constexpr auto kg_per_m3 = kg / (m * m * m); // density [kg/m³]
+inline constexpr auto Pa_s = Pa * s;                // dynamic viscosity [Pa·s]
+
+// =============================================================================
 // Dimensionless
 // =============================================================================
 inline constexpr auto dimensionless = mp_units::one;
