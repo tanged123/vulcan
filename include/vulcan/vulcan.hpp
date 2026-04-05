@@ -5,6 +5,13 @@
 // Janus foundation - required for all Vulcan components
 #include <janus/janus.hpp>
 
+// Quantity type system
+#include <vulcan/quantity/Quantity.hpp>
+#include <vulcan/quantity/QuantityEigen.hpp>
+#include <vulcan/quantity/QuantityFormat.hpp>
+#include <vulcan/quantity/QuantityMath.hpp>
+#include <vulcan/quantity/Units.hpp>
+
 // Core types and concepts
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/core/TableInterpolator.hpp>
