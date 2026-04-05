@@ -25,6 +25,7 @@
 #include <vulcan/quantity/Units.hpp>
 
 #include <concepts>
+#include <string>
 #include <type_traits>
 
 namespace vulcan {
@@ -185,6 +186,13 @@ template <auto Unit, typename Rep = double> class Quantity {
         return a.value() >= b.value();
     }
 
+    // -- Formatting
+    // ------------------------------------------------------------
+
+    /// Human-readable string: "<value> <unit_symbol>"
+    /// Definition provided in QuantityFormat.hpp.
+    [[nodiscard]] std::string to_string() const;
+
     // -- Dimensionless implicit conversion -----------------------------------
 
     /// Implicit conversion to Rep when the unit is dimensionless
@@ -326,6 +334,13 @@ class Quantity<Unit, Rep> {
     friend auto operator>=(const Quantity &a, const Quantity &b) {
         return a.val_ >= b.val_;
     }
+
+    // -- Formatting
+    // ------------------------------------------------------------
+
+    /// Human-readable string: "[symbolic] <unit_symbol>"
+    /// Definition provided in QuantityFormat.hpp.
+    [[nodiscard]] std::string to_string() const;
 
     // -- Dimensionless implicit conversion -----------------------------------
 
