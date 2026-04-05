@@ -17,7 +17,7 @@ int main() {
 
     const double lon = -77.0367 * constants::angle::deg2rad;
     const double lat = 38.8951 * constants::angle::deg2rad;
-    ctx.set_ned(lon, lat);
+    ctx.set_ned(Quantity<units::rad>(lon), Quantity<units::rad>(lat));
     ctx.set_body_euler(45.0 * constants::angle::deg2rad,
                        5.0 * constants::angle::deg2rad,
                        10.0 * constants::angle::deg2rad);
@@ -75,7 +75,8 @@ int main() {
     SymbolicScalar sym_vz = sym("vz");
 
     sym_ctx.set_ecef(sym_gmst);
-    sym_ctx.set_ned(sym_lon, sym_lat);
+    sym_ctx.set_ned(Quantity<units::rad, SymbolicScalar>(sym_lon),
+                    Quantity<units::rad, SymbolicScalar>(sym_lat));
     sym_ctx.set_body_euler(sym_yaw, sym_pitch, sym_roll);
 
     Vec3<SymbolicScalar> sym_v_body;

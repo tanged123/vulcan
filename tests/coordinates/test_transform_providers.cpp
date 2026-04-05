@@ -6,11 +6,15 @@
 #include <vulcan/coordinates/providers/EarthProviders.hpp>
 #include <vulcan/coordinates/providers/VehicleProviders.hpp>
 #include <vulcan/core/Constants.hpp>
+#include <vulcan/quantity/Quantity.hpp>
+#include <vulcan/quantity/Units.hpp>
 
 namespace {
 
 using vulcan::CoordinateFrame;
+using vulcan::Quantity;
 using vulcan::Vec3;
+using vulcan::units::rad;
 
 TEST(TransformProviders, ECEFProviderMatchesCoordinateFrameECI) {
     const double gmst = 0.73;
@@ -35,7 +39,8 @@ TEST(TransformProviders, ECEFProviderMatchesCoordinateFrameECI) {
 TEST(TransformProviders, NEDProviderMatchesCoordinateFrame) {
     const double lon = -77.0367 * vulcan::constants::angle::deg2rad;
     const double lat = 38.8951 * vulcan::constants::angle::deg2rad;
-    const vulcan::NEDProvider<double> provider(lon, lat);
+    const vulcan::NEDProvider<double> provider{Quantity<rad>(lon),
+                                               Quantity<rad>(lat)};
     const auto ned = CoordinateFrame<double>::ned(lon, lat);
 
     Vec3<double> v_ned;

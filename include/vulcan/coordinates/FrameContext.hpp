@@ -9,6 +9,8 @@
 #include <vulcan/coordinates/providers/EarthProviders.hpp>
 #include <vulcan/coordinates/providers/VehicleProviders.hpp>
 #include <vulcan/core/VulcanError.hpp>
+#include <vulcan/quantity/Quantity.hpp>
+#include <vulcan/quantity/Units.hpp>
 
 #include <memory>
 #include <optional>
@@ -50,26 +52,31 @@ template <typename Scalar> class FrameContext {
         frames_[FRAME_ECI.id] = CoordinateFrame<Scalar>::eci(angle);
     }
 
-    void set_ned(Scalar lon, Scalar lat) {
+    void set_ned(Quantity<units::rad, Scalar> lon,
+                 Quantity<units::rad, Scalar> lat) {
         auto provider = std::make_shared<NEDProvider<Scalar>>(lon, lat);
         providers_[FRAME_NED.id] = provider;
         frames_[FRAME_NED.id] = provider->frame();
     }
 
-    void set_enu(Scalar lon, Scalar lat) {
+    void set_enu(Quantity<units::rad, Scalar> lon,
+                 Quantity<units::rad, Scalar> lat) {
         auto provider = std::make_shared<ENUProvider<Scalar>>(lon, lat);
         providers_[FRAME_ENU.id] = provider;
         frames_[FRAME_ENU.id] = provider->frame();
     }
 
-    void set_geocentric(Scalar lon, Scalar lat_gc) {
+    void set_geocentric(Quantity<units::rad, Scalar> lon,
+                        Quantity<units::rad, Scalar> lat_gc) {
         auto provider =
             std::make_shared<GeocentricProvider<Scalar>>(lon, lat_gc);
         providers_[FRAME_GEOCENTRIC.id] = provider;
         frames_[FRAME_GEOCENTRIC.id] = provider->frame();
     }
 
-    void set_rail(const LLA<Scalar> &origin, Scalar azimuth, Scalar elevation,
+    void set_rail(const LLA<Scalar> &origin,
+                  Quantity<units::rad, Scalar> azimuth,
+                  Quantity<units::rad, Scalar> elevation,
                   const EarthModel &m = EarthModel::WGS84()) {
         auto provider = std::make_shared<RailProvider<Scalar>>(origin, azimuth,
                                                                elevation, m);
@@ -77,7 +84,8 @@ template <typename Scalar> class FrameContext {
         frames_[FRAME_RAIL.id] = provider->frame();
     }
 
-    void set_cda(const LLA<Scalar> &origin, Scalar bearing,
+    void set_cda(const LLA<Scalar> &origin,
+                 Quantity<units::rad, Scalar> bearing,
                  const EarthModel &m = EarthModel::WGS84()) {
         auto provider =
             std::make_shared<CDAProvider<Scalar>>(origin, bearing, m);

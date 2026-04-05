@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 
 #include <vulcan/coordinates/FrameContext.hpp>
+#include <vulcan/quantity/Quantity.hpp>
+#include <vulcan/quantity/Units.hpp>
 
 #include <janus/janus.hpp>
 
@@ -8,7 +10,9 @@ namespace {
 
 using vulcan::FRAME_BODY;
 using vulcan::FRAME_ECI;
+using vulcan::Quantity;
 using vulcan::Vec3;
+using vulcan::units::rad;
 
 TEST(SymbolicFrameContext, BuildsAndEvaluatesBodyToECIChain) {
     using Scalar = janus::SymbolicScalar;
@@ -25,7 +29,7 @@ TEST(SymbolicFrameContext, BuildsAndEvaluatesBodyToECIChain) {
 
     vulcan::FrameContext<Scalar> sym_ctx;
     sym_ctx.set_ecef(gmst);
-    sym_ctx.set_ned(lon, lat);
+    sym_ctx.set_ned(Quantity<rad, Scalar>(lon), Quantity<rad, Scalar>(lat));
     sym_ctx.set_body_euler(yaw, pitch, roll);
 
     Vec3<Scalar> v_body;
@@ -55,7 +59,7 @@ TEST(SymbolicFrameContext, BuildsAndEvaluatesBodyToECIChain) {
 
     vulcan::FrameContext<double> num_ctx;
     num_ctx.set_ecef(gmst_val);
-    num_ctx.set_ned(lon_val, lat_val);
+    num_ctx.set_ned(Quantity<rad>(lon_val), Quantity<rad>(lat_val));
     num_ctx.set_body_euler(yaw_val, pitch_val, roll_val);
     const auto expected = num_ctx.transform(v_body_val, FRAME_BODY, FRAME_ECI);
 

@@ -123,30 +123,25 @@ int main() {
               << launch_bearing * constants::angle::rad2deg << "°\n";
 
     // Create CDA frame at launch site
-    auto cda_frame = local_cda(ksc, launch_bearing);
+    auto cda_frame = local_cda(ksc, Quantity<rad>(launch_bearing));
 
     // Where is the splashdown in CDA coordinates?
-    auto splashdown_ecef_q = lla_to_ecef(splashdown);
-    Vec3<double> splashdown_ecef;
-    splashdown_ecef(0) = splashdown_ecef_q(0).value();
-    splashdown_ecef(1) = splashdown_ecef_q(1).value();
-    splashdown_ecef(2) = splashdown_ecef_q(2).value();
-    Vec3<double> cda_coords = ecef_to_cda(splashdown_ecef, ksc, launch_bearing);
+    auto splashdown_ecef = lla_to_ecef(splashdown);
+    Quantity<rad> bearing_q(launch_bearing);
+    auto cda_coords = ecef_to_cda(splashdown_ecef, ksc, bearing_q);
 
     std::cout << "Splashdown in CDA coordinates:\n";
-    std::cout << "  Down-range:  " << cda_coords(0) / 1000.0 << " km\n";
-    std::cout << "  Cross-range: " << cda_coords(1) / 1000.0 << " km\n";
-    std::cout << "  Altitude:    " << cda_coords(2) / 1000.0 << " km\n\n";
+    std::cout << "  Down-range:  " << cda_coords(0).value() / 1000.0 << " km\n";
+    std::cout << "  Cross-range: " << cda_coords(1).value() / 1000.0 << " km\n";
+    std::cout << "  Altitude:    " << cda_coords(2).value() / 1000.0
+              << " km\n\n";
 
     // Simulate a point 100km downrange, 20km crossrange, 50km altitude
-    Vec3<double> trajectory_point;
-    trajectory_point << 100000.0, 20000.0, 50000.0; // (D, C, A) in meters
+    Vec3<Quantity<m>> trajectory_point;
+    trajectory_point << Quantity<m>(100000.0), Quantity<m>(20000.0),
+        Quantity<m>(50000.0); // (D, C, A) in meters
 
-    Vec3<double> traj_ecef = cda_to_ecef(trajectory_point, ksc, launch_bearing);
-    Vec3<Quantity<m, double>> traj_ecef_q;
-    traj_ecef_q(0) = Quantity<m>(traj_ecef(0));
-    traj_ecef_q(1) = Quantity<m>(traj_ecef(1));
-    traj_ecef_q(2) = Quantity<m>(traj_ecef(2));
+    auto traj_ecef_q = cda_to_ecef(trajectory_point, ksc, bearing_q);
     LLA<double> traj_lla = ecef_to_lla(traj_ecef_q);
 
     std::cout << "Trajectory point (100km D, 20km C, 50km A):\n";

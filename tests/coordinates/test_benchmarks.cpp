@@ -386,7 +386,8 @@ TEST(Benchmarks, MerryGoRoundOppositeHorses) {
 TEST(Benchmarks, FrameGraphStressPerformanceRobustness) {
     vulcan::FrameContext<double> ctx;
     ctx.set_ecef(0.35);
-    ctx.set_ned(-1.2, 0.6);
+    ctx.set_ned(vulcan::Quantity<vulcan::units::rad>(-1.2),
+                vulcan::Quantity<vulcan::units::rad>(0.6));
     ctx.set_body_euler(0.4, -0.2, 0.1);
     ctx.set_wind(0.08, -0.03);
     ctx.set_stability(0.06);

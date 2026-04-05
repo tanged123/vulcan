@@ -1,17 +1,21 @@
 #include <gtest/gtest.h>
 
 #include <vulcan/coordinates/FrameContext.hpp>
+#include <vulcan/quantity/Quantity.hpp>
+#include <vulcan/quantity/Units.hpp>
 
 namespace {
 
 using vulcan::FRAME_BODY;
 using vulcan::FRAME_NED;
+using vulcan::Quantity;
 using vulcan::Vec3;
+using vulcan::units::rad;
 
 TEST(DirectTransforms, ParentChildChainLengthIsOne) {
     vulcan::FrameContext<double> ctx;
     ctx.set_ecef(0.3);
-    ctx.set_ned(0.2, -0.4);
+    ctx.set_ned(Quantity<rad>(0.2), Quantity<rad>(-0.4));
     ctx.set_body_euler(0.4, -0.1, 0.2);
 
     const auto body_to_ned = ctx.chain(FRAME_BODY, FRAME_NED);
@@ -23,7 +27,7 @@ TEST(DirectTransforms, ParentChildChainLengthIsOne) {
 TEST(DirectTransforms, ParentChildPositionRoundtrip) {
     vulcan::FrameContext<double> ctx;
     ctx.set_ecef(0.0);
-    ctx.set_ned(0.1, 0.2);
+    ctx.set_ned(Quantity<rad>(0.1), Quantity<rad>(0.2));
     ctx.set_body_euler(0.0, 0.0, 0.0);
 
     Vec3<double> p_body;

@@ -336,7 +336,7 @@ TEST(GeodesicUtils, RayEllipsoid_Tangent) {
 TEST(CDAFrame, FromBearing_North) {
     // CDA with bearing = 0 (North) should have D=North, C=East
     auto origin = make_lla(0.0, 45.0 * constants::angle::deg2rad, 0.0);
-    double bearing = 0.0; // Due North
+    Quantity<rad> bearing(0.0); // Due North
 
     auto frame = local_cda(origin, bearing);
 
@@ -352,7 +352,7 @@ TEST(CDAFrame, FromBearing_North) {
 TEST(CDAFrame, FromBearing_East) {
     // CDA with bearing = 90 (East)
     auto origin = make_lla(0.0, 0.0, 0.0); // Equator, prime meridian
-    double bearing = constants::angle::pi.value() / 2.0; // Due East
+    Quantity<rad> bearing(constants::angle::pi.value() / 2.0); // Due East
 
     auto frame = local_cda(origin, bearing);
 
@@ -367,58 +367,64 @@ TEST(CDAFrame, Roundtrip_ECEF) {
     // Convert point to CDA and back
     auto ref = make_lla(10.0 * constants::angle::deg2rad,
                         45.0 * constants::angle::deg2rad, 0.0);
-    double bearing = 30.0 * constants::angle::deg2rad;
+    Quantity<rad> bearing(30.0 * constants::angle::deg2rad);
 
     // Target point 10km downrange, 5km crossrange, 1km up
     auto target_lla = make_lla(10.1 * constants::angle::deg2rad,
                                45.05 * constants::angle::deg2rad, 1000.0);
-    Vec3<double> target_ecef = unwrap_ecef(lla_to_ecef(target_lla));
+    auto target_ecef = lla_to_ecef(target_lla);
 
     // Convert to CDA
-    Vec3<double> cda = ecef_to_cda(target_ecef, ref, bearing);
+    auto cda = ecef_to_cda(target_ecef, ref, bearing);
 
     // Convert back to ECEF
-    Vec3<double> recovered = cda_to_ecef(cda, ref, bearing);
+    auto recovered = cda_to_ecef(cda, ref, bearing);
 
-    // Should match original
-    EXPECT_NEAR((recovered - target_ecef).norm(), 0.0, 0.1); // Within 10cm
+    // Should match original (unwrap to compare)
+    Vec3<double> diff;
+    diff(0) = recovered(0).value() - target_ecef(0).value();
+    diff(1) = recovered(1).value() - target_ecef(1).value();
+    diff(2) = recovered(2).value() - target_ecef(2).value();
+    EXPECT_NEAR(diff.norm(), 0.0, 0.1); // Within 10cm
 }
 
 TEST(CDAFrame, DownRange_Distance) {
     // Point along bearing should have positive downrange, zero crossrange
     auto origin = make_lla(0.0, 0.0, 0.0);
-    double bearing = 0.0;      // Due North
+    double bearing_raw = 0.0;  // Due North
     double distance = 10000.0; // 10 km
 
     // Destination point along bearing
-    auto dest = destination_point(origin, bearing, distance);
-    Vec3<double> dest_ecef = unwrap_ecef(lla_to_ecef(dest));
+    auto dest = destination_point(origin, bearing_raw, distance);
+    auto dest_ecef = lla_to_ecef(dest);
 
     // Convert to CDA
-    Vec3<double> cda = ecef_to_cda(dest_ecef, origin, bearing);
+    Quantity<rad> bearing(bearing_raw);
+    auto cda = ecef_to_cda(dest_ecef, origin, bearing);
 
     // Downrange should be ~10km, crossrange ~0
-    EXPECT_NEAR(cda(0), distance, 100.0); // Within 100m
-    EXPECT_NEAR(cda(1), 0.0, 100.0);      // Crossrange near zero
+    EXPECT_NEAR(cda(0).value(), distance, 100.0); // Within 100m
+    EXPECT_NEAR(cda(1).value(), 0.0, 100.0);      // Crossrange near zero
 }
 
 TEST(CDAFrame, CrossRange_Offset) {
     // Point perpendicular to bearing should have zero downrange
     auto origin = make_lla(0.0, 0.0, 0.0);
-    double bearing = 0.0;      // Due North
+    double bearing_raw = 0.0;  // Due North
     double distance = 10000.0; // 10 km
 
     // Point due East (90 from North)
     double cross_bearing = constants::angle::pi.value() / 2.0;
     auto dest = destination_point(origin, cross_bearing, distance);
-    Vec3<double> dest_ecef = unwrap_ecef(lla_to_ecef(dest));
+    auto dest_ecef = lla_to_ecef(dest);
 
     // Convert to CDA
-    Vec3<double> cda = ecef_to_cda(dest_ecef, origin, bearing);
+    Quantity<rad> bearing(bearing_raw);
+    auto cda = ecef_to_cda(dest_ecef, origin, bearing);
 
     // Crossrange should be ~10km, downrange ~0
-    EXPECT_NEAR(cda(0), 0.0, 100.0);      // Downrange near zero
-    EXPECT_NEAR(cda(1), distance, 100.0); // Crossrange ~10km
+    EXPECT_NEAR(cda(0).value(), 0.0, 100.0);      // Downrange near zero
+    EXPECT_NEAR(cda(1).value(), distance, 100.0); // Crossrange ~10km
 }
 
 // =============================================================================
@@ -473,11 +479,11 @@ TEST(GeodesicSymbolic, HorizonDistance_GraphBuilds) {
 TEST(GeodesicSymbolic, CDA_GraphBuilds) {
     auto lon = casadi::MX::sym("lon");
     auto lat = casadi::MX::sym("lat");
-    auto bearing = casadi::MX::sym("bearing");
+    auto bearing_val = casadi::MX::sym("bearing");
 
     auto origin = make_lla_mx(lon, lat, casadi::MX(0));
 
-    auto frame = local_cda(origin, bearing);
+    auto frame = local_cda(origin, Quantity<rad, casadi::MX>(bearing_val));
 
     // Frame should have valid axes
     EXPECT_FALSE(frame.x_axis(0).is_empty());

@@ -6,8 +6,14 @@
 #include <vulcan/coordinates/FrameVehicle.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/core/Units.hpp>
+#include <vulcan/quantity/Quantity.hpp>
+#include <vulcan/quantity/Units.hpp>
 
 #include <janus/janus.hpp>
+
+using vulcan::Quantity;
+using vulcan::units::m;
+using vulcan::units::rad;
 
 // ============================================
 // Body Frame Tests
@@ -390,7 +396,7 @@ TEST(LocalFrames, NED_Wrapper) {
     double lon = 0.5;
     double lat = 0.3;
 
-    auto ned1 = vulcan::local_ned(lon, lat);
+    auto ned1 = vulcan::local_ned(Quantity<rad>(lon), Quantity<rad>(lat));
     auto ned2 = vulcan::CoordinateFrame<double>::ned(lon, lat);
 
     EXPECT_NEAR(ned1.x_axis(0), ned2.x_axis(0), 1e-10);
@@ -400,7 +406,7 @@ TEST(LocalFrames, NED_Wrapper) {
 
 TEST(LocalFrames, Geocentric_Equator) {
     // At equator, geocentric = geodetic
-    auto gc = vulcan::local_geocentric(0.0, 0.0);
+    auto gc = vulcan::local_geocentric(Quantity<rad>(0.0), Quantity<rad>(0.0));
     auto ned = vulcan::CoordinateFrame<double>::ned(0.0, 0.0);
 
     EXPECT_TRUE(gc.is_valid());
@@ -413,8 +419,8 @@ TEST(LocalFrames, Geocentric_Equator) {
 
 TEST(LocalFrames, NED_At_Position) {
     // Create NED at a position
-    vulcan::Vec3<double> r_ecef;
-    r_ecef << 6378137.0, 0.0, 0.0; // Equator, prime meridian
+    vulcan::Vec3<Quantity<m>> r_ecef;
+    r_ecef << Quantity<m>(6378137.0), Quantity<m>(0.0), Quantity<m>(0.0);
 
     auto ned = vulcan::local_ned_at(r_ecef);
     EXPECT_TRUE(ned.is_valid());

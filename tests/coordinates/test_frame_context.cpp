@@ -5,6 +5,8 @@
 #include <vulcan/coordinates/FrameTransforms.hpp>
 #include <vulcan/coordinates/FrameVehicle.hpp>
 #include <vulcan/core/Constants.hpp>
+#include <vulcan/quantity/Quantity.hpp>
+#include <vulcan/quantity/Units.hpp>
 
 #include <memory>
 
@@ -13,7 +15,9 @@ namespace {
 using vulcan::FRAME_BODY;
 using vulcan::FRAME_ECI;
 using vulcan::FRAME_NED;
+using vulcan::Quantity;
 using vulcan::Vec3;
+using vulcan::units::rad;
 
 struct OffsetAngleModel final : vulcan::EarthRotationModel {
     double offset_rad = 0.0;
@@ -41,7 +45,7 @@ TEST(FrameContext, EndToEndMatchesLegacyComposition) {
 
     vulcan::FrameContext<double> ctx;
     ctx.set_ecef(gmst);
-    ctx.set_ned(lon, lat);
+    ctx.set_ned(Quantity<rad>(lon), Quantity<rad>(lat));
     ctx.set_body_euler(yaw, pitch, roll);
 
     const auto eci = vulcan::CoordinateFrame<double>::eci(gmst);
@@ -75,7 +79,7 @@ TEST(FrameContext, CustomFrameRegistrationAndTransform) {
 
     vulcan::FrameContext<double> ctx;
     ctx.set_ecef(gmst);
-    ctx.set_ned(lon, lat);
+    ctx.set_ned(Quantity<rad>(lon), Quantity<rad>(lat));
     ctx.set_body_euler(yaw, pitch, roll);
 
     const auto q_body_to_ned =
