@@ -3,9 +3,12 @@
 #pragma once
 
 #include <vulcan/core/VulcanTypes.hpp>
+#include <vulcan/quantity/Quantity.hpp>
 #include <vulcan/rotations/AxisAngle.hpp>
 
 #include <janus/math/Quaternion.hpp>
+
+using vulcan::units::rad;
 
 namespace vulcan {
 
@@ -38,11 +41,17 @@ janus::Quaternion<Scalar> slerp(const janus::Quaternion<Scalar> &q0,
 /// exp((0, v)) = (cos(||v||), sin(||v||) * v / ||v||)
 ///
 /// @tparam Scalar Scalar type (double or SymbolicScalar)
-/// @param v Pure quaternion vector part (rotation vector / 2)
+/// @param v Pure quaternion vector part (rotation vector / 2) [rad]
 /// @return Unit quaternion
 template <typename Scalar>
-janus::Quaternion<Scalar> quat_exp(const Vec3<Scalar> &v) {
-    Scalar angle = janus::norm(v);
+janus::Quaternion<Scalar> quat_exp(const Vec3<Quantity<rad, Scalar>> &v) {
+    // Unwrap Quantity components to raw Scalar
+    Vec3<Scalar> raw;
+    raw(0) = v(0).value();
+    raw(1) = v(1).value();
+    raw(2) = v(2).value();
+
+    Scalar angle = janus::norm(raw);
     Scalar eps = Scalar(1e-12);
     Scalar safe_angle = angle + eps;
 
@@ -54,7 +63,7 @@ janus::Quaternion<Scalar> quat_exp(const Vec3<Scalar> &v) {
     s = janus::where(is_small, Scalar(1), s);
     c = janus::where(is_small, Scalar(1), c);
 
-    return janus::Quaternion<Scalar>(c, s * v(0), s * v(1), s * v(2));
+    return janus::Quaternion<Scalar>(c, s * raw(0), s * raw(1), s * raw(2));
 }
 
 /// Quaternion logarithm: log(q) returns pure quaternion (0, v_xyz)
@@ -64,9 +73,9 @@ janus::Quaternion<Scalar> quat_exp(const Vec3<Scalar> &v) {
 ///
 /// @tparam Scalar Scalar type (double or SymbolicScalar)
 /// @param q Unit quaternion
-/// @return Pure quaternion vector part (rotation vector / 2)
+/// @return Pure quaternion vector part (rotation vector / 2) [rad]
 template <typename Scalar>
-Vec3<Scalar> quat_log(const janus::Quaternion<Scalar> &q) {
+Vec3<Quantity<rad, Scalar>> quat_log(const janus::Quaternion<Scalar> &q) {
     Scalar w = q.w;
     Vec3<Scalar> v;
     v(0) = q.x;
@@ -93,7 +102,11 @@ Vec3<Scalar> quat_log(const janus::Quaternion<Scalar> &q) {
     v(1) = janus::where(is_small, Scalar(0), v(1));
     v(2) = janus::where(is_small, Scalar(0), v(2));
 
-    return v;
+    Vec3<Quantity<rad, Scalar>> result;
+    result(0) = Quantity<rad, Scalar>{v(0)};
+    result(1) = Quantity<rad, Scalar>{v(1)};
+    result(2) = Quantity<rad, Scalar>{v(2)};
+    return result;
 }
 
 // =============================================================================
@@ -124,10 +137,13 @@ squad_control_point(const janus::Quaternion<Scalar> &q_prev,
     auto log_prev = quat_log(q_curr_inv * q_prev);
 
     // Average and negate
-    Vec3<Scalar> avg;
-    avg(0) = -Scalar(0.25) * (log_next(0) + log_prev(0));
-    avg(1) = -Scalar(0.25) * (log_next(1) + log_prev(1));
-    avg(2) = -Scalar(0.25) * (log_next(2) + log_prev(2));
+    Vec3<Quantity<rad, Scalar>> avg;
+    avg(0) = Quantity<rad, Scalar>{-Scalar(0.25) *
+                                   (log_next(0).value() + log_prev(0).value())};
+    avg(1) = Quantity<rad, Scalar>{-Scalar(0.25) *
+                                   (log_next(1).value() + log_prev(1).value())};
+    avg(2) = Quantity<rad, Scalar>{-Scalar(0.25) *
+                                   (log_next(2).value() + log_prev(2).value())};
 
     return q_curr * quat_exp(avg);
 }

@@ -144,8 +144,16 @@ RigidBodyDerivatives<Scalar> compute_6dof_derivatives(
         state.velocity_body, state.omega_body, force_body, mass_props.mass);
 
     // Attitude rate = quaternion kinematics
+    // Wrap raw omega_body into Quantity<rad_s> for the kinematics API
+    Vec3<Quantity<vulcan::units::rad_s, Scalar>> omega_body_q;
+    omega_body_q(0) =
+        Quantity<vulcan::units::rad_s, Scalar>{state.omega_body(0)};
+    omega_body_q(1) =
+        Quantity<vulcan::units::rad_s, Scalar>{state.omega_body(1)};
+    omega_body_q(2) =
+        Quantity<vulcan::units::rad_s, Scalar>{state.omega_body(2)};
     derivs.attitude_dot =
-        quaternion_rate_from_omega(state.attitude, state.omega_body);
+        quaternion_rate_from_omega(state.attitude, omega_body_q);
 
     // Angular velocity rate = rotational dynamics
     derivs.omega_dot =

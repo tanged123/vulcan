@@ -10,6 +10,7 @@
 #include <janus/math/Quaternion.hpp>
 
 using vulcan::units::rad;
+using vulcan::units::rad_s;
 
 namespace vulcan {
 
@@ -29,17 +30,17 @@ namespace vulcan {
 /// @param q_dot Time derivative of quaternion
 /// @return Angular velocity vector in body frame [rad/s]
 template <typename Scalar>
-Vec3<Scalar>
+Vec3<Quantity<rad_s, Scalar>>
 omega_from_quaternion_rate(const janus::Quaternion<Scalar> &q,
                            const janus::Quaternion<Scalar> &q_dot) {
     // omega_body = 2 * q* * q_dot
     auto omega_quat = q.conjugate() * q_dot;
     Scalar two = Scalar(2);
 
-    Vec3<Scalar> omega;
-    omega(0) = two * omega_quat.x;
-    omega(1) = two * omega_quat.y;
-    omega(2) = two * omega_quat.z;
+    Vec3<Quantity<rad_s, Scalar>> omega;
+    omega(0) = Quantity<rad_s, Scalar>{two * omega_quat.x};
+    omega(1) = Quantity<rad_s, Scalar>{two * omega_quat.y};
+    omega(2) = Quantity<rad_s, Scalar>{two * omega_quat.z};
     return omega;
 }
 
@@ -57,10 +58,11 @@ omega_from_quaternion_rate(const janus::Quaternion<Scalar> &q,
 template <typename Scalar>
 janus::Quaternion<Scalar>
 quaternion_rate_from_omega(const janus::Quaternion<Scalar> &q,
-                           const Vec3<Scalar> &omega_body) {
+                           const Vec3<Quantity<rad_s, Scalar>> &omega_body) {
     // q_dot = 0.5 * q * (0, omega)
-    janus::Quaternion<Scalar> omega_quat(Scalar(0), omega_body(0),
-                                         omega_body(1), omega_body(2));
+    janus::Quaternion<Scalar> omega_quat(Scalar(0), omega_body(0).value(),
+                                         omega_body(1).value(),
+                                         omega_body(2).value());
     Scalar half = Scalar(0.5);
     auto q_dot = q * omega_quat;
     return janus::Quaternion<Scalar>(half * q_dot.w, half * q_dot.x,
@@ -84,10 +86,15 @@ quaternion_rate_from_omega(const janus::Quaternion<Scalar> &q,
 /// @param R_dot Time derivative of rotation matrix
 /// @return Angular velocity vector in body frame [rad/s]
 template <typename Scalar>
-Vec3<Scalar> omega_from_dcm_rate(const Mat3<Scalar> &R,
-                                 const Mat3<Scalar> &R_dot) {
+Vec3<Quantity<rad_s, Scalar>> omega_from_dcm_rate(const Mat3<Scalar> &R,
+                                                  const Mat3<Scalar> &R_dot) {
     Mat3<Scalar> omega_skew = R.transpose() * R_dot;
-    return unskew(omega_skew);
+    Vec3<Scalar> raw = unskew(omega_skew);
+    Vec3<Quantity<rad_s, Scalar>> omega;
+    omega(0) = Quantity<rad_s, Scalar>{raw(0)};
+    omega(1) = Quantity<rad_s, Scalar>{raw(1)};
+    omega(2) = Quantity<rad_s, Scalar>{raw(2)};
+    return omega;
 }
 
 /// Compute DCM rate from angular velocity
@@ -100,9 +107,14 @@ Vec3<Scalar> omega_from_dcm_rate(const Mat3<Scalar> &R,
 /// @param omega_body Angular velocity in body frame [rad/s]
 /// @return Time derivative of rotation matrix
 template <typename Scalar>
-Mat3<Scalar> dcm_rate_from_omega(const Mat3<Scalar> &R,
-                                 const Vec3<Scalar> &omega_body) {
-    return R * skew(omega_body);
+Mat3<Scalar>
+dcm_rate_from_omega(const Mat3<Scalar> &R,
+                    const Vec3<Quantity<rad_s, Scalar>> &omega_body) {
+    Vec3<Scalar> raw;
+    raw(0) = omega_body(0).value();
+    raw(1) = omega_body(1).value();
+    raw(2) = omega_body(2).value();
+    return R * skew(raw);
 }
 
 // =============================================================================
