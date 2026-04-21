@@ -188,7 +188,8 @@ int main() {
     double improvement = (baseline_cost - opt_cost) / baseline_cost * 100.0;
     std::cout << "Improvement over baseline: " << std::setprecision(2)
               << improvement << "%\n";
-    std::cout << "Solver iterations: " << solution.num_iterations() << "\n";
+    std::cout << "Solver iterations: " << solution.num_iterations().value_or(-1)
+              << "\n";
 
     // =========================================================================
     // Part 5: MIL-Spec Turbulence Parameters

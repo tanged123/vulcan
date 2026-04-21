@@ -168,7 +168,8 @@ int main() {
     std::cout << "Optimal observation time: " << optimal_epoch.to_iso_string()
               << "\n";
     std::cout << "Maximum visibility: " << max_visibility << "\n";
-    std::cout << "Solver iterations: " << solution.num_iterations() << "\n";
+    std::cout << "Solver iterations: " << solution.num_iterations().value_or(-1)
+              << "\n";
 
     // =========================================================================
     // Part 4: Time Scale Details

@@ -369,8 +369,8 @@ int main() {
     std::cout << "  Cross-range:        " << opt_range / 1000.0 << " km\n";
     std::cout << "  Max load factor:    " << opt_load << " g\n";
     std::cout << "  Max heating rate:   " << opt_heat / 1e6 << " MW/m²\n";
-    std::cout << "  Solver iterations:  " << solution.num_iterations()
-              << "\n\n";
+    std::cout << "  Solver iterations:  "
+              << solution.num_iterations().value_or(-1) << "\n\n";
 
     // =========================================================================
     // Part 4: Export Computational Graphs

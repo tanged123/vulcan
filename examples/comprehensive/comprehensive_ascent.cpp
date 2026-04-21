@@ -369,8 +369,8 @@ int main() {
               << " deg/s\n";
     std::cout << "  Fuel consumption:      " << opt_fuel << " kg\n";
     std::cout << "  Max-Q:                 " << opt_max_q / 1000.0 << " kPa\n";
-    std::cout << "  Solver iterations:     " << solution.num_iterations()
-              << "\n\n";
+    std::cout << "  Solver iterations:     "
+              << solution.num_iterations().value_or(-1) << "\n\n";
 
     // Compare to baseline
     double baseline_fuel = fuel_consumption<double>(10000.0, 0.01, params);

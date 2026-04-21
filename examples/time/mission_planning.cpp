@@ -240,7 +240,8 @@ int main() {
     std::cout << "  End:   " << y2 << "-" << std::setw(2) << std::setfill('0')
               << m2 << "-" << std::setw(2) << d2 << std::setfill(' ') << "\n";
     std::cout << "  Total visibility score: " << optimal_obj << "\n";
-    std::cout << "  Solver iterations: " << solution.num_iterations() << "\n";
+    std::cout << "  Solver iterations: "
+              << solution.num_iterations().value_or(-1) << "\n";
 
     // =========================================================================
     // Part 4: Compare start dates

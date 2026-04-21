@@ -85,8 +85,8 @@ int main() {
     std::cout << "  Savings vs Hohmann: "
               << (dv_hohmann - dv_bielliptic) / 1000.0 << " km/s ("
               << (dv_hohmann - dv_bielliptic) / dv_hohmann * 100 << "%)\n";
-    std::cout << "  Solver iterations:  " << solution1.num_iterations()
-              << "\n\n";
+    std::cout << "  Solver iterations:  "
+              << solution1.num_iterations().value_or(-1) << "\n\n";
 
     // =========================================================================
     // Problem 2: Lunar Transfer Window Optimization
@@ -154,7 +154,8 @@ int main() {
     std::cout << "Moon position (ECI): [" << r_moon_opt(0) / 1e6 << ", "
               << r_moon_opt(1) / 1e6 << ", " << r_moon_opt(2) / 1e6
               << "] × 10⁶ m\n";
-    std::cout << "Solver iterations: " << solution2.num_iterations() << "\n\n";
+    std::cout << "Solver iterations: "
+              << solution2.num_iterations().value_or(-1) << "\n\n";
 
     // =========================================================================
     // Problem 3: Orbital Rendezvous Phase Angle
@@ -226,8 +227,8 @@ int main() {
               << "°\n";
     std::cout << "Analytical solution:   " << lead_angle * 180.0 / M_PI
               << "°\n";
-    std::cout << "Solver iterations:     " << solution3.num_iterations()
-              << "\n\n";
+    std::cout << "Solver iterations:     "
+              << solution3.num_iterations().value_or(-1) << "\n\n";
 
     // =========================================================================
     // Problem 4: Minimum Δv Plane Change Location
@@ -283,8 +284,8 @@ int main() {
     std::cout << "  At apoapsis (burn 2):  " << (1.0 - opt_fraction) * 100.0
               << "%\n";
     std::cout << "  Total Δv:              " << opt_dv / 1000.0 << " km/s\n";
-    std::cout << "  Solver iterations:     " << solution4.num_iterations()
-              << "\n\n";
+    std::cout << "  Solver iterations:     "
+              << solution4.num_iterations().value_or(-1) << "\n\n";
 
     // Compare with all-at-apoapsis (numeric)
     double v1_t = quantities::velocity(r_initial, (r_initial + r_final) / 2.0);
