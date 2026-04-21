@@ -57,7 +57,7 @@ body:
       placeholder: |
         - OS: [e.g., NixOS, Ubuntu 22.04]
         - Compiler: [e.g., Clang 17, GCC 13]
-        - Janus version: [e.g., 1.0.0]
+        - Metis version: [e.g., 1.0.0]
     validations:
       required: false
   

@@ -4,7 +4,7 @@
 
 #include <vulcan/core/VulcanTypes.hpp>
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 namespace vulcan::dynamics {
 
@@ -32,7 +32,7 @@ Vec3<Scalar> point_mass_acceleration(const Vec3<Scalar> &force,
 /// @param velocity Velocity vector [m/s]
 /// @return Speed [m/s]
 template <typename Scalar> Scalar speed(const Vec3<Scalar> &velocity) {
-    return janus::norm(velocity);
+    return metis::norm(velocity);
 }
 
 /// Compute unit velocity direction
@@ -41,7 +41,7 @@ template <typename Scalar> Scalar speed(const Vec3<Scalar> &velocity) {
 /// @return Unit velocity direction (normalized)
 template <typename Scalar>
 Vec3<Scalar> velocity_direction(const Vec3<Scalar> &velocity) {
-    Scalar v_mag = janus::norm(velocity);
+    Scalar v_mag = metis::norm(velocity);
     return velocity / (v_mag + Scalar(1e-12)); // Regularized for zero velocity
 }
 
@@ -74,11 +74,11 @@ Vec3<Scalar> point_mass_acceleration_ecef(const Vec3<Scalar> &position,
     Vec3<Scalar> a_force = force / mass;
 
     // Coriolis: -2 * ω × v
-    Vec3<Scalar> coriolis = Scalar(-2) * janus::cross(omega_earth, velocity);
+    Vec3<Scalar> coriolis = Scalar(-2) * metis::cross(omega_earth, velocity);
 
     // Centrifugal: -ω × (ω × r)
     Vec3<Scalar> centrifugal =
-        -janus::cross(omega_earth, janus::cross(omega_earth, position));
+        -metis::cross(omega_earth, metis::cross(omega_earth, position));
 
     return a_force + coriolis + centrifugal;
 }
@@ -115,7 +115,7 @@ Vec3<Scalar> g_load(const Vec3<Scalar> &acceleration,
 template <typename Scalar>
 Scalar g_load_magnitude(const Vec3<Scalar> &acceleration,
                         const Scalar &g0 = Scalar(9.80665)) {
-    return janus::norm(acceleration) / g0;
+    return metis::norm(acceleration) / g0;
 }
 
 // =============================================================================
@@ -133,9 +133,9 @@ Scalar g_load_magnitude(const Vec3<Scalar> &acceleration,
 /// @return Flight path angle [rad]
 template <typename Scalar>
 Scalar flight_path_angle(const Vec3<Scalar> &velocity) {
-    Scalar v_mag = janus::norm(velocity);
+    Scalar v_mag = metis::norm(velocity);
     // Z-down: negative vz is upward, positive gamma
-    return janus::asin(-velocity(2) / (v_mag + Scalar(1e-12)));
+    return metis::asin(-velocity(2) / (v_mag + Scalar(1e-12)));
 }
 
 /// Compute heading angle (chi) from velocity
@@ -148,7 +148,7 @@ Scalar flight_path_angle(const Vec3<Scalar> &velocity) {
 /// @param velocity Velocity vector [m/s] (in NED frame)
 /// @return Heading angle [rad]
 template <typename Scalar> Scalar heading_angle(const Vec3<Scalar> &velocity) {
-    return janus::atan2(velocity(1), velocity(0));
+    return metis::atan2(velocity(1), velocity(0));
 }
 
 /// Compute velocity from speed and flight path angles
@@ -160,10 +160,10 @@ template <typename Scalar> Scalar heading_angle(const Vec3<Scalar> &velocity) {
 template <typename Scalar>
 Vec3<Scalar> velocity_from_angles(const Scalar &speed, const Scalar &gamma,
                                   const Scalar &chi) {
-    Scalar cos_gamma = janus::cos(gamma);
-    Scalar sin_gamma = janus::sin(gamma);
-    Scalar cos_chi = janus::cos(chi);
-    Scalar sin_chi = janus::sin(chi);
+    Scalar cos_gamma = metis::cos(gamma);
+    Scalar sin_gamma = metis::sin(gamma);
+    Scalar cos_chi = metis::cos(chi);
+    Scalar sin_chi = metis::sin(chi);
 
     return Vec3<Scalar>{
         speed * cos_gamma * cos_chi, // North (vx)
@@ -182,7 +182,7 @@ Vec3<Scalar> velocity_from_angles(const Scalar &speed, const Scalar &gamma,
 /// @return Specific kinetic energy [J/kg] = [m²/s²]
 template <typename Scalar>
 Scalar specific_kinetic_energy(const Vec3<Scalar> &velocity) {
-    return Scalar(0.5) * janus::dot(velocity, velocity);
+    return Scalar(0.5) * metis::dot(velocity, velocity);
 }
 
 /// Compute specific potential energy (gravitation)
@@ -193,7 +193,7 @@ Scalar specific_kinetic_energy(const Vec3<Scalar> &velocity) {
 template <typename Scalar>
 Scalar specific_potential_energy(const Vec3<Scalar> &position,
                                  const Scalar &mu) {
-    return -mu / janus::norm(position);
+    return -mu / metis::norm(position);
 }
 
 /// Compute total specific mechanical energy

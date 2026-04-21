@@ -2,7 +2,7 @@
 // Simple exponential atmosphere for quick estimates and validation
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 namespace vulcan::exponential_atmosphere {
 
@@ -75,7 +75,7 @@ template <typename Scalar> struct AtmosphericState {
 template <typename Scalar>
 Scalar density(const Scalar &altitude,
                double scale_height = DEFAULT_SCALE_HEIGHT) {
-    return RHO_0 * janus::exp(-altitude / scale_height);
+    return RHO_0 * metis::exp(-altitude / scale_height);
 }
 
 /**
@@ -95,7 +95,7 @@ Scalar density(const Scalar &altitude,
 template <typename Scalar>
 Scalar pressure(const Scalar &altitude,
                 double scale_height = DEFAULT_SCALE_HEIGHT) {
-    return P_0 * janus::exp(-altitude / scale_height);
+    return P_0 * metis::exp(-altitude / scale_height);
 }
 
 /**
@@ -114,7 +114,7 @@ template <typename Scalar>
 Scalar temperature(const Scalar &altitude,
                    double scale_height = DEFAULT_SCALE_HEIGHT) {
     // Isothermal assumption - return constant temperature
-    // Use janus multiplication to ensure proper type for symbolic inputs
+    // Use metis multiplication to ensure proper type for symbolic inputs
     (void)scale_height; // Unused
     return altitude * 0.0 + T_0;
 }
@@ -138,7 +138,7 @@ Scalar speed_of_sound(const Scalar &altitude,
     // a = sqrt(gamma * R * T)
     // For isothermal atmosphere, this is constant
     Scalar T = temperature(altitude, scale_height);
-    return janus::sqrt(GAMMA * R_AIR * T);
+    return metis::sqrt(GAMMA * R_AIR * T);
 }
 
 // ============================================================================
@@ -160,13 +160,13 @@ template <typename Scalar>
 AtmosphericState<Scalar> state(const Scalar &altitude,
                                double scale_height = DEFAULT_SCALE_HEIGHT) {
     Scalar T = temperature(altitude, scale_height);
-    Scalar exp_factor = janus::exp(-altitude / scale_height);
+    Scalar exp_factor = metis::exp(-altitude / scale_height);
 
     return AtmosphericState<Scalar>{.temperature = T,
                                     .pressure = P_0 * exp_factor,
                                     .density = RHO_0 * exp_factor,
                                     .speed_of_sound =
-                                        janus::sqrt(GAMMA * R_AIR * T)};
+                                        metis::sqrt(GAMMA * R_AIR * T)};
 }
 
 // ============================================================================
@@ -202,7 +202,7 @@ inline double compute_scale_height(double temperature = T_0,
 template <typename Scalar>
 Scalar altitude_from_density(const Scalar &rho,
                              double scale_height = DEFAULT_SCALE_HEIGHT) {
-    return -scale_height * janus::log(rho / RHO_0);
+    return -scale_height * metis::log(rho / RHO_0);
 }
 
 /**
@@ -219,7 +219,7 @@ Scalar altitude_from_density(const Scalar &rho,
 template <typename Scalar>
 Scalar altitude_from_pressure(const Scalar &P,
                               double scale_height = DEFAULT_SCALE_HEIGHT) {
-    return -scale_height * janus::log(P / P_0);
+    return -scale_height * metis::log(P / P_0);
 }
 
 } // namespace vulcan::exponential_atmosphere

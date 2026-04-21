@@ -2,7 +2,7 @@
 // Demonstrates the unified rotations library with all 12 Euler sequences
 #include <vulcan/rotations/Rotations.hpp>
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 #include <iomanip>
 #include <iostream>
@@ -61,11 +61,11 @@ int main() {
         auto euler_back = euler_from_dcm(R, EulerSequence::ZYX);
         print_euler("Extracted angles", euler_back, "ZYX");
 
-        // Verify matches Janus
-        auto R_janus =
-            janus::rotation_matrix_from_euler_angles(roll, pitch, yaw);
-        double max_diff = (R - R_janus).cwiseAbs().maxCoeff();
-        std::cout << "Max diff from Janus: " << max_diff << "\n\n";
+        // Verify matches Metis
+        auto R_metis =
+            metis::rotation_matrix_from_euler_angles(roll, pitch, yaw);
+        double max_diff = (R - R_metis).cwiseAbs().maxCoeff();
+        std::cout << "Max diff from Metis: " << max_diff << "\n\n";
     }
 
     // =========================================================================
@@ -164,7 +164,7 @@ int main() {
     std::cout << "--- 6. Quaternion Interpolation (Slerp) ---\n";
     {
         // Identity to 90° about Z
-        auto q0 = janus::Quaternion<double>(1, 0, 0, 0);
+        auto q0 = metis::Quaternion<double>(1, 0, 0, 0);
         auto q1 = quaternion_from_euler(0.0, 0.0, std::numbers::pi / 2.0,
                                         EulerSequence::ZYX);
 
@@ -187,11 +187,11 @@ int main() {
     // =========================================================================
     std::cout << "--- 7. Symbolic Computation with Graph Visualization ---\n";
     {
-        using Scalar = janus::SymbolicScalar;
+        using Scalar = metis::SymbolicScalar;
 
-        Scalar yaw = janus::sym("yaw");
-        Scalar pitch = janus::sym("pitch");
-        Scalar roll = janus::sym("roll");
+        Scalar yaw = metis::sym("yaw");
+        Scalar pitch = metis::sym("pitch");
+        Scalar roll = metis::sym("roll");
 
         auto R = dcm_from_euler(yaw, pitch, roll, EulerSequence::ZYX);
 
@@ -200,14 +200,14 @@ int main() {
         std::cout << "R[2,0] = " << R(2, 0) << " (should be -sin(pitch))\n";
 
         // Export computational graphs as HTML
-        janus::export_graph_html(R(0, 0), "graph_dcm_00", "DCM_R00_ZYX");
-        janus::export_graph_html(R(2, 0), "graph_dcm_20", "DCM_R20_ZYX");
+        metis::export_graph_html(R(0, 0), "graph_dcm_00", "DCM_R00_ZYX");
+        metis::export_graph_html(R(2, 0), "graph_dcm_20", "DCM_R20_ZYX");
         std::cout << "\nExported computational graphs:\n";
         std::cout << "   -> graph_dcm_00.html (R[0,0] = cos(yaw)*cos(pitch))\n";
         std::cout << "   -> graph_dcm_20.html (R[2,0] = -sin(pitch))\n";
 
         // Create CasADi function
-        janus::Function f("dcm_zyx", {yaw, pitch, roll},
+        metis::Function f("dcm_zyx", {yaw, pitch, roll},
                           {R(0, 0), R(1, 0), R(2, 0)});
 
         // Evaluate at specific values
@@ -232,9 +232,9 @@ int main() {
     // =========================================================================
     std::cout << "\n--- 8. Rodrigues Formula Symbolic Graph ---\n";
     {
-        using Scalar = janus::SymbolicScalar;
+        using Scalar = metis::SymbolicScalar;
 
-        Scalar angle = janus::sym("angle");
+        Scalar angle = metis::sym("angle");
         Vec3<Scalar> axis;
         axis << Scalar(0), Scalar(0), Scalar(1); // Z-axis (constant)
 
@@ -245,7 +245,7 @@ int main() {
         std::cout << "R[0,1] = " << R(0, 1) << " (should be -sin(angle))\n";
 
         // Export computational graph
-        janus::export_graph_html(R(0, 0), "graph_rodrigues",
+        metis::export_graph_html(R(0, 0), "graph_rodrigues",
                                  "RodriguesFormula");
         std::cout << "\nExported: graph_rodrigues.html\n";
     }

@@ -3,7 +3,7 @@
 #pragma once
 
 #include <cmath>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/sensors/MarkovProcess.hpp>
 
 namespace vulcan::bias_instability {

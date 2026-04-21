@@ -1,6 +1,6 @@
 #include <cmath>
 #include <gtest/gtest.h>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/time/Time.hpp>
 
 using namespace vulcan::time;
@@ -332,14 +332,14 @@ TEST(GPSTimeTest, GPS_UTCOffset) {
 // =============================================================================
 
 TEST(SymbolicTimeTest, EpochArithmetic) {
-    auto t = janus::sym("t");
+    auto t = metis::sym("t");
     auto epoch = SymbolicEpoch::from_tai_seconds(t);
 
     // JD should be symbolic
     auto jd_tt = epoch.jd_tt();
 
     // Create function to evaluate
-    janus::Function f("jd_tt", {t}, {jd_tt});
+    metis::Function f("jd_tt", {t}, {jd_tt});
 
     // Evaluate at J2000.0 (t = 0)
     auto result = f({0.0});
@@ -352,11 +352,11 @@ TEST(SymbolicTimeTest, EpochArithmetic) {
 }
 
 TEST(SymbolicTimeTest, TimeScaleConversions) {
-    auto jd = janus::sym("jd");
+    auto jd = metis::sym("jd");
 
     // TAI to TT
     auto tt = tai_to_tt(jd);
-    janus::Function f_tt("tai_to_tt", {jd}, {tt});
+    metis::Function f_tt("tai_to_tt", {jd}, {tt});
 
     double tai_test = JD_J2000;
     auto result = f_tt({tai_test});
@@ -365,12 +365,12 @@ TEST(SymbolicTimeTest, TimeScaleConversions) {
 }
 
 TEST(SymbolicTimeTest, SymbolicLeapSecondLookup) {
-    auto utc_jd = janus::sym("utc_jd");
+    auto utc_jd = metis::sym("utc_jd");
 
     // Symbolic UTC to TAI using interpolator
     auto tai_jd = utc_to_tai_symbolic(utc_jd);
 
-    janus::Function f("utc_to_tai", {utc_jd}, {tai_jd});
+    metis::Function f("utc_to_tai", {utc_jd}, {tai_jd});
 
     // Test at 2024 (delta_at = 37)
     double utc_test = calendar_to_jd(2024, 7, 15, 12, 0, 0.0);
@@ -389,12 +389,12 @@ TEST(SymbolicTimeTest, DualModeConsistency) {
     double gps_numeric = tai_to_gps(tai_jd);
 
     // Symbolic computations
-    auto t = janus::sym("t");
+    auto t = metis::sym("t");
     auto tt_sym = tai_to_tt(t);
     auto gps_sym = tai_to_gps(t);
 
-    janus::Function f_tt("tt", {t}, {tt_sym});
-    janus::Function f_gps("gps", {t}, {gps_sym});
+    metis::Function f_tt("tt", {t}, {tt_sym});
+    metis::Function f_gps("gps", {t}, {gps_sym});
 
     auto tt_result = f_tt({tai_jd});
     auto gps_result = f_gps({tai_jd});

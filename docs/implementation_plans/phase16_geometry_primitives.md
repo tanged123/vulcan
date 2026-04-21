@@ -14,7 +14,7 @@ Phase 16 adds spatial computation utilities for guidance, visibility, and sensor
 
 #### [NEW] [Geometry.hpp](file:///home/tanged/sources/vulcan/include/vulcan/geometry/Geometry.hpp)
 
-All functions live in `vulcan::geometry`, templated on `Scalar` for Janus compatibility.
+All functions live in `vulcan::geometry`, templated on `Scalar` for Metis compatibility.
 
 ```cpp
 namespace vulcan::geometry {
@@ -143,8 +143,8 @@ Add `test_geometry` executable under `geometry/` subdirectory.
 ## Implementation Notes
 
 1. **LOS Angles Convention**: Use NED frame convention (azimuth from North, elevation positive up).
-2. **Return Types**: `point_in_cone` returns `Scalar` (0.0/1.0) rather than `bool` for symbolic compatibility via `janus::where`.
-3. **No New Dependencies**: Uses existing `Vec3`, `janus::` math functions.
+2. **Return Types**: `point_in_cone` returns `Scalar` (0.0/1.0) rather than `bool` for symbolic compatibility via `metis::where`.
+3. **No New Dependencies**: Uses existing `Vec3`, `metis::` math functions.
 4. **Normalization**: Direction vectors are assumed normalized; document this precondition.
 
 ---

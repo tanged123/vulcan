@@ -1,6 +1,6 @@
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 namespace vulcan::propulsion::air_breathing {
 
@@ -43,7 +43,7 @@ Scalar fuel_flow_rate(const Scalar &thrust, const Scalar &TSFC) {
 template <typename Scalar>
 Scalar breguet_range(const Scalar &velocity, const Scalar &TSFC,
                      const Scalar &L_D, const Scalar &W0, const Scalar &W1) {
-    return (velocity / TSFC) * L_D * janus::log(W0 / W1);
+    return (velocity / TSFC) * L_D * metis::log(W0 / W1);
 }
 
 /**
@@ -61,7 +61,7 @@ Scalar breguet_range(const Scalar &velocity, const Scalar &TSFC,
 template <typename Scalar>
 Scalar breguet_endurance(const Scalar &TSFC, const Scalar &L_D,
                          const Scalar &W0, const Scalar &W1) {
-    return (1.0 / TSFC) * L_D * janus::log(W0 / W1);
+    return (1.0 / TSFC) * L_D * metis::log(W0 / W1);
 }
 
 } // namespace vulcan::propulsion::air_breathing

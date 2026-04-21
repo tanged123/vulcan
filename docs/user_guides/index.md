@@ -51,7 +51,7 @@ If you're new to Vulcan, start with the [Getting Started example](../../examples
 
 1. Basic atmospheric queries
 2. Coordinate transformations
-3. Symbolic computation with Janus
+3. Symbolic computation with Metis
 
 ```cpp
 #include <vulcan/vulcan.hpp>

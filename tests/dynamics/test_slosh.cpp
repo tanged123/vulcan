@@ -249,17 +249,17 @@ TEST(SloshParamsTest, SloshMass) {
 // =============================================================================
 
 TEST(PendulumSloshSymbolicTest, Acceleration) {
-    auto theta = janus::sym("theta");
-    auto theta_dot = janus::sym("theta_dot");
-    auto length = janus::sym("L");
-    auto zeta = janus::sym("zeta");
-    auto accel_t = janus::sym("a_t");
-    auto gravity = janus::sym("g");
+    auto theta = metis::sym("theta");
+    auto theta_dot = metis::sym("theta_dot");
+    auto length = metis::sym("L");
+    auto zeta = metis::sym("zeta");
+    auto accel_t = metis::sym("a_t");
+    auto gravity = metis::sym("g");
 
     auto theta_ddot = pendulum_slosh_acceleration(theta, theta_dot, length,
                                                   zeta, accel_t, gravity);
 
-    janus::Function f("pendulum_slosh",
+    metis::Function f("pendulum_slosh",
                       {theta, theta_dot, length, zeta, accel_t, gravity},
                       {theta_ddot});
 
@@ -271,16 +271,16 @@ TEST(PendulumSloshSymbolicTest, Acceleration) {
 }
 
 TEST(SpringSloshSymbolicTest, Acceleration) {
-    auto disp = janus::sym("disp");
-    auto vel = janus::sym("vel");
-    auto k = janus::sym("k");
-    auto c = janus::sym("c");
-    auto m = janus::sym("m");
-    auto a_veh = janus::sym("a_veh");
+    auto disp = metis::sym("disp");
+    auto vel = metis::sym("vel");
+    auto k = metis::sym("k");
+    auto c = metis::sym("c");
+    auto m = metis::sym("m");
+    auto a_veh = metis::sym("a_veh");
 
     auto accel = spring_slosh_acceleration(disp, vel, k, c, m, a_veh);
 
-    janus::Function f("spring_slosh", {disp, vel, k, c, m, a_veh}, {accel});
+    metis::Function f("spring_slosh", {disp, vel, k, c, m, a_veh}, {accel});
 
     auto result = f({0.1, 0.5, 1000.0, 50.0, 100.0, 0.0});
 
@@ -290,13 +290,13 @@ TEST(SpringSloshSymbolicTest, Acceleration) {
 }
 
 TEST(SloshParamsSymbolicTest, FrequencyCylindrical) {
-    auto R = janus::sym("R");
-    auto fill = janus::sym("fill");
-    auto g = janus::sym("g");
+    auto R = metis::sym("R");
+    auto fill = metis::sym("fill");
+    auto g = metis::sym("g");
 
     auto omega = slosh_frequency_cylindrical(R, fill, g);
 
-    janus::Function f("slosh_freq_cyl", {R, fill, g}, {omega});
+    metis::Function f("slosh_freq_cyl", {R, fill, g}, {omega});
 
     auto result = f({1.0, 0.8, 9.81});
 

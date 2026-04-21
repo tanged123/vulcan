@@ -4,9 +4,9 @@
 
 #include <vulcan/core/VulcanTypes.hpp>
 
-#include <janus/math/Linalg.hpp>
-#include <janus/math/Logic.hpp>
-#include <janus/math/Trig.hpp>
+#include <metis/math/Linalg.hpp>
+#include <metis/math/Logic.hpp>
+#include <metis/math/Trig.hpp>
 
 namespace vulcan::aero {
 
@@ -76,7 +76,7 @@ template <typename Scalar>
 Scalar airspeed(const Vec3<Scalar> &velocity_ground,
                 const Vec3<Scalar> &velocity_wind) {
     Vec3<Scalar> v_air = velocity_ground - velocity_wind;
-    return janus::norm(v_air);
+    return metis::norm(v_air);
 }
 
 /**
@@ -87,7 +87,7 @@ Scalar airspeed(const Vec3<Scalar> &velocity_ground,
  * @return Airspeed magnitude [m/s]
  */
 template <typename Scalar> Scalar airspeed(const Vec3<Scalar> &velocity) {
-    return janus::norm(velocity);
+    return metis::norm(velocity);
 }
 
 // =============================================================================
@@ -116,19 +116,19 @@ Vec2<Scalar> aero_angles(const Vec3<Scalar> &velocity_body) {
     Scalar vz = velocity_body(2); // Down component
 
     // Total speed
-    Scalar v_total = janus::norm(velocity_body);
+    Scalar v_total = metis::norm(velocity_body);
     Scalar eps = Scalar(1e-10);
     Scalar is_zero = v_total < eps;
 
     // Angle of attack: alpha = atan2(vz, vx)
     // Positive when flow comes from below (nose up relative to velocity)
-    Scalar alpha = janus::atan2(vz, vx);
-    alpha = janus::where(is_zero, Scalar(0), alpha);
+    Scalar alpha = metis::atan2(vz, vx);
+    alpha = metis::where(is_zero, Scalar(0), alpha);
 
     // Sideslip angle: beta = asin(vy / v_total)
     // Positive when flow comes from right
-    Scalar beta = janus::asin(vy / v_total);
-    beta = janus::where(is_zero, Scalar(0), beta);
+    Scalar beta = metis::asin(vy / v_total);
+    beta = metis::where(is_zero, Scalar(0), beta);
 
     Vec2<Scalar> angles;
     angles << alpha, beta;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 namespace vulcan::tf {
 
@@ -21,7 +21,7 @@ Scalar rate_limit(const Scalar &current, const Scalar &commanded,
                   double rate_max, double dt) {
     Scalar delta = commanded - current;
     Scalar max_delta = static_cast<Scalar>(rate_max * dt);
-    return current + janus::clamp(delta, -max_delta, max_delta);
+    return current + metis::clamp(delta, -max_delta, max_delta);
 }
 
 /**
@@ -35,7 +35,7 @@ Scalar rate_limit(const Scalar &current, const Scalar &commanded,
  */
 template <typename Scalar>
 Scalar saturate(const Scalar &value, const Scalar &min, const Scalar &max) {
-    return janus::clamp(value, min, max);
+    return metis::clamp(value, min, max);
 }
 
 /**
@@ -51,10 +51,10 @@ Scalar saturate(const Scalar &value, const Scalar &min, const Scalar &max) {
 template <typename Scalar>
 Scalar deadband(const Scalar &input, double deadband_width) {
     Scalar db = static_cast<Scalar>(deadband_width);
-    Scalar sign_input = janus::where(input < Scalar(0), Scalar(-1), Scalar(1));
-    Scalar abs_input = janus::where(input < Scalar(0), -input, input);
+    Scalar sign_input = metis::where(input < Scalar(0), Scalar(-1), Scalar(1));
+    Scalar abs_input = metis::where(input < Scalar(0), -input, input);
 
-    return janus::where(abs_input <= db, Scalar(0),
+    return metis::where(abs_input <= db, Scalar(0),
                         sign_input * (abs_input - db));
 }
 
@@ -76,8 +76,8 @@ Scalar hysteresis(const Scalar &input, const Scalar &last_output,
     Scalar upper = last_output + h;
     Scalar lower = last_output - h;
 
-    return janus::where(input > upper, input - h,
-                        janus::where(input < lower, input + h, last_output));
+    return metis::where(input > upper, input - h,
+                        metis::where(input < lower, input + h, last_output));
 }
 
 } // namespace vulcan::tf

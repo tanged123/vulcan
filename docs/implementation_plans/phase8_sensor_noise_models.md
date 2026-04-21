@@ -11,7 +11,7 @@ Accurate sensor simulation requires modeling multiple noise processes that occur
 - **First-order Markov processes** (exponentially correlated noise)
 - **Composite noise** (Allan variance parameterized)
 
-These models must be **templated** for Janus dual-mode compatibility (`double` and `casadi::MX`).
+These models must be **templated** for Metis dual-mode compatibility (`double` and `casadi::MX`).
 
 ---
 
@@ -351,10 +351,10 @@ Add sensors module include:
 
 ## Implementation Details
 
-### Janus Compatibility Requirements
+### Metis Compatibility Requirements
 
-1. **All scalar operations use `janus::` math functions** (e.g., `janus::sqrt`, `janus::exp`)
-2. **No `if/else` branching on `Scalar` types** — use `janus::where` if needed
+1. **All scalar operations use `metis::` math functions** (e.g., `metis::sqrt`, `metis::exp`)
+2. **No `if/else` branching on `Scalar` types** — use `metis::where` if needed
 3. **Filter coefficients computed with `double`** — structural parameters
 4. **State transitions templated on `Scalar`** — supports symbolic graph generation
 
@@ -421,7 +421,7 @@ cd build && ctest -R test_sensors -VV
 ## Dependencies
 
 - **Eigen3**: For 3-axis vector operations
-- **Janus**: For symbolic compatibility
+- **Metis**: For symbolic compatibility
 - **C++ `<random>`**: For numeric-only RNG in examples/tests (not in templates)
 
 ---

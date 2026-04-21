@@ -1,13 +1,13 @@
 # Vulcan 🔥
 
-**Aerospace Engineering Utilities Built on Janus**
+**Aerospace Engineering Utilities Built on Metis**
 
 [![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://tanged123.github.io/vulcan/)
 [![CI](https://github.com/tanged123/vulcan/actions/workflows/ci.yml/badge.svg)](https://github.com/tanged123/vulcan/actions/workflows/ci.yml)
 [![Format](https://github.com/tanged123/vulcan/actions/workflows/format.yml/badge.svg)](https://github.com/tanged123/vulcan/actions/workflows/format.yml)
 [![codecov](https://codecov.io/github/tanged123/vulcan/graph/badge.svg?token=0DSF7KK8W7)](https://codecov.io/github/tanged123/vulcan)
 
-Vulcan is an aerospace engineering utilities library that provides model-agnostic simulation utilities for coordinate systems, atmospheric models, gravity models, and more. Built on the [Janus](https://github.com/tanged123/janus) math library, Vulcan utilities work seamlessly in both **numeric** and **symbolic** computational modes.
+Vulcan is an aerospace engineering utilities library that provides model-agnostic simulation utilities for coordinate systems, atmospheric models, gravity models, and more. Built on the [Metis](https://github.com/tanged123/metis) math library, Vulcan utilities work seamlessly in both **numeric** and **symbolic** computational modes.
 
 ## Features
 
@@ -38,7 +38,7 @@ Vulcan is an aerospace engineering utilities library that provides model-agnosti
 ### Prerequisites
 
 - [Nix](https://nixos.org/download.html) package manager (recommended)
-- Or: CMake 3.20+, Clang/GCC with C++20, Eigen3, CasADi, Janus
+- Or: CMake 3.20+, Clang/GCC with C++20, Eigen3, CasADi, Metis
 
 ### Building
 
@@ -74,12 +74,12 @@ int main() {
     double q = flight_loads(10000.0, 500.0); 
     
     // 3. Symbolic Mode (Optimization)
-    auto h = janus::sym("h");
-    auto v = janus::sym("v");
+    auto h = metis::sym("h");
+    auto v = metis::sym("v");
     auto q_sym = flight_loads(h, v);
     
     // Automatic differentiation
-    auto dq_dh = janus::jacobian(q_sym, h); 
+    auto dq_dh = metis::jacobian(q_sym, h); 
 }
 ```
 
@@ -136,9 +136,9 @@ vulcan/
 └── reference/              # Reference data and lookups
 ```
 
-## The Janus Paradigm
+## The Metis Paradigm
 
-Vulcan follows Janus's dual-backend design. All models are templated on a `Scalar` type:
+Vulcan follows Metis's dual-backend design. All models are templated on a `Scalar` type:
 
 | Mode | Scalar Type | Purpose |
 |------|-------------|---------|
@@ -148,11 +148,11 @@ Vulcan follows Janus's dual-backend design. All models are templated on a `Scala
 ### Critical Rules
 
 ```cpp
-// ✅ Use janus:: namespace for math
-auto result = janus::sin(theta) * janus::pow(r, 2);
+// ✅ Use metis:: namespace for math
+auto result = metis::sin(theta) * metis::pow(r, 2);
 
-// ✅ Use janus::where() for branching
-Scalar cd = janus::where(mach > 1.0, 0.5, 0.02);
+// ✅ Use metis::where() for branching
+Scalar cd = metis::where(mach > 1.0, 0.5, 0.02);
 
 // ❌ NEVER use std:: math or if/else on Scalars
 ```

@@ -5,7 +5,7 @@
 #include <vulcan/coordinates/FramePrimitives.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 
-#include <janus/math/Quaternion.hpp>
+#include <metis/math/Quaternion.hpp>
 
 #include <memory>
 #include <utility>
@@ -92,7 +92,7 @@ template <typename Scalar>
 class QuaternionProvider final : public TransformProvider<Scalar> {
   public:
     explicit QuaternionProvider(
-        const janus::Quaternion<Scalar> &q_child_to_parent)
+        const metis::Quaternion<Scalar> &q_child_to_parent)
         : q_(q_child_to_parent) {}
 
     [[nodiscard]] Vec3<Scalar> to_parent(const Vec3<Scalar> &v) const override {
@@ -105,7 +105,7 @@ class QuaternionProvider final : public TransformProvider<Scalar> {
     }
 
   private:
-    janus::Quaternion<Scalar> q_;
+    metis::Quaternion<Scalar> q_;
 };
 
 } // namespace vulcan

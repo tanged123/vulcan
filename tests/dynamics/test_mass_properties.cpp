@@ -281,8 +281,8 @@ TEST(MassPropertiesTest, PrincipalMomentsSymmetric) {
 TEST(MassPropertiesSymbolic, PointMassInstantiation) {
     using MX = casadi::MX;
 
-    auto m = janus::sym("m");
-    auto x = janus::sym("x");
+    auto m = metis::sym("m");
+    auto x = metis::sym("x");
 
     Vec3<MX> pos{x, MX(0), MX(0)};
     auto mp = MassProperties<MX>::point_mass(m, pos);
@@ -294,10 +294,10 @@ TEST(MassPropertiesSymbolic, PointMassInstantiation) {
 TEST(MassPropertiesSymbolic, AggregationFunction) {
     using MX = casadi::MX;
 
-    auto m1 = janus::sym("m1");
-    auto m2 = janus::sym("m2");
-    auto x1 = janus::sym("x1");
-    auto x2 = janus::sym("x2");
+    auto m1 = metis::sym("m1");
+    auto m2 = metis::sym("m2");
+    auto x1 = metis::sym("x1");
+    auto x2 = metis::sym("x2");
 
     auto mp1 = MassProperties<MX>::point_mass(m1, Vec3<MX>{x1, MX(0), MX(0)});
     auto mp2 = MassProperties<MX>::point_mass(m2, Vec3<MX>{x2, MX(0), MX(0)});
@@ -305,7 +305,7 @@ TEST(MassPropertiesSymbolic, AggregationFunction) {
     auto combined = mp1 + mp2;
 
     // Build a function
-    janus::Function f("aggregate", {m1, m2, x1, x2},
+    metis::Function f("aggregate", {m1, m2, x1, x2},
                       {combined.mass, combined.cg(0)});
 
     auto result = f({1.0, 1.0, 0.0, 2.0});
@@ -316,14 +316,14 @@ TEST(MassPropertiesSymbolic, AggregationFunction) {
 TEST(MassPropertiesSymbolic, InertiaAboutPointFunction) {
     using MX = casadi::MX;
 
-    auto m = janus::sym("m");
-    auto r = janus::sym("r");
+    auto m = metis::sym("m");
+    auto r = metis::sym("r");
 
     auto mp = MassProperties<MX>::point_mass(m, Vec3<MX>{r, MX(0), MX(0)});
 
     auto I_about_origin = mp.inertia_about_point(Vec3<MX>::Zero());
 
-    janus::Function f("inertia", {m, r}, {I_about_origin(1, 1)});
+    metis::Function f("inertia", {m, r}, {I_about_origin(1, 1)});
 
     // m=10, r=2: Iyy = 10 * 2² = 40
     auto result = f({10.0, 2.0});

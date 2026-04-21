@@ -7,9 +7,9 @@
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 
-#include <janus/math/Arithmetic.hpp>
-#include <janus/math/Logic.hpp>
-#include <janus/math/Trig.hpp>
+#include <metis/math/Arithmetic.hpp>
+#include <metis/math/Logic.hpp>
+#include <metis/math/Trig.hpp>
 
 namespace vulcan::geodetic {
 
@@ -38,14 +38,14 @@ Scalar haversine_distance(const LLA<Scalar> &lla1, const LLA<Scalar> &lla2,
     const Scalar dlat = lla2.lat - lla1.lat;
     const Scalar dlon = lla2.lon - lla1.lon;
 
-    const Scalar sin_dlat_2 = janus::sin(dlat / 2.0);
-    const Scalar sin_dlon_2 = janus::sin(dlon / 2.0);
+    const Scalar sin_dlat_2 = metis::sin(dlat / 2.0);
+    const Scalar sin_dlon_2 = metis::sin(dlon / 2.0);
 
-    const Scalar a = sin_dlat_2 * sin_dlat_2 + janus::cos(lla1.lat) *
-                                                   janus::cos(lla2.lat) *
+    const Scalar a = sin_dlat_2 * sin_dlat_2 + metis::cos(lla1.lat) *
+                                                   metis::cos(lla2.lat) *
                                                    sin_dlon_2 * sin_dlon_2;
 
-    const Scalar c = 2.0 * janus::atan2(janus::sqrt(a), janus::sqrt(1.0 - a));
+    const Scalar c = 2.0 * metis::atan2(metis::sqrt(a), metis::sqrt(1.0 - a));
 
     return radius * c;
 }
@@ -74,13 +74,13 @@ Scalar great_circle_distance(const LLA<Scalar> &lla1, const LLA<Scalar> &lla2,
     const double f = m.f;
 
     // Reduced latitudes
-    const Scalar U1 = janus::atan((1.0 - f) * janus::tan(lla1.lat));
-    const Scalar U2 = janus::atan((1.0 - f) * janus::tan(lla2.lat));
+    const Scalar U1 = metis::atan((1.0 - f) * metis::tan(lla1.lat));
+    const Scalar U2 = metis::atan((1.0 - f) * metis::tan(lla2.lat));
 
-    const Scalar sin_U1 = janus::sin(U1);
-    const Scalar cos_U1 = janus::cos(U1);
-    const Scalar sin_U2 = janus::sin(U2);
-    const Scalar cos_U2 = janus::cos(U2);
+    const Scalar sin_U1 = metis::sin(U1);
+    const Scalar cos_U1 = metis::cos(U1);
+    const Scalar sin_U2 = metis::sin(U2);
+    const Scalar cos_U2 = metis::cos(U2);
 
     const Scalar L = lla2.lon - lla1.lon;
 
@@ -93,15 +93,15 @@ Scalar great_circle_distance(const LLA<Scalar> &lla1, const LLA<Scalar> &lla2,
     constexpr int max_iterations = 20;
 
     for (int i = 0; i < max_iterations; ++i) {
-        const Scalar sin_lambda = janus::sin(lambda);
-        const Scalar cos_lambda = janus::cos(lambda);
+        const Scalar sin_lambda = metis::sin(lambda);
+        const Scalar cos_lambda = metis::cos(lambda);
 
         const Scalar term1 = cos_U2 * sin_lambda;
         const Scalar term2 = cos_U1 * sin_U2 - sin_U1 * cos_U2 * cos_lambda;
-        sin_sigma = janus::sqrt(term1 * term1 + term2 * term2);
+        sin_sigma = metis::sqrt(term1 * term1 + term2 * term2);
 
         cos_sigma = sin_U1 * sin_U2 + cos_U1 * cos_U2 * cos_lambda;
-        sigma = janus::atan2(sin_sigma, cos_sigma);
+        sigma = metis::atan2(sin_sigma, cos_sigma);
 
         // sin(α) = cos(U₁)cos(U₂)sin(λ) / sin(σ)
         // Handle sin_sigma ≈ 0 (coincident points)
@@ -171,17 +171,17 @@ initial_bearing(const LLA<Scalar> &lla1, const LLA<Scalar> &lla2,
 
     const Scalar dlon = lla2.lon - lla1.lon;
 
-    const Scalar sin_dlon = janus::sin(dlon);
-    const Scalar cos_dlon = janus::cos(dlon);
-    const Scalar sin_lat1 = janus::sin(lla1.lat);
-    const Scalar cos_lat1 = janus::cos(lla1.lat);
-    const Scalar sin_lat2 = janus::sin(lla2.lat);
-    const Scalar cos_lat2 = janus::cos(lla2.lat);
+    const Scalar sin_dlon = metis::sin(dlon);
+    const Scalar cos_dlon = metis::cos(dlon);
+    const Scalar sin_lat1 = metis::sin(lla1.lat);
+    const Scalar cos_lat1 = metis::cos(lla1.lat);
+    const Scalar sin_lat2 = metis::sin(lla2.lat);
+    const Scalar cos_lat2 = metis::cos(lla2.lat);
 
     const Scalar x = sin_dlon * cos_lat2;
     const Scalar y = cos_lat1 * sin_lat2 - sin_lat1 * cos_lat2 * cos_dlon;
 
-    Scalar bearing = janus::atan2(x, y);
+    Scalar bearing = metis::atan2(x, y);
 
     // Normalize to [0, 2π) using: bearing = bearing - floor(bearing / 2π) * 2π
     constexpr double two_pi = 2.0 * constants::angle::pi;
@@ -190,10 +190,10 @@ initial_bearing(const LLA<Scalar> &lla1, const LLA<Scalar> &lla2,
     bearing = bearing + Scalar(two_pi);
     // For symbolic compatibility, use: fmod(x, y) ≈ x - floor(x/y) * y
     // But simpler: just use conditional approach with where
-    bearing = janus::where(bearing >= Scalar(two_pi), bearing - Scalar(two_pi),
+    bearing = metis::where(bearing >= Scalar(two_pi), bearing - Scalar(two_pi),
                            bearing);
     bearing =
-        janus::where(bearing < Scalar(0.0), bearing + Scalar(two_pi), bearing);
+        metis::where(bearing < Scalar(0.0), bearing + Scalar(two_pi), bearing);
 
     return bearing;
 }
@@ -217,7 +217,7 @@ Scalar final_bearing(const LLA<Scalar> &lla1, const LLA<Scalar> &lla2,
 
     // Normalize to [0, 2π)
     constexpr double two_pi = 2.0 * constants::angle::pi;
-    bearing = janus::where(bearing >= Scalar(two_pi), bearing - Scalar(two_pi),
+    bearing = metis::where(bearing >= Scalar(two_pi), bearing - Scalar(two_pi),
                            bearing);
 
     return bearing;
@@ -246,16 +246,16 @@ LLA<Scalar> destination_point(const LLA<Scalar> &lla, const Scalar &bearing,
     const double b = m.b;
     const double f = m.f;
 
-    const Scalar sin_bearing = janus::sin(bearing);
-    const Scalar cos_bearing = janus::cos(bearing);
+    const Scalar sin_bearing = metis::sin(bearing);
+    const Scalar cos_bearing = metis::cos(bearing);
 
     // Reduced latitude
-    const Scalar U1 = janus::atan((1.0 - f) * janus::tan(lla.lat));
-    const Scalar sin_U1 = janus::sin(U1);
-    const Scalar cos_U1 = janus::cos(U1);
+    const Scalar U1 = metis::atan((1.0 - f) * metis::tan(lla.lat));
+    const Scalar sin_U1 = metis::sin(U1);
+    const Scalar cos_U1 = metis::cos(U1);
 
     // σ₁ = atan2(tan(U₁), cos(α₁))
-    const Scalar sigma1 = janus::atan2(janus::tan(U1), cos_bearing);
+    const Scalar sigma1 = metis::atan2(metis::tan(U1), cos_bearing);
 
     // sin(α) = cos(U₁)sin(α₁)
     const Scalar sin_alpha = cos_U1 * sin_bearing;
@@ -276,9 +276,9 @@ LLA<Scalar> destination_point(const LLA<Scalar> &lla, const Scalar &bearing,
 
     constexpr int max_iterations = 20;
     for (int i = 0; i < max_iterations; ++i) {
-        cos_2sigma_m = janus::cos(2.0 * sigma1 + sigma);
-        sin_sigma = janus::sin(sigma);
-        cos_sigma = janus::cos(sigma);
+        cos_2sigma_m = metis::cos(2.0 * sigma1 + sigma);
+        sin_sigma = metis::sin(sigma);
+        cos_sigma = metis::cos(sigma);
 
         const Scalar cos2_2sigma_m = cos_2sigma_m * cos_2sigma_m;
         const Scalar delta_sigma =
@@ -295,19 +295,19 @@ LLA<Scalar> destination_point(const LLA<Scalar> &lla, const Scalar &bearing,
     }
 
     // Compute final values
-    sin_sigma = janus::sin(sigma);
-    cos_sigma = janus::cos(sigma);
-    cos_2sigma_m = janus::cos(2.0 * sigma1 + sigma);
+    sin_sigma = metis::sin(sigma);
+    cos_sigma = metis::cos(sigma);
+    cos_2sigma_m = metis::cos(2.0 * sigma1 + sigma);
 
     // Latitude - use x*x instead of pow(x, 2) for type compatibility
     const Scalar temp = sin_U1 * sin_sigma - cos_U1 * cos_sigma * cos_bearing;
-    const Scalar lat2 = janus::atan2(
+    const Scalar lat2 = metis::atan2(
         sin_U1 * cos_sigma + cos_U1 * sin_sigma * cos_bearing,
-        (1.0 - f) * janus::sqrt(sin_alpha * sin_alpha + temp * temp));
+        (1.0 - f) * metis::sqrt(sin_alpha * sin_alpha + temp * temp));
 
     // Longitude
     const Scalar lambda =
-        janus::atan2(sin_sigma * sin_bearing,
+        metis::atan2(sin_sigma * sin_bearing,
                      cos_U1 * cos_sigma - sin_U1 * sin_sigma * cos_bearing);
 
     const Scalar C =
@@ -348,7 +348,7 @@ Scalar horizon_distance(const Scalar &altitude,
     const double R = (2.0 * m.a + m.b) / 3.0;
 
     // d = √(2Rh + h²) = √(h(2R + h))
-    return janus::sqrt(altitude * (2.0 * R + altitude));
+    return metis::sqrt(altitude * (2.0 * R + altitude));
 }
 
 /// Check if target is visible from observer (no terrain, pure geometry)
@@ -419,7 +419,7 @@ ray_ellipsoid_intersection(const Vec3<Scalar> &origin,
 
     // Normalize direction
     const Scalar dir_norm =
-        janus::sqrt(direction(0) * direction(0) + direction(1) * direction(1) +
+        metis::sqrt(direction(0) * direction(0) + direction(1) * direction(1) +
                     direction(2) * direction(2));
     const Vec3<Scalar> d = direction / dir_norm;
 
@@ -444,7 +444,7 @@ ray_ellipsoid_intersection(const Vec3<Scalar> &origin,
     const Scalar discriminant = B * B - 4.0 * A * C;
 
     // Compute intersection parameters
-    const Scalar sqrt_disc = janus::sqrt(janus::abs(discriminant) + 1e-15);
+    const Scalar sqrt_disc = metis::sqrt(metis::abs(discriminant) + 1e-15);
     const Scalar t_near = (-B - sqrt_disc) / (2.0 * A);
     const Scalar t_far = (-B + sqrt_disc) / (2.0 * A);
 

@@ -3,7 +3,7 @@
 #pragma once
 
 #include <cmath>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <tuple>
 #include <utility>
 #include <vulcan/core/Constants.hpp>
@@ -37,8 +37,8 @@ std::pair<Scalar, Scalar> hohmann_delta_v(const Scalar &r1, const Scalar &r2,
     const Scalar v_t2 = quantities::velocity(r2, a_t, mu);
 
     // Delta-v magnitudes (absolute value for outward transfer)
-    const Scalar dv1 = janus::abs(v_t1 - v1);
-    const Scalar dv2 = janus::abs(v2 - v_t2);
+    const Scalar dv1 = metis::abs(v_t1 - v1);
+    const Scalar dv2 = metis::abs(v2 - v_t2);
 
     return {dv1, dv2};
 }
@@ -72,7 +72,7 @@ template <typename Scalar>
 Scalar hohmann_transfer_time(const Scalar &r1, const Scalar &r2,
                              double mu = constants::earth::mu) {
     const Scalar a_t = (r1 + r2) / 2.0;
-    return M_PI * janus::sqrt(a_t * a_t * a_t / mu);
+    return M_PI * metis::sqrt(a_t * a_t * a_t / mu);
 }
 
 /**
@@ -105,9 +105,9 @@ bielliptic_delta_v(const Scalar &r1, const Scalar &r2, const Scalar &r_b,
     const Scalar v_t2_apo = quantities::velocity(r_b, a2, mu);
     const Scalar v_t2_peri = quantities::velocity(r2, a2, mu);
 
-    const Scalar dv1 = janus::abs(v_t1_peri - v1);
-    const Scalar dv2 = janus::abs(v_t2_apo - v_t1_apo);
-    const Scalar dv3 = janus::abs(v2 - v_t2_peri);
+    const Scalar dv1 = metis::abs(v_t1_peri - v1);
+    const Scalar dv2 = metis::abs(v_t2_apo - v_t1_apo);
+    const Scalar dv3 = metis::abs(v2 - v_t2_peri);
 
     return {dv1, dv2, dv3};
 }
@@ -125,7 +125,7 @@ bielliptic_delta_v(const Scalar &r1, const Scalar &r2, const Scalar &r_b,
  */
 template <typename Scalar>
 Scalar plane_change_delta_v(const Scalar &v, const Scalar &delta_i) {
-    return 2.0 * v * janus::sin(janus::abs(delta_i) / 2.0);
+    return 2.0 * v * metis::sin(metis::abs(delta_i) / 2.0);
 }
 
 /**
@@ -142,8 +142,8 @@ Scalar plane_change_delta_v(const Scalar &v, const Scalar &delta_i) {
 template <typename Scalar>
 Scalar combined_maneuver_delta_v(const Scalar &v1, const Scalar &v2,
                                  const Scalar &delta_i) {
-    const Scalar cos_di = janus::cos(delta_i);
-    return janus::sqrt(v1 * v1 + v2 * v2 - 2.0 * v1 * v2 * cos_di);
+    const Scalar cos_di = metis::cos(delta_i);
+    return metis::sqrt(v1 * v1 + v2 * v2 - 2.0 * v1 * v2 * cos_di);
 }
 
 } // namespace vulcan::orbital::transfer

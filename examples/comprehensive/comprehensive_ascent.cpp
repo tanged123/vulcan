@@ -17,14 +17,14 @@
  * Pattern:
  *   1. Define templated physics model (works for double AND casadi::MX)
  *   2. Numeric survey (parameter sweep)
- *   3. Symbolic optimization with janus::Opti
+ *   3. Symbolic optimization with metis::Opti
  *   4. Computational graph export
  */
 
 #include <cmath>
 #include <iomanip>
 #include <iostream>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vector>
 #include <vulcan/propulsion/Rocket.hpp>
 #include <vulcan/vulcan.hpp>
@@ -110,10 +110,10 @@ ascent_physics(const Scalar &altitude, const Scalar &velocity,
 
     // 5. Net acceleration (along velocity vector for simplified 2D model)
     // a = (T - D)/m - g*sin(gamma)
-    Scalar accel = (thrust - drag) / mass - g * janus::sin(flight_path_angle);
+    Scalar accel = (thrust - drag) / mass - g * metis::sin(flight_path_angle);
 
     // Altitude rate
-    Scalar h_dot = velocity * janus::sin(flight_path_angle);
+    Scalar h_dot = velocity * metis::sin(flight_path_angle);
 
     return {accel, h_dot, -mdot, q, mach, drag, thrust};
 }
@@ -155,8 +155,8 @@ Scalar fuel_consumption(const Scalar &turn_alt, const Scalar &turn_rate,
     // Velocity at turn altitude (from constant acceleration approximation)
     Scalar net_accel =
         Scalar(params.thrust_vac * 0.9) / mass0 - Scalar(physics::g0);
-    net_accel = janus::where(net_accel < Scalar(5.0), Scalar(5.0), net_accel);
-    Scalar v_at_turn = janus::sqrt(Scalar(2.0) * turn_alt * net_accel);
+    net_accel = metis::where(net_accel < Scalar(5.0), Scalar(5.0), net_accel);
+    Scalar v_at_turn = metis::sqrt(Scalar(2.0) * turn_alt * net_accel);
 
     // Gravity losses depend on turn altitude
     // Early turn (low v_at_turn) → more time flying non-vertical → higher
@@ -166,9 +166,9 @@ Scalar fuel_consumption(const Scalar &turn_alt, const Scalar &turn_rate,
 
     // Normalized altitude (0-1 scale over 0-25 km range)
     Scalar h_norm = turn_alt / Scalar(25000.0);
-    h_norm = janus::where(h_norm > Scalar(1.0), Scalar(1.0), h_norm);
+    h_norm = metis::where(h_norm > Scalar(1.0), Scalar(1.0), h_norm);
     h_norm =
-        janus::where(h_norm < Scalar(0.0), Scalar(0.02), h_norm); // Min at 500m
+        metis::where(h_norm < Scalar(0.0), Scalar(0.02), h_norm); // Min at 500m
 
     // Optimal turn around 3-5 km (h_norm ~ 0.15)
     Scalar h_opt = Scalar(0.15); // ~3.75 km
@@ -178,14 +178,14 @@ Scalar fuel_consumption(const Scalar &turn_alt, const Scalar &turn_rate,
     Scalar base_gravity_loss = Scalar(1200.0); // Minimum gravity loss [m/s]
 
     // Early turn penalty (stronger - gravity losses dominate)
-    Scalar early_factor = janus::where(h_norm < h_opt,
+    Scalar early_factor = metis::where(h_norm < h_opt,
                                        Scalar(3000.0) * (h_opt - h_norm) *
                                            (h_opt - h_norm) / (h_opt * h_opt),
                                        Scalar(0.0));
 
     // Late turn penalty (weaker - steering losses)
     Scalar late_factor =
-        janus::where(h_norm > h_opt,
+        metis::where(h_norm > h_opt,
                      Scalar(800.0) * (h_norm - h_opt) * (h_norm - h_opt) /
                          ((Scalar(1.0) - h_opt) * (Scalar(1.0) - h_opt)),
                      Scalar(0.0));
@@ -214,7 +214,7 @@ Scalar max_q_estimate(const Scalar &turn_alt, const VehicleParams &params) {
     Scalar mass0 = Scalar(params.m_dry + params.m_prop);
     Scalar net_accel =
         Scalar(params.thrust_vac * 0.9) / mass0 - Scalar(physics::g0);
-    net_accel = janus::where(net_accel < Scalar(5.0), Scalar(5.0), net_accel);
+    net_accel = metis::where(net_accel < Scalar(5.0), Scalar(5.0), net_accel);
 
     Scalar h_maxq = Scalar(12000.0);
 
@@ -222,15 +222,15 @@ Scalar max_q_estimate(const Scalar &turn_alt, const VehicleParams &params) {
     // If turning early, we're going slower through 12km
     // If turning late, we're at full vertical acceleration through 12km
     // Model: v = sqrt(2 * min(turn_alt, h_maxq) * a) * efficiency_factor
-    Scalar h_eff = janus::where(turn_alt > h_maxq, h_maxq, turn_alt);
+    Scalar h_eff = metis::where(turn_alt > h_maxq, h_maxq, turn_alt);
 
     // Efficiency factor: ranges from 0.6 (early turn) to 1.0 (late turn)
     Scalar h_norm = turn_alt / Scalar(25000.0);
-    h_norm = janus::where(h_norm > Scalar(1.0), Scalar(1.0), h_norm);
+    h_norm = metis::where(h_norm > Scalar(1.0), Scalar(1.0), h_norm);
     Scalar efficiency = Scalar(0.6) + Scalar(0.4) * h_norm;
 
-    Scalar v_maxq = janus::sqrt(Scalar(2.0) * h_eff * net_accel) * efficiency;
-    v_maxq = janus::where(v_maxq < Scalar(200.0), Scalar(200.0), v_maxq);
+    Scalar v_maxq = metis::sqrt(Scalar(2.0) * h_eff * net_accel) * efficiency;
+    v_maxq = metis::where(v_maxq < Scalar(200.0), Scalar(200.0), v_maxq);
 
     // Density at 12km
     Scalar rho = ussa1976::density(h_maxq);
@@ -326,11 +326,11 @@ int main() {
               << " m, fuel = " << best_fuel << " kg\n\n";
 
     // =========================================================================
-    // Part 3: Symbolic Optimization with janus::Opti
+    // Part 3: Symbolic Optimization with metis::Opti
     // =========================================================================
-    std::cout << "=== Part 3: Optimization with janus::Opti ===\n\n";
+    std::cout << "=== Part 3: Optimization with metis::Opti ===\n\n";
 
-    janus::Opti opti;
+    metis::Opti opti;
 
     // Decision variable: gravity turn initiation altitude
     auto turn_alt_var = opti.variable(best_alt); // Initialize from sweep
@@ -385,36 +385,36 @@ int main() {
         << "=== Part 4: Exporting Interactive Computational Graphs ===\n\n";
 
     // Create symbolic variables for graph visualization
-    auto h_sym = janus::sym("altitude");
-    auto v_sym = janus::sym("velocity");
-    auto gamma_sym = janus::sym("gamma");
-    auto m_sym = janus::sym("mass");
-    auto throttle_sym = janus::sym("throttle");
+    auto h_sym = metis::sym("altitude");
+    auto v_sym = metis::sym("velocity");
+    auto gamma_sym = metis::sym("gamma");
+    auto m_sym = metis::sym("mass");
+    auto throttle_sym = metis::sym("throttle");
 
     // Build the full physics graph
     auto outputs_sym =
         ascent_physics(h_sym, v_sym, gamma_sym, m_sym, throttle_sym, params);
 
     // Export acceleration computation graph
-    janus::export_graph_html(outputs_sym.acceleration, "graph_ascent_accel",
+    metis::export_graph_html(outputs_sym.acceleration, "graph_ascent_accel",
                              "Ascent_Acceleration");
     std::cout
         << "✓ Exported: graph_ascent_accel.html (acceleration computation)\n";
 
     // Export drag computation
-    janus::export_graph_html(outputs_sym.drag, "graph_ascent_drag",
+    metis::export_graph_html(outputs_sym.drag, "graph_ascent_drag",
                              "Drag_Force");
     std::cout
         << "✓ Exported: graph_ascent_drag.html (drag through atmosphere)\n";
 
     // Export thrust computation
-    janus::export_graph_html(outputs_sym.thrust, "graph_ascent_thrust",
+    metis::export_graph_html(outputs_sym.thrust, "graph_ascent_thrust",
                              "Altitude_Compensated_Thrust");
     std::cout << "✓ Exported: graph_ascent_thrust.html (altitude-compensated "
                  "thrust)\n";
 
     // Export fuel consumption objective (uses the optimization variable graph)
-    janus::export_graph_html(fuel_obj, "graph_fuel_consumption",
+    metis::export_graph_html(fuel_obj, "graph_fuel_consumption",
                              "Fuel_Consumption");
     std::cout
         << "✓ Exported: graph_fuel_consumption.html (optimization objective)\n";

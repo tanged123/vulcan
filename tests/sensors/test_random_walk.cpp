@@ -129,10 +129,10 @@ TEST(RandomWalk, VarianceGrowth) {
 // =============================================================================
 
 TEST(RandomWalk, SymbolicCompatibility) {
-    auto x0 = janus::sym("x0");
-    auto state = vulcan::random_walk::State<janus::SymbolicScalar>{.value = x0};
+    auto x0 = metis::sym("x0");
+    auto state = vulcan::random_walk::State<metis::SymbolicScalar>{.value = x0};
     auto coeffs = vulcan::random_walk::compute_coeffs(1.0, 1.0);
-    auto noise = janus::sym("w");
+    auto noise = metis::sym("w");
 
     auto output = vulcan::random_walk::step(state, coeffs, noise);
 
@@ -140,7 +140,7 @@ TEST(RandomWalk, SymbolicCompatibility) {
     EXPECT_FALSE(output.is_constant());
 
     // Create function and evaluate
-    janus::Function f("random_walk_step", {x0, noise}, {output});
+    metis::Function f("random_walk_step", {x0, noise}, {output});
     auto result = f({0.5, 0.3});
     EXPECT_DOUBLE_EQ(result[0](0, 0), 0.8);
 }

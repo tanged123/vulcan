@@ -1,8 +1,8 @@
 // Getting Started with Vulcan
 // This example demonstrates both numeric and symbolic modes
 #include <iostream>
-#include <janus/core/Function.hpp>
-#include <janus/math/AutoDiff.hpp>
+#include <metis/core/Function.hpp>
+#include <metis/math/AutoDiff.hpp>
 #include <vulcan/vulcan.hpp>
 
 // Templated model function - works in both modes
@@ -58,20 +58,20 @@ int main() {
     // ========================================
     std::cout << "\n=== Symbolic Mode ===" << std::endl;
 
-    auto h = janus::sym("h");
+    auto h = metis::sym("h");
     auto rho_sym = air_density(h);
 
     std::cout << "  Created symbolic density expression" << std::endl;
 
     // Create a function to evaluate
-    janus::Function rho_func("rho", {h}, {rho_sym});
+    metis::Function rho_func("rho", {h}, {rho_sym});
     auto result = rho_func({5000.0});
     std::cout << "  Evaluating at h=5000: " << result[0](0, 0) << " kg/m^3"
               << std::endl;
 
     // Compute gradient
-    auto drho_dh = janus::jacobian(rho_sym, h);
-    janus::Function grad_func("drho_dh", {h}, {drho_dh});
+    auto drho_dh = metis::jacobian(rho_sym, h);
+    metis::Function grad_func("drho_dh", {h}, {drho_dh});
     auto grad_result = grad_func({5000.0});
     std::cout << "  d(rho)/dh at h=5000: " << grad_result[0](0, 0) << " kg/m^4"
               << std::endl;

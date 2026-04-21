@@ -8,7 +8,7 @@
 // - Rotation kinematics (angular velocity relationships)
 // - Interpolation (slerp, squad)
 //
-// All functions are templated on Scalar type for Janus symbolic/numeric
+// All functions are templated on Scalar type for Metis symbolic/numeric
 // compatibility.
 #pragma once
 
@@ -23,18 +23,18 @@
 #include <vulcan/rotations/RotationKinematics.hpp>
 
 // =============================================================================
-// Re-exports from Janus for Convenience
+// Re-exports from Metis for Convenience
 // =============================================================================
 
-#include <janus/math/Quaternion.hpp>
-#include <janus/math/Rotations.hpp>
+#include <metis/math/Quaternion.hpp>
+#include <metis/math/Rotations.hpp>
 
 namespace vulcan {
 
-// Re-export commonly used Janus rotation functions
-using janus::is_valid_rotation_matrix;
-using janus::rotation_matrix_2d;
-using janus::rotation_matrix_3d;
-using janus::rotation_matrix_from_euler_angles;
+// Re-export commonly used Metis rotation functions
+using metis::is_valid_rotation_matrix;
+using metis::rotation_matrix_2d;
+using metis::rotation_matrix_3d;
+using metis::rotation_matrix_from_euler_angles;
 
 } // namespace vulcan

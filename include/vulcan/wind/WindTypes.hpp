@@ -2,7 +2,7 @@
 // Common types for all wind models - MIL-F-8785C / MIL-HDBK-1797 compliant
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 namespace vulcan::wind {
 
@@ -25,17 +25,17 @@ template <typename Scalar> struct WindVector {
 
     /// Magnitude in horizontal plane
     Scalar horizontal_speed() const {
-        return janus::sqrt(north * north + east * east);
+        return metis::sqrt(north * north + east * east);
     }
 
     /// Total magnitude
     Scalar speed() const {
-        return janus::sqrt(north * north + east * east + down * down);
+        return metis::sqrt(north * north + east * east + down * down);
     }
 
     /// Direction wind is coming FROM (meteorological convention)
     /// Returns angle in radians from North, clockwise positive
-    Scalar direction_from() const { return janus::atan2(east, north); }
+    Scalar direction_from() const { return metis::atan2(east, north); }
 };
 
 /**

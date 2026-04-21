@@ -5,7 +5,7 @@
 #include <vulcan/core/VulcanTypes.hpp>
 #include <vulcan/rotations/AxisAngle.hpp>
 
-#include <janus/math/Quaternion.hpp>
+#include <metis/math/Quaternion.hpp>
 
 namespace vulcan {
 
@@ -13,7 +13,7 @@ namespace vulcan {
 // Basic Interpolation (Slerp)
 // =============================================================================
 
-/// Spherical linear interpolation between quaternions (re-export from Janus)
+/// Spherical linear interpolation between quaternions (re-export from Metis)
 ///
 /// Computes smooth interpolation between two rotations.
 /// Handles shortest path automatically.
@@ -24,9 +24,9 @@ namespace vulcan {
 /// @param t Interpolation parameter [0, 1]
 /// @return Interpolated quaternion
 template <typename Scalar>
-janus::Quaternion<Scalar> slerp(const janus::Quaternion<Scalar> &q0,
-                                const janus::Quaternion<Scalar> &q1, Scalar t) {
-    return janus::slerp(q0, q1, t);
+metis::Quaternion<Scalar> slerp(const metis::Quaternion<Scalar> &q0,
+                                const metis::Quaternion<Scalar> &q1, Scalar t) {
+    return metis::slerp(q0, q1, t);
 }
 
 // =============================================================================
@@ -41,20 +41,20 @@ janus::Quaternion<Scalar> slerp(const janus::Quaternion<Scalar> &q0,
 /// @param v Pure quaternion vector part (rotation vector / 2)
 /// @return Unit quaternion
 template <typename Scalar>
-janus::Quaternion<Scalar> quat_exp(const Vec3<Scalar> &v) {
-    Scalar angle = janus::norm(v);
+metis::Quaternion<Scalar> quat_exp(const Vec3<Scalar> &v) {
+    Scalar angle = metis::norm(v);
     Scalar eps = Scalar(1e-12);
     Scalar safe_angle = angle + eps;
 
-    Scalar s = janus::sin(angle) / safe_angle;
-    Scalar c = janus::cos(angle);
+    Scalar s = metis::sin(angle) / safe_angle;
+    Scalar c = metis::cos(angle);
 
     // For small angles, use Taylor expansion: sin(x)/x ≈ 1
     Scalar is_small = angle < eps;
-    s = janus::where(is_small, Scalar(1), s);
-    c = janus::where(is_small, Scalar(1), c);
+    s = metis::where(is_small, Scalar(1), s);
+    c = metis::where(is_small, Scalar(1), c);
 
-    return janus::Quaternion<Scalar>(c, s * v(0), s * v(1), s * v(2));
+    return metis::Quaternion<Scalar>(c, s * v(0), s * v(1), s * v(2));
 }
 
 /// Quaternion logarithm: log(q) returns pure quaternion (0, v_xyz)
@@ -66,32 +66,32 @@ janus::Quaternion<Scalar> quat_exp(const Vec3<Scalar> &v) {
 /// @param q Unit quaternion
 /// @return Pure quaternion vector part (rotation vector / 2)
 template <typename Scalar>
-Vec3<Scalar> quat_log(const janus::Quaternion<Scalar> &q) {
+Vec3<Scalar> quat_log(const metis::Quaternion<Scalar> &q) {
     Scalar w = q.w;
     Vec3<Scalar> v;
     v(0) = q.x;
     v(1) = q.y;
     v(2) = q.z;
 
-    Scalar v_norm = janus::norm(v);
+    Scalar v_norm = metis::norm(v);
     Scalar eps = Scalar(1e-12);
     Scalar safe_norm = v_norm + eps;
 
-    Scalar angle = janus::acos(w);
+    Scalar angle = metis::acos(w);
     Scalar scale = angle / safe_norm;
 
     // For small angles, scale ≈ 1
     Scalar is_small = v_norm < eps;
-    scale = janus::where(is_small, Scalar(1), scale);
+    scale = metis::where(is_small, Scalar(1), scale);
 
     v(0) = scale * v(0);
     v(1) = scale * v(1);
     v(2) = scale * v(2);
 
     // For identity quaternion, return zero
-    v(0) = janus::where(is_small, Scalar(0), v(0));
-    v(1) = janus::where(is_small, Scalar(0), v(1));
-    v(2) = janus::where(is_small, Scalar(0), v(2));
+    v(0) = metis::where(is_small, Scalar(0), v(0));
+    v(1) = metis::where(is_small, Scalar(0), v(1));
+    v(2) = metis::where(is_small, Scalar(0), v(2));
 
     return v;
 }
@@ -113,10 +113,10 @@ Vec3<Scalar> quat_log(const janus::Quaternion<Scalar> &q) {
 /// @param q_next Next quaternion (q_{i+1})
 /// @return Control point s_i
 template <typename Scalar>
-janus::Quaternion<Scalar>
-squad_control_point(const janus::Quaternion<Scalar> &q_prev,
-                    const janus::Quaternion<Scalar> &q_curr,
-                    const janus::Quaternion<Scalar> &q_next) {
+metis::Quaternion<Scalar>
+squad_control_point(const metis::Quaternion<Scalar> &q_prev,
+                    const metis::Quaternion<Scalar> &q_curr,
+                    const metis::Quaternion<Scalar> &q_next) {
     auto q_curr_inv = q_curr.conjugate();
 
     // Compute log(q_i^(-1) * q_{i+1}) and log(q_i^(-1) * q_{i-1})
@@ -148,10 +148,10 @@ squad_control_point(const janus::Quaternion<Scalar> &q_prev,
 /// @param t Interpolation parameter [0, 1]
 /// @return Interpolated quaternion with C1 continuity
 template <typename Scalar>
-janus::Quaternion<Scalar> squad(const janus::Quaternion<Scalar> &q0,
-                                const janus::Quaternion<Scalar> &q1,
-                                const janus::Quaternion<Scalar> &s0,
-                                const janus::Quaternion<Scalar> &s1, Scalar t) {
+metis::Quaternion<Scalar> squad(const metis::Quaternion<Scalar> &q0,
+                                const metis::Quaternion<Scalar> &q1,
+                                const metis::Quaternion<Scalar> &s0,
+                                const metis::Quaternion<Scalar> &s1, Scalar t) {
     auto q_slerp = slerp(q0, q1, t);
     auto s_slerp = slerp(s0, s1, t);
 

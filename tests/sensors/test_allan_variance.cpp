@@ -231,13 +231,13 @@ TEST(AllanVariance, StatisticalNoiseLevel) {
 // =============================================================================
 
 TEST(AllanVariance, SymbolicAxisStep) {
-    auto state = vulcan::allan::init_axis_state<janus::SymbolicScalar>();
+    auto state = vulcan::allan::init_axis_state<metis::SymbolicScalar>();
     auto params = vulcan::sensors::imu_grades::industrial_gyro();
     auto coeffs = vulcan::allan::compute_axis_coeffs(params, 0.01);
 
-    auto noise1 = janus::sym("w1");
-    auto noise2 = janus::sym("w2");
-    auto noise3 = janus::sym("w3");
+    auto noise1 = metis::sym("w1");
+    auto noise2 = metis::sym("w2");
+    auto noise3 = metis::sym("w3");
 
     auto output =
         vulcan::allan::step_axis(state, coeffs, noise1, noise2, noise3);
@@ -246,7 +246,7 @@ TEST(AllanVariance, SymbolicAxisStep) {
     EXPECT_FALSE(output.is_constant());
 
     // Create function and evaluate with all zero noise
-    janus::Function f("allan_step", {noise1, noise2, noise3}, {output});
+    metis::Function f("allan_step", {noise1, noise2, noise3}, {output});
     auto result = f({0.0, 0.0, 0.0});
     EXPECT_DOUBLE_EQ(result[0](0, 0), 0.0);
 }

@@ -126,8 +126,8 @@ inline constexpr std::array<double, N_POINTS> gravity_ms2 = {
     7.846, 7.737, 7.630, 7.525, 7.422, 7.322};
 
 // Convert std::array to Eigen::Map for Table1D
-inline janus::NumericVector altitude_m_vec() {
-    janus::NumericVector v(N_POINTS);
+inline metis::NumericVector altitude_m_vec() {
+    metis::NumericVector v(N_POINTS);
     for (std::size_t i = 0; i < N_POINTS; ++i) {
         v(static_cast<Eigen::Index>(i)) = altitude_km[i] * 1000.0;
     }
@@ -135,8 +135,8 @@ inline janus::NumericVector altitude_m_vec() {
 }
 
 template <std::size_t N>
-inline janus::NumericVector array_to_vec(const std::array<double, N> &arr) {
-    janus::NumericVector v(N);
+inline metis::NumericVector array_to_vec(const std::array<double, N> &arr) {
+    metis::NumericVector v(N);
     for (std::size_t i = 0; i < N; ++i) {
         v(static_cast<Eigen::Index>(i)) = arr[i];
     }
@@ -262,7 +262,7 @@ template <typename Scalar> Scalar gravity(const Scalar &altitude) {
 template <typename Scalar> Scalar dynamic_viscosity(const Scalar &altitude) {
     Scalar T = detail::temperature_table()(altitude);
     // Sutherland's formula: μ = β·T^(3/2) / (T + S)
-    return SUTHERLAND_BETA * janus::pow(T, 1.5) / (T + SUTHERLAND_S);
+    return SUTHERLAND_BETA * metis::pow(T, 1.5) / (T + SUTHERLAND_S);
 }
 
 // ============================================================================
@@ -289,7 +289,7 @@ AtmosphericState<Scalar> state(const Scalar &altitude) {
         .speed_of_sound = detail::speed_of_sound_table()(altitude),
         .gravity = detail::gravity_table()(altitude),
         .dynamic_viscosity =
-            SUTHERLAND_BETA * janus::pow(T, 1.5) / (T + SUTHERLAND_S)};
+            SUTHERLAND_BETA * metis::pow(T, 1.5) / (T + SUTHERLAND_S)};
 }
 
 } // namespace vulcan::ussa1976

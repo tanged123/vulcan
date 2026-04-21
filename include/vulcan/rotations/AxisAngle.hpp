@@ -5,11 +5,11 @@
 #include <vulcan/core/VulcanTypes.hpp>
 #include <vulcan/rotations/DCMUtils.hpp>
 
-#include <janus/math/Arithmetic.hpp>
-#include <janus/math/Linalg.hpp>
-#include <janus/math/Logic.hpp>
-#include <janus/math/Quaternion.hpp>
-#include <janus/math/Trig.hpp>
+#include <metis/math/Arithmetic.hpp>
+#include <metis/math/Linalg.hpp>
+#include <metis/math/Logic.hpp>
+#include <metis/math/Quaternion.hpp>
+#include <metis/math/Trig.hpp>
 
 #include <utility>
 
@@ -26,9 +26,9 @@ namespace vulcan {
 /// @param angle Rotation angle [rad]
 /// @return Unit quaternion
 template <typename Scalar>
-janus::Quaternion<Scalar> quaternion_from_axis_angle(const Vec3<Scalar> &axis,
+metis::Quaternion<Scalar> quaternion_from_axis_angle(const Vec3<Scalar> &axis,
                                                      Scalar angle) {
-    return janus::Quaternion<Scalar>::from_axis_angle(axis, angle);
+    return metis::Quaternion<Scalar>::from_axis_angle(axis, angle);
 }
 
 /// Create quaternion from rotation vector (axis × angle)
@@ -37,9 +37,9 @@ janus::Quaternion<Scalar> quaternion_from_axis_angle(const Vec3<Scalar> &axis,
 /// @param rot_vec Rotation vector [rad]
 /// @return Unit quaternion
 template <typename Scalar>
-janus::Quaternion<Scalar>
+metis::Quaternion<Scalar>
 quaternion_from_rotation_vector(const Vec3<Scalar> &rot_vec) {
-    return janus::Quaternion<Scalar>::from_rotation_vector(rot_vec);
+    return metis::Quaternion<Scalar>::from_rotation_vector(rot_vec);
 }
 
 // =============================================================================
@@ -59,7 +59,7 @@ quaternion_from_rotation_vector(const Vec3<Scalar> &rot_vec) {
 template <typename Scalar>
 Mat3<Scalar> dcm_from_axis_angle(const Vec3<Scalar> &axis, Scalar angle) {
     // Normalize axis (with small-angle protection)
-    Scalar axis_norm = janus::norm(axis);
+    Scalar axis_norm = metis::norm(axis);
     Scalar eps = Scalar(1e-12);
     Scalar safe_norm = axis_norm + eps;
 
@@ -73,8 +73,8 @@ Mat3<Scalar> dcm_from_axis_angle(const Vec3<Scalar> &axis, Scalar angle) {
     Mat3<Scalar> K2 = K * K;
 
     // Rodrigues' formula
-    Scalar s = janus::sin(angle);
-    Scalar c = janus::cos(angle);
+    Scalar s = metis::sin(angle);
+    Scalar c = metis::cos(angle);
 
     return Mat3<Scalar>::Identity() + s * K + (Scalar(1) - c) * K2;
 }
@@ -86,7 +86,7 @@ Mat3<Scalar> dcm_from_axis_angle(const Vec3<Scalar> &axis, Scalar angle) {
 /// @return 3x3 rotation matrix
 template <typename Scalar>
 Mat3<Scalar> dcm_from_rotation_vector(const Vec3<Scalar> &rot_vec) {
-    Scalar angle = janus::norm(rot_vec);
+    Scalar angle = metis::norm(rot_vec);
     Scalar eps = Scalar(1e-12);
     Scalar safe_angle = angle + eps;
 
@@ -109,13 +109,13 @@ Mat3<Scalar> dcm_from_rotation_vector(const Vec3<Scalar> &rot_vec) {
 /// @return Pair of (axis, angle) where axis is unit vector
 template <typename Scalar>
 std::pair<Vec3<Scalar>, Scalar>
-axis_angle_from_quaternion(const janus::Quaternion<Scalar> &q) {
+axis_angle_from_quaternion(const metis::Quaternion<Scalar> &q) {
     // angle = 2 * acos(w)
     Scalar w = q.w;
-    Scalar angle = Scalar(2) * janus::acos(w);
+    Scalar angle = Scalar(2) * metis::acos(w);
 
     // axis = [x, y, z] / sin(angle/2)
-    Scalar sin_half = janus::sqrt(Scalar(1) - w * w);
+    Scalar sin_half = metis::sqrt(Scalar(1) - w * w);
     Scalar eps = Scalar(1e-12);
     Scalar safe_sin_half = sin_half + eps;
 
@@ -126,9 +126,9 @@ axis_angle_from_quaternion(const janus::Quaternion<Scalar> &q) {
 
     // For small angles, default to Z-axis (arbitrary but consistent)
     Scalar is_small = sin_half < eps;
-    axis(0) = janus::where(is_small, Scalar(0), axis(0));
-    axis(1) = janus::where(is_small, Scalar(0), axis(1));
-    axis(2) = janus::where(is_small, Scalar(1), axis(2));
+    axis(0) = metis::where(is_small, Scalar(0), axis(0));
+    axis(1) = metis::where(is_small, Scalar(0), axis(1));
+    axis(2) = metis::where(is_small, Scalar(1), axis(2));
 
     return {axis, angle};
 }
@@ -140,7 +140,7 @@ axis_angle_from_quaternion(const janus::Quaternion<Scalar> &q) {
 /// @return Rotation vector (axis × angle) [rad]
 template <typename Scalar>
 Vec3<Scalar>
-rotation_vector_from_quaternion(const janus::Quaternion<Scalar> &q) {
+rotation_vector_from_quaternion(const metis::Quaternion<Scalar> &q) {
     auto [axis, angle] = axis_angle_from_quaternion(q);
     Vec3<Scalar> rot_vec;
     rot_vec(0) = axis(0) * angle;
@@ -168,10 +168,10 @@ std::pair<Vec3<Scalar>, Scalar> axis_angle_from_dcm(const Mat3<Scalar> &R) {
     Scalar cos_angle = (trace - Scalar(1)) * Scalar(0.5);
 
     // Clamp to [-1, 1] for numerical stability
-    cos_angle = janus::where(cos_angle > Scalar(1), Scalar(1), cos_angle);
-    cos_angle = janus::where(cos_angle < Scalar(-1), Scalar(-1), cos_angle);
+    cos_angle = metis::where(cos_angle > Scalar(1), Scalar(1), cos_angle);
+    cos_angle = metis::where(cos_angle < Scalar(-1), Scalar(-1), cos_angle);
 
-    Scalar angle = janus::acos(cos_angle);
+    Scalar angle = metis::acos(cos_angle);
 
     // Axis from anti-symmetric part
     Vec3<Scalar> raw_axis;
@@ -179,7 +179,7 @@ std::pair<Vec3<Scalar>, Scalar> axis_angle_from_dcm(const Mat3<Scalar> &R) {
     raw_axis(1) = R(0, 2) - R(2, 0);
     raw_axis(2) = R(1, 0) - R(0, 1);
 
-    Scalar sin_angle = janus::sin(angle);
+    Scalar sin_angle = metis::sin(angle);
     Scalar eps = Scalar(1e-12);
     Scalar safe_sin = sin_angle + eps;
 
@@ -189,17 +189,17 @@ std::pair<Vec3<Scalar>, Scalar> axis_angle_from_dcm(const Mat3<Scalar> &R) {
     axis(2) = raw_axis(2) / (Scalar(2) * safe_sin);
 
     // Normalize axis
-    Scalar axis_norm = janus::norm(axis);
+    Scalar axis_norm = metis::norm(axis);
     Scalar safe_norm = axis_norm + eps;
     axis(0) = axis(0) / safe_norm;
     axis(1) = axis(1) / safe_norm;
     axis(2) = axis(2) / safe_norm;
 
     // For small angles (angle ≈ 0), use small-angle approximation
-    Scalar is_small = janus::abs(sin_angle) < eps;
-    axis(0) = janus::where(is_small, Scalar(0), axis(0));
-    axis(1) = janus::where(is_small, Scalar(0), axis(1));
-    axis(2) = janus::where(is_small, Scalar(1), axis(2));
+    Scalar is_small = metis::abs(sin_angle) < eps;
+    axis(0) = metis::where(is_small, Scalar(0), axis(0));
+    axis(1) = metis::where(is_small, Scalar(0), axis(1));
+    axis(2) = metis::where(is_small, Scalar(1), axis(2));
 
     return {axis, angle};
 }

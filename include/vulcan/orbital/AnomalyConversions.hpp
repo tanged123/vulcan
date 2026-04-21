@@ -3,7 +3,7 @@
 #pragma once
 
 #include <cmath>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 
 namespace vulcan::orbital::anomaly {
@@ -40,8 +40,8 @@ Scalar mean_to_eccentric(const Scalar &M, const Scalar &e, double tol = 1e-12,
     } else {
         // Fixed Newton steps for symbolic (enables autodiff)
         for (int iter = 0; iter < 10; ++iter) {
-            Scalar f = E - e * janus::sin(E) - M;
-            Scalar f_prime = 1.0 - e * janus::cos(E);
+            Scalar f = E - e * metis::sin(E) - M;
+            Scalar f_prime = 1.0 - e * metis::cos(E);
             E = E - f / f_prime;
         }
     }
@@ -59,11 +59,11 @@ Scalar mean_to_eccentric(const Scalar &M, const Scalar &e, double tol = 1e-12,
  */
 template <typename Scalar>
 Scalar eccentric_to_true(const Scalar &E, const Scalar &e) {
-    const Scalar cos_E = janus::cos(E);
-    const Scalar sin_E = janus::sin(E);
-    const Scalar sqrt_term = janus::sqrt(1.0 - e * e);
+    const Scalar cos_E = metis::cos(E);
+    const Scalar sin_E = metis::sin(E);
+    const Scalar sqrt_term = metis::sqrt(1.0 - e * e);
 
-    return janus::atan2(sqrt_term * sin_E, cos_E - e);
+    return metis::atan2(sqrt_term * sin_E, cos_E - e);
 }
 
 /**
@@ -76,11 +76,11 @@ Scalar eccentric_to_true(const Scalar &E, const Scalar &e) {
  */
 template <typename Scalar>
 Scalar true_to_eccentric(const Scalar &nu, const Scalar &e) {
-    const Scalar cos_nu = janus::cos(nu);
-    const Scalar sin_nu = janus::sin(nu);
-    const Scalar sqrt_term = janus::sqrt(1.0 - e * e);
+    const Scalar cos_nu = metis::cos(nu);
+    const Scalar sin_nu = metis::sin(nu);
+    const Scalar sqrt_term = metis::sqrt(1.0 - e * e);
 
-    return janus::atan2(sqrt_term * sin_nu, e + cos_nu);
+    return metis::atan2(sqrt_term * sin_nu, e + cos_nu);
 }
 
 /**
@@ -95,7 +95,7 @@ Scalar true_to_eccentric(const Scalar &nu, const Scalar &e) {
  */
 template <typename Scalar>
 Scalar eccentric_to_mean(const Scalar &E, const Scalar &e) {
-    return E - e * janus::sin(E);
+    return E - e * metis::sin(E);
 }
 
 /**

@@ -1,6 +1,6 @@
 # Vulcan Atmosphere Models Walkthrough
 
-This guide explains how to use the Atmospheric Models in Vulcan, specifically the US Standard Atmosphere 1976. It covers both numeric retrieval of atmospheric properties and symbolic usage for optimization with the Janus framework. The guide follows `examples/atmosphere/atmosphere_profile.cpp`.
+This guide explains how to use the Atmospheric Models in Vulcan, specifically the US Standard Atmosphere 1976. It covers both numeric retrieval of atmospheric properties and symbolic usage for optimization with the Metis framework. The guide follows `examples/atmosphere/atmosphere_profile.cpp`.
 
 ## 1. US Standard Atmosphere 1976
 
@@ -32,14 +32,14 @@ std::cout << "Gravity:     " << atm.gravity << " m/s^2\n";
 
 ## 2. Symbolic Mode (Optimization)
 
-A key feature of Vulcan is its compatibility with Janus for symbolic computation and optimization. The atmospheric models are templated on `Scalar` type, allowing them to accept `janus::SymbolicScalar` (usually `casadi::MX`) for optimization problems.
+A key feature of Vulcan is its compatibility with Metis for symbolic computation and optimization. The atmospheric models are templated on `Scalar` type, allowing them to accept `metis::SymbolicScalar` (usually `casadi::MX`) for optimization problems.
 
 ### Example: Finding Altitude for a Target Density
 
-In this example, we use `janus::Opti` to find the altitude where the air density matches a specific target.
+In this example, we use `metis::Opti` to find the altitude where the air density matches a specific target.
 
 ```cpp
-#include <janus/optimization/Opti.hpp>
+#include <metis/optimization/Opti.hpp>
 #include <vulcan/vulcan.hpp>
 
 // Templated wrapper function
@@ -48,7 +48,7 @@ template <typename Scalar> Scalar air_density(const Scalar &altitude) {
 }
 
 int main() {
-    janus::Opti opti;
+    metis::Opti opti;
     
     // Define optimization variable (altitude)
     auto h = opti.variable(5000.0); // Initial guess: 5 km
@@ -74,4 +74,4 @@ int main() {
 }
 ```
 
-This demonstrates the "write once, run anywhere" philosophy of Vulcan/Janus: the same `ussa1976::density` function works for both standard `double` calculations and symbolic graph generation for optimization solvers.
+This demonstrates the "write once, run anywhere" philosophy of Vulcan/Metis: the same `ussa1976::density` function works for both standard `double` calculations and symbolic graph generation for optimization solvers.

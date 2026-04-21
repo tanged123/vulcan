@@ -3,7 +3,7 @@
 #include <vulcan/atmosphere/USSA1976.hpp>
 #include <vulcan/core/Constants.hpp>
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 #include <gtest/gtest.h>
 
@@ -165,63 +165,63 @@ TEST(Aerodynamics, AeroStateComplete) {
 // =============================================================================
 
 TEST(Aerodynamics, SymbolicDynamicPressure) {
-    using Scalar = janus::SymbolicScalar;
+    using Scalar = metis::SymbolicScalar;
 
-    auto rho = janus::sym("rho");
-    auto V = janus::sym("V");
+    auto rho = metis::sym("rho");
+    auto V = metis::sym("V");
 
     auto q = dynamic_pressure(rho, V);
 
     // Create function and evaluate
-    janus::Function f("q", {rho, V}, {q});
+    metis::Function f("q", {rho, V}, {q});
     auto result = f({1.225, 100.0});
 
     EXPECT_NEAR(result[0](0, 0), 6125.0, 1.0);
 }
 
 TEST(Aerodynamics, SymbolicMachNumber) {
-    using Scalar = janus::SymbolicScalar;
+    using Scalar = metis::SymbolicScalar;
 
-    auto V = janus::sym("V");
-    auto a = janus::sym("a");
+    auto V = metis::sym("V");
+    auto a = metis::sym("a");
 
     auto M = mach_number(V, a);
 
-    janus::Function f("M", {V, a}, {M});
+    metis::Function f("M", {V, a}, {M});
     auto result = f({340.0, 340.0});
 
     EXPECT_NEAR(result[0](0, 0), 1.0, 1e-6);
 }
 
 TEST(Aerodynamics, SymbolicReynoldsNumber) {
-    using Scalar = janus::SymbolicScalar;
+    using Scalar = metis::SymbolicScalar;
 
-    auto rho = janus::sym("rho");
-    auto V = janus::sym("V");
-    auto L = janus::sym("L");
-    auto mu = janus::sym("mu");
+    auto rho = metis::sym("rho");
+    auto V = metis::sym("V");
+    auto L = metis::sym("L");
+    auto mu = metis::sym("mu");
 
     auto Re = reynolds_number(rho, V, L, mu);
 
-    janus::Function f("Re", {rho, V, L, mu}, {Re});
+    metis::Function f("Re", {rho, V, L, mu}, {Re});
     auto result = f({1.225, 100.0, 1.0, 1.789e-5});
 
     EXPECT_NEAR(result[0](0, 0), 6.85e6, 0.05e6);
 }
 
 TEST(Aerodynamics, SymbolicAeroAngles) {
-    using Scalar = janus::SymbolicScalar;
+    using Scalar = metis::SymbolicScalar;
 
-    auto vx = janus::sym("vx");
-    auto vy = janus::sym("vy");
-    auto vz = janus::sym("vz");
+    auto vx = metis::sym("vx");
+    auto vy = metis::sym("vy");
+    auto vz = metis::sym("vz");
 
     Vec3<Scalar> v_body;
     v_body << vx, vy, vz;
 
     auto angles = aero_angles(v_body);
 
-    janus::Function f("angles", {vx, vy, vz}, {angles(0), angles(1)});
+    metis::Function f("angles", {vx, vy, vz}, {angles(0), angles(1)});
     auto result = f({100.0, 0.0, 10.0});
 
     EXPECT_NEAR(result[0](0, 0), std::atan2(10.0, 100.0), 1e-6);

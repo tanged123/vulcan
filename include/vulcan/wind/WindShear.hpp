@@ -98,8 +98,8 @@ template <typename Scalar>
 Scalar power_law(const Scalar &altitude, double ref_wind,
                  double ref_altitude = 10.0, double exponent = 1.0 / 7.0) {
     // V = V_ref * (h / h_ref)^alpha
-    // Use janus::pow for symbolic compatibility
-    return ref_wind * janus::pow(altitude / ref_altitude, exponent);
+    // Use metis::pow for symbolic compatibility
+    return ref_wind * metis::pow(altitude / ref_altitude, exponent);
 }
 
 /**
@@ -129,7 +129,7 @@ power_law_vector(const Scalar &altitude,
     }
 
     // Scale factor from power law
-    Scalar scale = janus::pow(altitude / ref_altitude, exponent);
+    Scalar scale = metis::pow(altitude / ref_altitude, exponent);
 
     return wind::WindVector<Scalar>{.north = scale * base_wind.north,
                                     .east = scale * base_wind.east,
@@ -164,7 +164,7 @@ Scalar logarithmic(const Scalar &altitude, double friction_velocity,
     // V = (u* / κ) * ln((h - d) / z_0)
     Scalar effective_height = altitude - displacement;
     return (friction_velocity / VON_KARMAN_CONSTANT) *
-           janus::log(effective_height / roughness_length);
+           metis::log(effective_height / roughness_length);
 }
 
 /**

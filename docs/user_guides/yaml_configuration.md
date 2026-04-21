@@ -20,7 +20,7 @@ auto dt = config.Get<double>("dt", 0.01);  // with default
 | Header | Purpose |
 |--------|---------|
 | `YamlNode.hpp` | Type-safe node wrapper |
-| `YamlConvert.hpp` | Janus type traits |
+| `YamlConvert.hpp` | Metis type traits |
 | `YamlFile.hpp` | Include/merge utilities |
 | `YamlEnv.hpp` | Environment variables |
 
@@ -75,7 +75,7 @@ auto vec = node["values"].ToVector<double>();
 
 ---
 
-## Janus Types
+## Metis Types
 
 ```yaml
 # Vec3: [x, y, z]
@@ -92,9 +92,9 @@ inertia:
 ```
 
 ```cpp
-auto pos = config.Require<janus::Vec3<double>>("position");
-auto quat = config.Require<janus::Quaternion<double>>("orientation");
-auto mat = config.Require<janus::Mat3<double>>("inertia");
+auto pos = config.Require<metis::Vec3<double>>("position");
+auto quat = config.Require<metis::Quaternion<double>>("orientation");
+auto mat = config.Require<metis::Mat3<double>>("inertia");
 ```
 
 ---
@@ -202,5 +202,5 @@ auto config = YamlEnv::LoadWithIncludesAndEnv("mission.yaml");
 
 auto name = config["mission"].Require<std::string>("name");
 auto mass = config["spacecraft"].Require<double>("mass_kg");
-auto pos = config["spacecraft"].Require<janus::Vec3<double>>("position");
+auto pos = config["spacecraft"].Require<metis::Vec3<double>>("position");
 ```

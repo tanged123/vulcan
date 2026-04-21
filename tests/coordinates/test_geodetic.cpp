@@ -3,7 +3,7 @@
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/core/Units.hpp>
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 // ============================================
 // LLA and Spherical Struct Tests
@@ -314,12 +314,12 @@ TEST(Geodetic, RadiusM_Equator) {
 // Symbolic Graph Tests
 // ============================================
 TEST(Geodetic, Symbolic_LLA_to_ECEF) {
-    using Scalar = janus::SymbolicScalar;
+    using Scalar = metis::SymbolicScalar;
 
     // Create symbolic LLA
-    Scalar lon = janus::sym("lon");
-    Scalar lat = janus::sym("lat");
-    Scalar alt = janus::sym("alt");
+    Scalar lon = metis::sym("lon");
+    Scalar lat = metis::sym("lat");
+    Scalar alt = metis::sym("alt");
     vulcan::LLA<Scalar> lla(lon, lat, alt);
 
     // Convert to ECEF
@@ -331,7 +331,7 @@ TEST(Geodetic, Symbolic_LLA_to_ECEF) {
     EXPECT_FALSE(r(2).is_constant());
 
     // Create function and test
-    janus::Function f("lla_to_ecef", {lon, lat, alt}, {r(0), r(1), r(2)});
+    metis::Function f("lla_to_ecef", {lon, lat, alt}, {r(0), r(1), r(2)});
 
     // Test with equator values
     auto result = f({0.0, 0.0, 0.0});
@@ -343,12 +343,12 @@ TEST(Geodetic, Symbolic_LLA_to_ECEF) {
 }
 
 TEST(Geodetic, Symbolic_ECEF_to_LLA) {
-    using Scalar = janus::SymbolicScalar;
+    using Scalar = metis::SymbolicScalar;
 
     // Create symbolic ECEF
-    Scalar x = janus::sym("x");
-    Scalar y = janus::sym("y");
-    Scalar z = janus::sym("z");
+    Scalar x = metis::sym("x");
+    Scalar y = metis::sym("y");
+    Scalar z = metis::sym("z");
     vulcan::Vec3<Scalar> r;
     r << x, y, z;
 
@@ -361,7 +361,7 @@ TEST(Geodetic, Symbolic_ECEF_to_LLA) {
     EXPECT_FALSE(lla.alt.is_constant());
 
     // Create function and test
-    janus::Function f("ecef_to_lla", {x, y, z}, {lla.lon, lla.lat, lla.alt});
+    metis::Function f("ecef_to_lla", {x, y, z}, {lla.lon, lla.lat, lla.alt});
 
     // Test with equator values
     const double a = vulcan::constants::wgs84::a;
@@ -373,12 +373,12 @@ TEST(Geodetic, Symbolic_ECEF_to_LLA) {
 }
 
 TEST(Geodetic, Symbolic_Roundtrip) {
-    using Scalar = janus::SymbolicScalar;
+    using Scalar = metis::SymbolicScalar;
 
     // Create symbolic LLA
-    Scalar lon = janus::sym("lon");
-    Scalar lat = janus::sym("lat");
-    Scalar alt = janus::sym("alt");
+    Scalar lon = metis::sym("lon");
+    Scalar lat = metis::sym("lat");
+    Scalar alt = metis::sym("alt");
     vulcan::LLA<Scalar> lla_orig(lon, lat, alt);
 
     // Roundtrip: LLA -> ECEF -> LLA
@@ -386,7 +386,7 @@ TEST(Geodetic, Symbolic_Roundtrip) {
     auto lla = vulcan::ecef_to_lla(r);
 
     // Create function
-    janus::Function f("lla_roundtrip", {lon, lat, alt},
+    metis::Function f("lla_roundtrip", {lon, lat, alt},
                       {lla.lon, lla.lat, lla.alt});
 
     // Test with Washington DC

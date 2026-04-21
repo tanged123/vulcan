@@ -151,11 +151,11 @@ TEST(BiasInstability, SteadyStateVarianceEmpirical) {
 // =============================================================================
 
 TEST(BiasInstability, SymbolicCompatibility) {
-    auto initial = janus::sym("b0");
+    auto initial = metis::sym("b0");
     auto state =
-        vulcan::bias_instability::State<janus::SymbolicScalar>{.bias = initial};
+        vulcan::bias_instability::State<metis::SymbolicScalar>{.bias = initial};
     auto coeffs = vulcan::bias_instability::compute_coeffs(0.1, 10.0, 1.0);
-    auto noise = janus::sym("w");
+    auto noise = metis::sym("w");
 
     auto output = vulcan::bias_instability::step(state, coeffs, noise);
 
@@ -163,7 +163,7 @@ TEST(BiasInstability, SymbolicCompatibility) {
     EXPECT_FALSE(output.is_constant());
 
     // Create function and evaluate
-    janus::Function f("bias_step", {initial, noise}, {output});
+    metis::Function f("bias_step", {initial, noise}, {output});
     auto result = f({1.0, 0.0}); // Zero noise = just decay
     EXPECT_DOUBLE_EQ(result[0](0, 0), coeffs.a);
 }

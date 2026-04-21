@@ -1,6 +1,6 @@
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 namespace vulcan::propulsion::electric {
 
@@ -54,7 +54,7 @@ Scalar mass_flow_from_power(const Scalar &power, const Scalar &Ve,
 template <typename Scalar>
 Scalar characteristic_velocity(const Scalar &power, const Scalar &efficiency,
                                const Scalar &mdot) {
-    return janus::sqrt(2.0 * efficiency * power / mdot);
+    return metis::sqrt(2.0 * efficiency * power / mdot);
 }
 
 } // namespace vulcan::propulsion::electric

@@ -184,4 +184,4 @@ examples/dynamics/
 ### Symbolic Validation
 - Instantiate systems with `casadi::MX`
 - Verify step functions trace properly
-- Test autodiff through rate limiters using `janus::where`
+- Test autodiff through rate limiters using `metis::where`

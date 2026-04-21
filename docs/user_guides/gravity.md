@@ -78,7 +78,7 @@ The simplest model treating Earth as a uniform sphere:
 auto g = point_mass::acceleration(r);
 
 // Just the magnitude
-double g_mag = point_mass::acceleration_magnitude(janus::norm(r));
+double g_mag = point_mass::acceleration_magnitude(metis::norm(r));
 
 // Gravitational potential (negative)
 auto U = point_mass::potential(r);  // U = -μ/r
@@ -150,14 +150,14 @@ auto P20_sym = spherical_harmonics::legendre_Pnm(2, 0, lat_symbolic);
 
 ## Symbolic Computation
 
-All gravity models work with `janus::SymbolicScalar` for optimization:
+All gravity models work with `metis::SymbolicScalar` for optimization:
 
 ```cpp
-using Scalar = janus::SymbolicScalar;
+using Scalar = metis::SymbolicScalar;
 
-Scalar x = janus::sym("x");
-Scalar y = janus::sym("y");
-Scalar z = janus::sym("z");
+Scalar x = metis::sym("x");
+Scalar y = metis::sym("y");
+Scalar z = metis::sym("z");
 
 Vec3<Scalar> r;
 r << x, y, z;
@@ -166,7 +166,7 @@ r << x, y, z;
 auto g = j2::acceleration(r);
 
 // Create CasADi function for optimization
-janus::Function f("gravity", {x, y, z}, {g(0), g(1), g(2)});
+metis::Function f("gravity", {x, y, z}, {g(0), g(1), g(2)});
 
 // Evaluate numerically
 auto result = f({7000000.0, 0.0, 0.0});
@@ -180,10 +180,10 @@ Compute the Jacobian for orbit propagation and control:
 auto g = j2::acceleration(r);
 
 // 3x3 gravity gradient tensor
-auto J = janus::jacobian({g(0), g(1), g(2)}, {x, y, z});
+auto J = metis::jacobian({g(0), g(1), g(2)}, {x, y, z});
 
 // Create function for numerical evaluation
-janus::Function f_grad("gravity_gradient", {x, y, z},
+metis::Function f_grad("gravity_gradient", {x, y, z},
     {J(0,0), J(0,1), J(0,2),
      J(1,0), J(1,1), J(1,2),
      J(2,0), J(2,1), J(2,2)});
@@ -197,7 +197,7 @@ Export computational graphs as interactive HTML:
 auto g = j2::acceleration(r);
 
 // Export to HTML
-janus::export_graph_html(g(0), "gravity_graph", "J2_Gravity_X");
+metis::export_graph_html(g(0), "gravity_graph", "J2_Gravity_X");
 ```
 
 > [!TIP]

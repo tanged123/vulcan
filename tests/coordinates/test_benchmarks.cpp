@@ -6,7 +6,7 @@
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/core/Units.hpp>
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 #include <chrono>
 #include <cmath>
@@ -17,8 +17,8 @@ namespace {
 
 template <typename Scalar> vulcan::Mat3<Scalar> rot_z(Scalar angle) {
     vulcan::Mat3<Scalar> R;
-    const Scalar c = janus::cos(angle);
-    const Scalar s = janus::sin(angle);
+    const Scalar c = metis::cos(angle);
+    const Scalar s = metis::sin(angle);
     R << c, -s, Scalar(0), s, c, Scalar(0), Scalar(0), Scalar(0), Scalar(1);
     return R;
 }
@@ -384,7 +384,7 @@ TEST(Benchmarks, FrameGraphStressPerformanceRobustness) {
         const double yaw = 0.01 * static_cast<double>(i + 1);
         const double pitch = -0.005 * static_cast<double>(i + 1);
         const double roll = 0.003 * static_cast<double>(i + 1);
-        const auto q = janus::Quaternion<double>::from_euler(roll, pitch, yaw);
+        const auto q = metis::Quaternion<double>::from_euler(roll, pitch, yaw);
         parent = ctx.add_frame(
             "Stress_" + std::to_string(i), parent,
             std::make_shared<vulcan::QuaternionProvider<double>>(q));

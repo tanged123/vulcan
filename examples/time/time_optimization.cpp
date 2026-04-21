@@ -3,19 +3,19 @@
  * @brief Demonstrates time-dependent optimization using Vulcan's time system
  *
  * This example shows how to use symbolic Epoch and time scale conversions
- * with janus::Opti for gradient-based optimization. We optimize a satellite
+ * with metis::Opti for gradient-based optimization. We optimize a satellite
  * observation scheduling problem where the objective is to maximize visibility
  * based on time-dependent geometry.
  *
  * Key insight: Vulcan's time utilities (JD conversions, time scales,
  * even leap seconds via interpolation) are fully symbolic-compatible with
- * Janus.
+ * Metis.
  */
 
 #include <cmath>
 #include <iomanip>
 #include <iostream>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/vulcan.hpp>
 
 using namespace vulcan::time;
@@ -42,17 +42,17 @@ Scalar solar_elevation(const Epoch<Scalar> &epoch, double latitude) {
 
     // Solar hour angle (15 degrees per hour)
     Scalar hour_angle =
-        janus::fmod(hours_since_j2000, Scalar(24.0)) * (M_PI / 12.0);
+        metis::fmod(hours_since_j2000, Scalar(24.0)) * (M_PI / 12.0);
 
     // Declination (simplified: varies with day of year, assume ~0 for equinox)
     Scalar declination = 0.0;
 
     // Solar elevation: sin(el) = sin(lat)*sin(dec) + cos(lat)*cos(dec)*cos(HA)
     Scalar sin_el =
-        std::sin(latitude) * janus::sin(declination) +
-        std::cos(latitude) * janus::cos(declination) * janus::cos(hour_angle);
+        std::sin(latitude) * metis::sin(declination) +
+        std::cos(latitude) * metis::cos(declination) * metis::cos(hour_angle);
 
-    return janus::asin(sin_el);
+    return metis::asin(sin_el);
 }
 
 /**
@@ -73,7 +73,7 @@ Scalar visibility_metric(const Epoch<Scalar> &epoch, double sat_period) {
     Scalar phase = tai_sec / sat_period * 2.0 * M_PI;
 
     // Satellite is "visible" when sin(phase) > 0 (above horizon-ish)
-    Scalar sat_el = janus::sin(phase) * 0.5; // Normalized to [-0.5, 0.5]
+    Scalar sat_el = metis::sin(phase) * 0.5; // Normalized to [-0.5, 0.5]
 
     // Combine with solar constraint (prefer nighttime)
     double observer_lat = 40.0 * M_PI / 180.0; // 40°N
@@ -83,7 +83,7 @@ Scalar visibility_metric(const Epoch<Scalar> &epoch, double sat_period) {
     // Use smooth approximations for gradients
     Scalar sat_vis = (sat_el + Scalar(0.5)); // Map to [0, 1]
     Scalar night_factor =
-        (Scalar(1.0) - janus::tanh(sol_el * 10.0)) * Scalar(0.5);
+        (Scalar(1.0) - metis::tanh(sol_el * 10.0)) * Scalar(0.5);
 
     return sat_vis * night_factor;
 }
@@ -92,7 +92,7 @@ int main() {
     std::cout
         << "╔════════════════════════════════════════════════════════════╗\n";
     std::cout
-        << "║     Vulcan Time System - janus::Opti Optimization          ║\n";
+        << "║     Vulcan Time System - metis::Opti Optimization          ║\n";
     std::cout
         << "╚════════════════════════════════════════════════════════════╝\n\n";
 
@@ -123,11 +123,11 @@ int main() {
     }
 
     // =========================================================================
-    // Part 2: Optimization with janus::Opti
+    // Part 2: Optimization with metis::Opti
     // =========================================================================
-    std::cout << "\n=== Part 2: Optimization with janus::Opti ===\n\n";
+    std::cout << "\n=== Part 2: Optimization with metis::Opti ===\n\n";
 
-    janus::Opti opti;
+    metis::Opti opti;
 
     // Decision variable: time offset from base epoch [seconds]
     // Initialize at 0 (base epoch)
@@ -205,7 +205,7 @@ int main() {
     double exclusion_zone = 1.5 * 3600.0; // 1.5 hour exclusion around each peak
 
     for (int pass = 0; pass < 3; ++pass) {
-        janus::Opti opti_pass;
+        metis::Opti opti_pass;
         auto dt_pass = opti_pass.variable(0.0);
 
         auto epoch_pass =
@@ -231,7 +231,7 @@ int main() {
         dt_pass = opti_pass.variable(init_guess);
 
         // Re-setup with new initial guess
-        janus::Opti opti_new;
+        metis::Opti opti_new;
         auto dt_new = opti_new.variable(init_guess);
         auto epoch_new = SymbolicEpoch::from_tai_seconds(base_tai_sec + dt_new);
         auto vis_new = visibility_metric(epoch_new, sat_period);
@@ -253,7 +253,7 @@ int main() {
                   << dt_found / 3600.0 << "h)\n";
     }
 
-    std::cout << "\n✓ Optimization complete using janus::Opti + Vulcan time "
+    std::cout << "\n✓ Optimization complete using metis::Opti + Vulcan time "
                  "infrastructure!\n";
 
     // =========================================================================
@@ -264,31 +264,31 @@ int main() {
 
     // Create a simple symbolic expression to visualize the time computation
     // chain
-    auto t_sym = janus::sym("t");
+    auto t_sym = metis::sym("t");
     auto epoch_for_graph = SymbolicEpoch::from_tai_seconds(t_sym);
 
     // Export the JD TT computation graph
     auto jd_tt_expr = epoch_for_graph.jd_tt();
-    janus::export_graph_html(jd_tt_expr, "graph_jd_tt", "JD_TT_from_TAI");
+    metis::export_graph_html(jd_tt_expr, "graph_jd_tt", "JD_TT_from_TAI");
     std::cout << "✓ Exported: graph_jd_tt.html (TAI → JD TT conversion)\n";
 
     // Export the centuries since J2000 computation
     auto centuries_expr = epoch_for_graph.centuries_tt();
-    janus::export_graph_html(centuries_expr, "graph_centuries_tt",
+    metis::export_graph_html(centuries_expr, "graph_centuries_tt",
                              "Centuries_TT");
     std::cout << "✓ Exported: graph_centuries_tt.html (J2000 centuries "
                  "computation)\n";
 
     // Export the visibility objective (more complex graph)
     auto vis_expr = visibility_metric(epoch_for_graph, sat_period);
-    janus::export_graph_html(vis_expr, "graph_visibility",
+    metis::export_graph_html(vis_expr, "graph_visibility",
                              "Visibility_Objective");
     std::cout
         << "✓ Exported: graph_visibility.html (full visibility objective)\n";
 
     // Export the solar elevation component
     auto solar_expr = solar_elevation(epoch_for_graph, 40.0 * M_PI / 180.0);
-    janus::export_graph_html(solar_expr, "graph_solar_elevation",
+    metis::export_graph_html(solar_expr, "graph_solar_elevation",
                              "Solar_Elevation");
     std::cout
         << "✓ Exported: graph_solar_elevation.html (solar elevation model)\n";

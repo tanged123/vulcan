@@ -5,8 +5,8 @@
 #include <vulcan/dynamics/RigidBodyTypes.hpp>
 #include <vulcan/rotations/RotationKinematics.hpp>
 
-#include <janus/math/Linalg.hpp>
-#include <janus/math/Quaternion.hpp>
+#include <metis/math/Linalg.hpp>
+#include <metis/math/Quaternion.hpp>
 
 namespace vulcan::dynamics {
 
@@ -35,7 +35,7 @@ Vec3<Scalar> translational_dynamics(const Vec3<Scalar> &velocity_body,
                                     const Vec3<Scalar> &force_body,
                                     const Scalar &mass) {
     // v_dot = F/m - ω × v
-    Vec3<Scalar> transport = janus::cross(omega_body, velocity_body);
+    Vec3<Scalar> transport = metis::cross(omega_body, velocity_body);
     return force_body / mass - transport;
 }
 
@@ -63,11 +63,11 @@ Vec3<Scalar> rotational_dynamics(const Vec3<Scalar> &omega_body,
                                  const Mat3<Scalar> &inertia) {
     // I * ω_dot = M - ω × (I * ω)
     Vec3<Scalar> H = inertia * omega_body; // Angular momentum
-    Vec3<Scalar> gyroscopic = janus::cross(omega_body, H);
+    Vec3<Scalar> gyroscopic = metis::cross(omega_body, H);
     Vec3<Scalar> rhs = moment_body - gyroscopic;
 
-    // Solve I * ω_dot = rhs using janus::solve for symbolic compatibility
-    return janus::solve(inertia, rhs);
+    // Solve I * ω_dot = rhs using metis::solve for symbolic compatibility
+    return metis::solve(inertia, rhs);
 }
 
 // =============================================================================
@@ -87,7 +87,7 @@ Vec3<Scalar> rotational_dynamics(const Vec3<Scalar> &omega_body,
 template <typename Scalar>
 Vec3<Scalar>
 velocity_to_reference_frame(const Vec3<Scalar> &velocity_body,
-                            const janus::Quaternion<Scalar> &attitude) {
+                            const metis::Quaternion<Scalar> &attitude) {
     return attitude.rotate(velocity_body);
 }
 
@@ -103,7 +103,7 @@ velocity_to_reference_frame(const Vec3<Scalar> &velocity_body,
 /// @return Velocity in body frame [m/s]
 template <typename Scalar>
 Vec3<Scalar> velocity_to_body_frame(const Vec3<Scalar> &velocity_ref,
-                                    const janus::Quaternion<Scalar> &attitude) {
+                                    const metis::Quaternion<Scalar> &attitude) {
     return attitude.conjugate().rotate(velocity_ref);
 }
 
@@ -182,11 +182,11 @@ Vec3<Scalar> translational_dynamics_ecef(const Vec3<Scalar> &position,
                                          const Vec3<Scalar> &omega_earth) {
     // Coriolis: 2 * (ω_earth × v)
     Vec3<Scalar> coriolis =
-        Scalar(2) * janus::cross(omega_earth, velocity_ecef);
+        Scalar(2) * metis::cross(omega_earth, velocity_ecef);
 
     // Centrifugal: ω × (ω × r)
     Vec3<Scalar> centrifugal =
-        janus::cross(omega_earth, janus::cross(omega_earth, position));
+        metis::cross(omega_earth, metis::cross(omega_earth, position));
 
     // Total acceleration: F/m - Coriolis - Centrifugal
     return force_ecef / mass - coriolis - centrifugal;

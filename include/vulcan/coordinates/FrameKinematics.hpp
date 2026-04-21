@@ -6,7 +6,7 @@
 #include <vulcan/coordinates/FramePrimitives.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 
-#include <janus/math/Linalg.hpp>
+#include <metis/math/Linalg.hpp>
 
 namespace vulcan {
 
@@ -37,7 +37,7 @@ Vec3<Scalar> velocity_ecef_to_eci(const Vec3<Scalar> &v_ecef,
     omega_ecef << Scalar(0), Scalar(0), Scalar(m.omega);
 
     // omega x r gives velocity contribution from rotation
-    Vec3<Scalar> omega_cross_r = janus::cross(omega_ecef, r_ecef);
+    Vec3<Scalar> omega_cross_r = metis::cross(omega_ecef, r_ecef);
 
     // v_ecef_inertial = v_ecef + omega x r (velocity of ECEF point in inertial
     // frame)
@@ -71,7 +71,7 @@ Vec3<Scalar> velocity_eci_to_ecef(const Vec3<Scalar> &v_eci,
     omega_ecef << Scalar(0), Scalar(0), Scalar(m.omega);
 
     // Subtract omega x r
-    Vec3<Scalar> omega_cross_r = janus::cross(omega_ecef, r_ecef);
+    Vec3<Scalar> omega_cross_r = metis::cross(omega_ecef, r_ecef);
 
     return v_ecef_inertial - omega_cross_r;
 }
@@ -111,11 +111,11 @@ Vec3<Scalar> coriolis_centrifugal(const Vec3<Scalar> &r_ecef,
     omega << Scalar(0), Scalar(0), Scalar(m.omega);
 
     // Coriolis: -2(omega x v)
-    Vec3<Scalar> coriolis = Scalar(-2) * janus::cross(omega, v_ecef);
+    Vec3<Scalar> coriolis = Scalar(-2) * metis::cross(omega, v_ecef);
 
     // Centrifugal: -omega x (omega x r)
-    Vec3<Scalar> omega_cross_r = janus::cross(omega, r_ecef);
-    Vec3<Scalar> centrifugal = -janus::cross(omega, omega_cross_r);
+    Vec3<Scalar> omega_cross_r = metis::cross(omega, r_ecef);
+    Vec3<Scalar> centrifugal = -metis::cross(omega, omega_cross_r);
 
     return coriolis + centrifugal;
 }
@@ -132,7 +132,7 @@ Vec3<Scalar> coriolis_acceleration(const Vec3<Scalar> &v_ecef,
     Vec3<Scalar> omega;
     omega << Scalar(0), Scalar(0), Scalar(m.omega);
 
-    return Scalar(-2) * janus::cross(omega, v_ecef);
+    return Scalar(-2) * metis::cross(omega, v_ecef);
 }
 
 /// Compute only centrifugal acceleration
@@ -148,8 +148,8 @@ centrifugal_acceleration(const Vec3<Scalar> &r_ecef,
     Vec3<Scalar> omega;
     omega << Scalar(0), Scalar(0), Scalar(m.omega);
 
-    Vec3<Scalar> omega_cross_r = janus::cross(omega, r_ecef);
-    return -janus::cross(omega, omega_cross_r);
+    Vec3<Scalar> omega_cross_r = metis::cross(omega, r_ecef);
+    return -metis::cross(omega, omega_cross_r);
 }
 
 // =============================================================================
@@ -176,7 +176,7 @@ Vec3<Scalar> relative_position(const Vec3<Scalar> &r_target,
 /// @return Distance [m]
 template <typename Scalar>
 Scalar range(const Vec3<Scalar> &r1, const Vec3<Scalar> &r2) {
-    return janus::norm(r1 - r2);
+    return metis::norm(r1 - r2);
 }
 
 /// Compute range rate (velocity along line-of-sight)
@@ -194,15 +194,15 @@ Scalar range_rate(const Vec3<Scalar> &r_target, const Vec3<Scalar> &v_target,
     Vec3<Scalar> r_rel = r_target - r_observer;
     Vec3<Scalar> v_rel = v_target - v_observer;
 
-    Scalar r_mag = janus::norm(r_rel);
+    Scalar r_mag = metis::norm(r_rel);
     Scalar eps = Scalar(1e-10);
     Scalar is_zero = r_mag < eps;
 
     // Range rate = relative velocity dot unit line-of-sight
-    Scalar rdot = janus::dot(r_rel, v_rel) / r_mag;
+    Scalar rdot = metis::dot(r_rel, v_rel) / r_mag;
 
     // Handle zero range case
-    return janus::where(is_zero, Scalar(0), rdot);
+    return metis::where(is_zero, Scalar(0), rdot);
 }
 
 // =============================================================================
@@ -230,11 +230,11 @@ template <typename Scalar>
 Vec3<Scalar> omega_ned_wrt_ecef(const Vec3<Scalar> &v_ned, Scalar lat,
                                 Scalar alt,
                                 const EarthModel &m = EarthModel::WGS84()) {
-    Scalar sin_lat = janus::sin(lat);
-    Scalar cos_lat = janus::cos(lat);
+    Scalar sin_lat = metis::sin(lat);
+    Scalar cos_lat = metis::cos(lat);
 
     // Radius of curvature in meridian
-    Scalar denom = janus::sqrt(Scalar(1) - Scalar(m.e2) * sin_lat * sin_lat);
+    Scalar denom = metis::sqrt(Scalar(1) - Scalar(m.e2) * sin_lat * sin_lat);
     Scalar R_n =
         Scalar(m.a) * (Scalar(1) - Scalar(m.e2)) / (denom * denom * denom);
     R_n = R_n + alt;
@@ -244,7 +244,7 @@ Vec3<Scalar> omega_ned_wrt_ecef(const Vec3<Scalar> &v_ned, Scalar lat,
 
     // Angular velocity of NED wrt ECEF in NED coordinates
     Vec3<Scalar> omega;
-    omega << -v_ned(0) / R_n, v_ned(1) / R_e, v_ned(1) * janus::tan(lat) / R_e;
+    omega << -v_ned(0) / R_n, v_ned(1) / R_e, v_ned(1) * metis::tan(lat) / R_e;
 
     return omega;
 }
@@ -269,8 +269,8 @@ Vec3<Scalar> omega_ned_wrt_eci(const Vec3<Scalar> &v_ned, Scalar lat,
     Vec3<Scalar> omega_ned_ecef = omega_ned_wrt_ecef(v_ned, lat, alt, m);
 
     // Earth's angular velocity in NED: [omega*cos(lat), 0, -omega*sin(lat)]
-    Scalar sin_lat = janus::sin(lat);
-    Scalar cos_lat = janus::cos(lat);
+    Scalar sin_lat = metis::sin(lat);
+    Scalar cos_lat = metis::cos(lat);
 
     Vec3<Scalar> omega_earth_ned;
     omega_earth_ned << Scalar(m.omega) * cos_lat, Scalar(0),

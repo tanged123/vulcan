@@ -7,7 +7,7 @@ Stateless 6DOF equations of motion utilities for trajectory optimization and sim
 The 6DOF equations of motion describe rigid body translational and rotational dynamics. By extracting the *pure physics math* into Vulcan, we enable:
 
 1. **Direct use in trajectory optimization** — No need to instantiate an Icarus `Component` to get dynamics
-2. **Guaranteed physics consistency** — `Simulator<double>` and `janus::Opti<MX>` use the exact same code
+2. **Guaranteed physics consistency** — `Simulator<double>` and `metis::Opti<MX>` use the exact same code
 3. **Clean separation of concerns** — Vulcan provides the math; Icarus manages state and signals
 
 See: [Icarus IDOA Section 9 - Vulcan Integration](file:///home/tanged/sources/icarus/icarus_data_oriented_architecture.md#9-vulcan-integration-engineering-library)
@@ -165,7 +165,7 @@ template <typename Scalar>
 struct RigidBodyState {
     Vec3<Scalar> position;             ///< Position in reference frame [m]
     Vec3<Scalar> velocity_body;        ///< Velocity in body frame [m/s]
-    janus::Quaternion<Scalar> attitude; ///< Body-to-reference quaternion
+    metis::Quaternion<Scalar> attitude; ///< Body-to-reference quaternion
     Vec3<Scalar> omega_body;           ///< Angular velocity in body frame [rad/s]
 };
 
@@ -174,7 +174,7 @@ template <typename Scalar>
 struct RigidBodyDerivatives {
     Vec3<Scalar> position_dot;         ///< Velocity in reference frame [m/s]
     Vec3<Scalar> velocity_dot;         ///< Acceleration in body frame [m/s²]
-    janus::Quaternion<Scalar> attitude_dot; ///< Quaternion rate
+    metis::Quaternion<Scalar> attitude_dot; ///< Quaternion rate
     Vec3<Scalar> omega_dot;            ///< Angular acceleration in body frame [rad/s²]
 };
 
@@ -255,7 +255,7 @@ Vec3<Scalar> rotational_dynamics(
 template <typename Scalar>
 Vec3<Scalar> velocity_to_reference_frame(
     const Vec3<Scalar>& velocity_body,
-    const janus::Quaternion<Scalar>& attitude);
+    const metis::Quaternion<Scalar>& attitude);
 
 /// Transform velocity from reference frame to body frame
 ///
@@ -267,7 +267,7 @@ Vec3<Scalar> velocity_to_reference_frame(
 template <typename Scalar>
 Vec3<Scalar> velocity_to_body_frame(
     const Vec3<Scalar>& velocity_ref,
-    const janus::Quaternion<Scalar>& attitude);
+    const metis::Quaternion<Scalar>& attitude);
 
 /// Compute Earth-relative acceleration with Coriolis and centrifugal terms
 ///
@@ -303,9 +303,9 @@ This module depends on existing Vulcan utilities:
 | Dependency | From | Purpose |
 |------------|------|---------|
 | `Vec3<Scalar>`, `Mat3<Scalar>` | `vulcan/core/VulcanTypes.hpp` | Vector/matrix types |
-| `janus::Quaternion<Scalar>` | `janus/math/Quaternion.hpp` | Attitude representation |
+| `metis::Quaternion<Scalar>` | `metis/math/Quaternion.hpp` | Attitude representation |
 | `quaternion_rate_from_omega()` | `vulcan/rotations/RotationKinematics.hpp` | Quaternion kinematics |
-| `janus::cross()` | `janus/linalg/Vec.hpp` | Cross product |
+| `metis::cross()` | `metis/linalg/Vec.hpp` | Cross product |
 
 ---
 
@@ -333,9 +333,9 @@ examples/dynamics/
 
 Before starting implementation, verify dependencies exist:
 
-- [ ] `janus::Quaternion<Scalar>` exists and is templated (`janus/math/Quaternion.hpp`)
+- [ ] `metis::Quaternion<Scalar>` exists and is templated (`metis/math/Quaternion.hpp`)
 - [ ] `quaternion_rate_from_omega()` signature in `vulcan/rotations/RotationKinematics.hpp`
-- [ ] `janus::cross()` works for `Vec3<casadi::MX>` (`janus/linalg/Vec.hpp`)
+- [ ] `metis::cross()` works for `Vec3<casadi::MX>` (`metis/linalg/Vec.hpp`)
 - [ ] `Mat3<Scalar>` alias exists in `vulcan/core/VulcanTypes.hpp`
 
 ---
@@ -429,7 +429,7 @@ TEST(RigidBodySymbolic, Instantiation) {
     vulcan::dynamics::RigidBodyState<MX> state{
         .position = Vec3<MX>::Zero(),
         .velocity_body = Vec3<MX>{MX::sym("vx"), MX::sym("vy"), MX::sym("vz")},
-        .attitude = janus::Quaternion<MX>::identity(),
+        .attitude = metis::Quaternion<MX>::identity(),
         .omega_body = Vec3<MX>{MX::sym("wx"), MX::sym("wy"), MX::sym("wz")}
     };
     
@@ -447,7 +447,7 @@ TEST(RigidBodySymbolic, Instantiation) {
 }
 ```
 
-### Integration Test (with Janus ODE solver)
+### Integration Test (with Metis ODE solver)
 
 ```cpp
 // Example: Free-falling rotating body
@@ -460,7 +460,7 @@ auto derivs_fn = [&mass_props](auto t, const auto& state) {
         parsed, force_body, moment_body, mass_props);
     return pack_derivatives(d);  // Helper to pack into vector
 };
-auto [t_out, x_out] = janus::solve_ivp(derivs_fn, t_span, x0, janus::RK4);
+auto [t_out, x_out] = metis::solve_ivp(derivs_fn, t_span, x0, metis::RK4);
 ```
 
 ---
@@ -469,7 +469,7 @@ auto [t_out, x_out] = janus::solve_ivp(derivs_fn, t_span, x0, janus::RK4);
 
 1. **Body-frame velocity** — Velocity stored in body frame matches aerospace convention and simplifies force summation (thrust, aero in body frame)
 
-2. **Quaternion for attitude** — Avoids gimbal lock, singular-free representation; aligns with Janus `Quaternion<Scalar>` class
+2. **Quaternion for attitude** — Avoids gimbal lock, singular-free representation; aligns with Metis `Quaternion<Scalar>` class
 
 3. **No state packing/unpacking** — That's Icarus' job; Vulcan just provides the math with clean struct types
 
@@ -519,7 +519,7 @@ void RigidBody6DOF::Step(Scalar t, Scalar dt) {
 For trajectory optimization (without Icarus):
 
 ```cpp
-// Direct use in janus::Opti — mass can be a symbolic variable!
+// Direct use in metis::Opti — mass can be a symbolic variable!
 auto mass = opti.variable();  // Mass as optimization variable
 opti.subject_to(mass >= dry_mass);
 

@@ -160,7 +160,7 @@ target_link_libraries(mass_properties_demo PRIVATE vulcan)
 target_precompile_headers(mass_properties_demo REUSE_FROM getting_started)
 
 # =============================================================================
-# Integration with Janus Optimization
+# Integration with Metis Optimization
 # =============================================================================
 # add_executable(trajectory_opt integration/trajectory_optimization.cpp)
 # target_link_libraries(trajectory_opt PRIVATE vulcan)

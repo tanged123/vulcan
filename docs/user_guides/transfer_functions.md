@@ -81,5 +81,5 @@ auto c = first_order<casadi::MX>(0.1, 1.0, 0.01);
 casadi::MX x = casadi::MX::sym("x");
 casadi::MX u = casadi::MX::sym("u");
 casadi::MX x_next = first_order_step(c, x, u);
-// x_next is a symbolic expression for use in janus::Opti
+// x_next is a symbolic expression for use in metis::Opti
 ```

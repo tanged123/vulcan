@@ -2,7 +2,7 @@
 // Centered dipole model for geomagnetic field
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 
@@ -44,7 +44,7 @@ Vec3<Scalar> dipole_field_ecef(const Vec3<Scalar> &r_ecef,
     const Scalar z = r_ecef(2);
 
     const Scalar r2 = x * x + y * y + z * z;
-    const Scalar r = janus::sqrt(r2);
+    const Scalar r = metis::sqrt(r2);
     const Scalar r5 = r2 * r2 * r;
 
     // Dipole field coefficient: B0 * R³ / r⁵
@@ -71,7 +71,7 @@ template <typename Scalar>
 Scalar field_magnitude(const Vec3<Scalar> &r_ecef, double B0 = constants::B0,
                        double R = vulcan::constants::earth::R_eq) {
     const Vec3<Scalar> B = dipole_field_ecef(r_ecef, B0, R);
-    return janus::norm(B);
+    return metis::norm(B);
 }
 
 /**
@@ -98,8 +98,8 @@ Vec3<Scalar> field_ned(const Scalar &lat, [[maybe_unused]] const Scalar &lon,
     // Theta component:  B_θ =  B0 * (R/r)³ * cos(φ)
     const Scalar R_over_r_cubed = (R * R * R) / (r * r * r);
 
-    const Scalar sin_phi = janus::sin(phi);
-    const Scalar cos_phi = janus::cos(phi);
+    const Scalar sin_phi = metis::sin(phi);
+    const Scalar cos_phi = metis::cos(phi);
 
     const Scalar B_r = -2.0 * B0 * R_over_r_cubed * sin_phi;
     const Scalar B_theta = B0 * R_over_r_cubed * cos_phi;
@@ -126,8 +126,8 @@ Vec3<Scalar> field_ned(const Scalar &lat, [[maybe_unused]] const Scalar &lon,
  */
 template <typename Scalar>
 Scalar surface_intensity(const Scalar &lat, double B0 = constants::B0) {
-    const Scalar sin_lat = janus::sin(lat);
-    return B0 * janus::sqrt(1.0 + 3.0 * sin_lat * sin_lat);
+    const Scalar sin_lat = metis::sin(lat);
+    return B0 * metis::sqrt(1.0 + 3.0 * sin_lat * sin_lat);
 }
 
 /**
@@ -139,8 +139,8 @@ Scalar surface_intensity(const Scalar &lat, double B0 = constants::B0) {
  * @return Inclination angle [rad] (positive downward in north)
  */
 template <typename Scalar> Scalar inclination(const Scalar &lat) {
-    const Scalar tan_lat = janus::tan(lat);
-    return janus::atan(2.0 * tan_lat);
+    const Scalar tan_lat = metis::tan(lat);
+    return metis::atan(2.0 * tan_lat);
 }
 
 } // namespace vulcan::environment::magnetic

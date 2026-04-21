@@ -1,8 +1,8 @@
 /**
  * @file orbital_optimization.cpp
- * @brief Demonstrates orbital mechanics optimization using janus::Opti
+ * @brief Demonstrates orbital mechanics optimization using metis::Opti
  *
- * This example shows how to use Vulcan's orbital mechanics with Janus for
+ * This example shows how to use Vulcan's orbital mechanics with Metis for
  * gradient-based optimization. We solve several classic orbital mechanics
  * problems:
  *
@@ -11,24 +11,24 @@
  * 3. Orbital rendezvous phasing optimization
  *
  * Key insight: Vulcan's orbital utilities (Kepler solver, state conversions,
- * ephemeris) are fully symbolic-compatible with Janus optimization.
+ * ephemeris) are fully symbolic-compatible with Metis optimization.
  */
 
 #include <cmath>
 #include <iomanip>
 #include <iostream>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/vulcan.hpp>
 
 using namespace vulcan;
 using namespace vulcan::orbital;
-using Scalar = janus::SymbolicScalar;
+using Scalar = metis::SymbolicScalar;
 
 int main() {
     std::cout
         << "╔════════════════════════════════════════════════════════════╗\n";
     std::cout
-        << "║     Vulcan Orbital Mechanics - janus::Opti Optimization    ║\n";
+        << "║     Vulcan Orbital Mechanics - metis::Opti Optimization    ║\n";
     std::cout
         << "╚════════════════════════════════════════════════════════════╝\n\n";
 
@@ -54,7 +54,7 @@ int main() {
     std::cout << "Hohmann Δv:           " << dv_hohmann / 1000.0 << " km/s\n\n";
 
     // Optimize bielliptic intermediate apoapsis
-    janus::Opti opti1;
+    metis::Opti opti1;
 
     // Decision variable: intermediate apoapsis radius
     auto r_b = opti1.variable(150000.0e3); // Initial guess: 150,000 km
@@ -103,7 +103,7 @@ int main() {
     std::cout << "Optimizing departure time to minimize arrival distance to "
                  "Moon...\n\n";
 
-    janus::Opti opti2;
+    metis::Opti opti2;
 
     // Decision variable: departure offset from base epoch [days]
     auto dt_days = opti2.variable(0.0);
@@ -123,7 +123,7 @@ int main() {
     // but aligned with transfer trajectory)
 
     // For simplicity: minimize deviation from mean lunar distance at intercept
-    auto moon_dist = janus::norm(r_moon);
+    auto moon_dist = metis::norm(r_moon);
     auto dist_error = (moon_dist - constants::moon::mean_distance);
 
     // Also consider Moon phase for lighting (simplified: x-component favorable)
@@ -146,7 +146,7 @@ int main() {
     // Evaluate Moon position at optimal arrival
     Vec3<double> r_moon_opt =
         ephemeris::analytical::moon_position_eci(jd_optimal_arrive);
-    double moon_distance = janus::norm(r_moon_opt);
+    double moon_distance = metis::norm(r_moon_opt);
 
     std::cout << "Optimal departure: J2000 + " << optimal_depart_offset
               << " days\n";
@@ -199,8 +199,8 @@ int main() {
     std::cout << "Wait time for alignment: " << wait_time / 60.0
               << " minutes\n\n";
 
-    // Optimize using janus::Opti (verify our analytical solution)
-    janus::Opti opti3;
+    // Optimize using metis::Opti (verify our analytical solution)
+    metis::Opti opti3;
 
     auto phase_angle = opti3.variable(M_PI); // Initial guess
 
@@ -210,7 +210,7 @@ int main() {
     // We want: phase_angle + n_target * t_transfer ≡ π (mod 2π)
 
     auto target_final = phase_angle + n_target * t_transfer;
-    auto error = janus::sin(target_final - M_PI); // Zero when aligned
+    auto error = metis::sin(target_final - M_PI); // Zero when aligned
 
     opti3.minimize(error * error);
 
@@ -244,7 +244,7 @@ int main() {
     std::cout << "Initial: 300 km circular, 28.5° inclination\n";
     std::cout << "Final:   GEO, 0° inclination\n\n";
 
-    janus::Opti opti4;
+    metis::Opti opti4;
 
     // Strategy: split plane change between first and second burn
     auto plane_fraction = opti4.variable(0.5); // Fraction done at first burn
@@ -302,7 +302,7 @@ int main() {
     std::cout << "\n═══════════════════════════════════════════════════════════"
                  "════\n";
     std::cout
-        << "✓ All optimizations complete using janus::Opti + Vulcan orbital!\n";
+        << "✓ All optimizations complete using metis::Opti + Vulcan orbital!\n";
     std::cout
         << "═══════════════════════════════════════════════════════════════\n";
 

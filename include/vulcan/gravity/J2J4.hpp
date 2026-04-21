@@ -2,7 +2,7 @@
 // Includes J2, J3, and J4 zonal harmonic perturbations
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 
@@ -37,7 +37,7 @@ Vec3<Scalar> acceleration(const Vec3<Scalar> &r_ecef,
     const Scalar z = r_ecef(2);
 
     const Scalar r2 = x * x + y * y + z * z;
-    const Scalar r = janus::sqrt(r2);
+    const Scalar r = metis::sqrt(r2);
     const Scalar r3 = r2 * r;
 
     // Normalized z coordinate
@@ -115,7 +115,7 @@ Scalar potential(const Vec3<Scalar> &r_ecef, double mu = constants::earth::mu,
     const Scalar z = r_ecef(2);
 
     const Scalar r2 = x * x + y * y + z * z;
-    const Scalar r = janus::sqrt(r2);
+    const Scalar r = metis::sqrt(r2);
 
     // sin(φ) = z/r
     const Scalar sin_phi = z / r;

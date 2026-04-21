@@ -49,8 +49,8 @@ wind::WindVector<Scalar> from_speed_direction(const Scalar &speed,
     // North component: -speed * cos(direction_from)
     // East component: -speed * sin(direction_from)
     return wind::WindVector<Scalar>{
-        .north = -speed * janus::cos(direction_from),
-        .east = -speed * janus::sin(direction_from),
+        .north = -speed * metis::cos(direction_from),
+        .east = -speed * metis::sin(direction_from),
         .down = speed * Scalar(0) // Zero down component, maintain scalar type
     };
 }

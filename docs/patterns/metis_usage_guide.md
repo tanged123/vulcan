@@ -1,6 +1,6 @@
-# Janus Usage Guide
+# Metis Usage Guide
 
-> **Purpose**: This document provides comprehensive guidance for AI agents working with the Janus library. It documents all available modules, best practices, and conventions to prevent duplication of work.
+> **Purpose**: This document provides comprehensive guidance for AI agents working with the Metis library. It documents all available modules, best practices, and conventions to prevent duplication of work.
 
 ---
 
@@ -10,9 +10,9 @@
 2. [Best Practices](#best-practices)
 3. [Type System](#type-system)
 4. [Module Reference](#module-reference)
-   - [Core Layer](#core-layer-januscore)
-   - [Math Layer](#math-layer-janusmath)
-   - [Optimization Layer](#optimization-layer-janusoptimization)
+   - [Core Layer](#core-layer-metiscore)
+   - [Math Layer](#math-layer-metismath)
+   - [Optimization Layer](#optimization-layer-metisoptimization)
 5. [Existing User Guides](#existing-user-guides)
 
 ---
@@ -21,7 +21,7 @@
 
 ### Official Documentation
 
-- **Doxygen API Docs**: [https://tanged123.github.io/janus/index.html](https://tanged123.github.io/janus/index.html)
+- **Doxygen API Docs**: [https://tanged123.github.io/metis/index.html](https://tanged123.github.io/metis/index.html)
 - **Design Overview**: `docs/design_overview.md`
 - **User Guides**: `docs/user_guides/` (10 comprehensive guides)
 
@@ -57,31 +57,31 @@ Scalar my_function(const Scalar& x) { ... }
 double my_function(double x) { ... }
 ```
 
-### 2. Math Dispatch - Use `janus::` Namespace
+### 2. Math Dispatch - Use `metis::` Namespace
 
-**Always** use Janus math functions instead of `std::`:
+**Always** use Metis math functions instead of `std::`:
 
 ```cpp
 // ✅ CORRECT
-janus::sin(x), janus::pow(x, 2), janus::sqrt(x), janus::exp(x)
+metis::sin(x), metis::pow(x, 2), metis::sqrt(x), metis::exp(x)
 
 // ❌ WRONG - Uses std, breaks symbolic tracing
 std::sin(x), std::pow(x, 2), std::sqrt(x), std::exp(x)
 ```
 
-### 3. Branching - Use `janus::where()`, Never `if/else`
+### 3. Branching - Use `metis::where()`, Never `if/else`
 
 ```cpp
 // ✅ CORRECT
-Scalar result = janus::where(x > 0, x, -x);
+Scalar result = metis::where(x > 0, x, -x);
 
 // ❌ WRONG - MX can't evaluate to bool
 if (x > 0) { result = x; } else { result = -x; }
 ```
 
-For multi-way branching, use `janus::select()`:
+For multi-way branching, use `metis::select()`:
 ```cpp
-Scalar cd = janus::select(
+Scalar cd = metis::select(
     {mach < 0.3, mach < 0.8, mach < 1.2},
     {Scalar(0.02), Scalar(0.025), Scalar(0.05)},
     Scalar(0.03));  // default
@@ -97,16 +97,16 @@ for (int i = 0; i < N; ++i) { ... }
 while (error > tolerance) { ... }
 ```
 
-### 5. Type Aliases - Use Janus Native Types
+### 5. Type Aliases - Use Metis Native Types
 
 ```cpp
-#include <janus/core/JanusTypes.hpp>
+#include <metis/core/MetisTypes.hpp>
 
 // Prefer these over raw Eigen types
-janus::Vec3<Scalar>   // 3D vector
-janus::Mat3<Scalar>   // 3x3 matrix
-janus::VecX<Scalar>   // Dynamic vector
-janus::MatX<Scalar>   // Dynamic matrix
+metis::Vec3<Scalar>   // 3D vector
+metis::Mat3<Scalar>   // 3x3 matrix
+metis::VecX<Scalar>   // Dynamic vector
+metis::MatX<Scalar>   // Dynamic matrix
 ```
 
 ---
@@ -121,66 +121,66 @@ janus::MatX<Scalar>   // Dynamic matrix
 | **Matrix** | `Eigen::MatrixXd` | `Eigen::Matrix<casadi::MX>` |
 | **Vector** | `Eigen::VectorXd` | `Eigen::Matrix<casadi::MX, Dynamic, 1>` |
 
-### Janus Type Aliases (`janus/core/JanusTypes.hpp`)
+### Metis Type Aliases (`metis/core/MetisTypes.hpp`)
 
 ```cpp
 // Symbolic types (for graph building)
-janus::SymbolicScalar   // casadi::MX
-janus::SymbolicMatrix   // Eigen::Matrix<casadi::MX, Dynamic, Dynamic>
-janus::SymbolicVector   // Eigen::Matrix<casadi::MX, Dynamic, 1>
+metis::SymbolicScalar   // casadi::MX
+metis::SymbolicMatrix   // Eigen::Matrix<casadi::MX, Dynamic, Dynamic>
+metis::SymbolicVector   // Eigen::Matrix<casadi::MX, Dynamic, 1>
 
 // Numeric types (for evaluation)
-janus::NumericMatrix    // Eigen::MatrixXd
-janus::NumericVector    // Eigen::VectorXd
+metis::NumericMatrix    // Eigen::MatrixXd
+metis::NumericVector    // Eigen::VectorXd
 
 // Fixed-size templated types
-janus::Vec2<T>, janus::Vec3<T>, janus::Vec4<T>
-janus::Mat2<T>, janus::Mat3<T>, janus::Mat4<T>
-janus::VecX<T>, janus::MatX<T>, janus::RowVecX<T>
+metis::Vec2<T>, metis::Vec3<T>, metis::Vec4<T>
+metis::Mat2<T>, metis::Mat3<T>, metis::Mat4<T>
+metis::VecX<T>, metis::MatX<T>, metis::RowVecX<T>
 
 // Sparse types (numeric only)
-janus::SparseMatrix     // Eigen::SparseMatrix<double>
-janus::SparseTriplet    // Eigen::Triplet<double>
+metis::SparseMatrix     // Eigen::SparseMatrix<double>
+metis::SparseTriplet    // Eigen::Triplet<double>
 ```
 
 ### Symbolic Variable Creation
 
 ```cpp
 // Scalar
-auto x = janus::sym("x");
+auto x = metis::sym("x");
 
 // Matrix/Vector (returns MX)
-auto M = janus::sym("M", rows, cols);
+auto M = metis::sym("M", rows, cols);
 
 // Vector as SymbolicVector (Eigen container)
-auto v = janus::sym_vector("v", size);
-auto v = janus::sym_vec("v", size);  // Alias
+auto v = metis::sym_vector("v", size);
+auto v = metis::sym_vec("v", size);  // Alias
 
 // Get both SymbolicVector and underlying MX
-auto [vec, mx] = janus::sym_vec_pair("state", 3);
+auto [vec, mx] = metis::sym_vec_pair("state", 3);
 ```
 
 ### Conversion Utilities
 
 ```cpp
-janus::to_mx(eigen_matrix)     // Eigen → CasADi MX
-janus::to_eigen(casadi_mx)     // CasADi MX → Eigen
-janus::as_mx(symbolic_vector)  // SymbolicVector → single MX
-janus::as_vector(casadi_mx)    // MX → SymbolicVector
+metis::to_mx(eigen_matrix)     // Eigen → CasADi MX
+metis::to_eigen(casadi_mx)     // CasADi MX → Eigen
+metis::as_mx(symbolic_vector)  // SymbolicVector → single MX
+metis::as_vector(casadi_mx)    // MX → SymbolicVector
 ```
 
 ---
 
 ## Module Reference
 
-### Core Layer (`janus/core/`)
+### Core Layer (`metis/core/`)
 
 | File | Description | Key Functions |
 |------|-------------|---------------|
-| `JanusTypes.hpp` | Type system and aliases | `sym()`, `sym_vec()`, `to_mx()`, `to_eigen()` |
-| `JanusConcepts.hpp` | C++20 concepts for type constraints | `ScalarType`, `NumericScalar`, `SymbolicScalar` |
-| `JanusError.hpp` | Custom exception types | `InvalidArgument`, `IntegrationError`, `InterpolationError` |
-| `JanusIO.hpp` | I/O and graph visualization | `eval()`, `print()`, `to_dot()`, `graphviz()` |
+| `MetisTypes.hpp` | Type system and aliases | `sym()`, `sym_vec()`, `to_mx()`, `to_eigen()` |
+| `MetisConcepts.hpp` | C++20 concepts for type constraints | `ScalarType`, `NumericScalar`, `SymbolicScalar` |
+| `MetisError.hpp` | Custom exception types | `InvalidArgument`, `IntegrationError`, `InterpolationError` |
+| `MetisIO.hpp` | I/O and graph visualization | `eval()`, `print()`, `to_dot()`, `graphviz()` |
 | `Function.hpp` | CasADi function wrapper | `Function` class for compiled symbolic functions |
 | `Sparsity.hpp` | Sparsity pattern analysis | `SparsityPattern`, `analyze_sparsity()`, `visualize_sparsity()` |
 
@@ -188,25 +188,25 @@ janus::as_vector(casadi_mx)    // MX → SymbolicVector
 
 ```cpp
 // Evaluation
-double result = janus::eval(symbolic_expr, {{"x", 5.0}});
-janus::NumericMatrix result = janus::eval(symbolic_matrix, args);
+double result = metis::eval(symbolic_expr, {{"x", 5.0}});
+metis::NumericMatrix result = metis::eval(symbolic_matrix, args);
 
 // Printing
-janus::print(symbolic_expr);            // Pretty print
-janus::print_expression(symbolic_expr); // Show graph structure
+metis::print(symbolic_expr);            // Pretty print
+metis::print_expression(symbolic_expr); // Show graph structure
 
 // Graph visualization
-std::string dot = janus::to_dot(expr, "my_graph");
-janus::graphviz(expr, "output.pdf");
+std::string dot = metis::to_dot(expr, "my_graph");
+metis::graphviz(expr, "output.pdf");
 
 // Function compilation
-janus::Function f("f", {x}, {result});
+metis::Function f("f", {x}, {result});
 auto output = f({5.0});
 ```
 
 ---
 
-### Math Layer (`janus/math/`)
+### Math Layer (`metis/math/`)
 
 #### Arithmetic (`Arithmetic.hpp`)
 
@@ -408,14 +408,14 @@ Smooth approximations:
 
 ---
 
-### Optimization Layer (`janus/optimization/`)
+### Optimization Layer (`metis/optimization/`)
 
 #### Opti (`Opti.hpp`)
 
 Main optimization interface:
 
 ```cpp
-janus::Opti opti;
+metis::Opti opti;
 
 // Variables
 auto x = opti.variable(1.0);                    // Scalar
@@ -437,7 +437,7 @@ opti.subject_to_bounds(x, lower, upper);  // Box constraints
 // Solve
 auto sol = opti.solve();
 double x_val = sol.value(x);
-janus::NumericVector v_val = sol.value_vector(v);
+metis::NumericVector v_val = sol.value_vector(v);
 ```
 
 #### Solver Configuration (`OptiOptions.hpp`)
@@ -446,10 +446,10 @@ janus::NumericVector v_val = sol.value_vector(v);
 opti.set_max_iterations(1000);
 opti.set_tolerance(1e-8);
 opti.set_option("print_level", 0);  // IPOPT options
-opti.set_solver(janus::Solver::IPOPT);
+opti.set_solver(metis::Solver::IPOPT);
 
 // Check solver availability
-if (janus::solver_available(janus::Solver::SNOPT)) { ... }
+if (metis::solver_available(metis::Solver::SNOPT)) { ... }
 ```
 
 #### Solution (`OptiSol.hpp`)
@@ -466,7 +466,7 @@ sol.stats();            // Solver statistics
 #### Parametric Sweep (`OptiSweep.hpp`)
 
 ```cpp
-janus::OptiSweep sweep(opti);
+metis::OptiSweep sweep(opti);
 auto results = sweep.run(parameter, values);
 ```
 
@@ -474,7 +474,7 @@ auto results = sweep.run(parameter, values);
 
 **Collocation** (`Collocation.hpp`):
 ```cpp
-janus::DirectCollocation problem(N_segments, dynamics, t0, tf);
+metis::DirectCollocation problem(N_segments, dynamics, t0, tf);
 problem.set_state_bounds(lower, upper);
 problem.set_control_bounds(u_lower, u_upper);
 problem.set_boundary_conditions(x0, xf);
@@ -483,7 +483,7 @@ auto [sol, t, x, u] = problem.solve();
 
 **Multiple Shooting** (`MultiShooting.hpp`):
 ```cpp
-janus::MultipleShooting problem(N_segments, dynamics, t0, tf);
+metis::MultipleShooting problem(N_segments, dynamics, t0, tf);
 problem.set_initial_guess(t_init, x_init, u_init);
 auto [sol, t, x, u] = problem.solve();
 ```
@@ -505,7 +505,7 @@ Before implementing new functionality, check these existing guides to avoid dupl
 | Collocation | `docs/user_guides/collocation.md` | Direct collocation transcription |
 | Multiple Shooting | `docs/user_guides/multiple_shooting.md` | Multiple shooting transcription |
 | Transcription Methods | `docs/user_guides/transcription_methods.md` | Comparison of trajectory methods |
-| Math Functions | `docs/user_guides/math_functions.md` | Overview of janus:: math functions |
+| Math Functions | `docs/user_guides/math_functions.md` | Overview of metis:: math functions |
 
 ---
 
@@ -521,7 +521,7 @@ Before implementing new functionality, check these existing guides to avoid dupl
 
 ### DO NOT Reimplement
 
-The following functionality already exists in Janus:
+The following functionality already exists in Metis:
 
 - ✅ All basic math (`sin`, `cos`, `pow`, `exp`, `log`, `sqrt`, etc.)
 - ✅ Linear algebra (`dot`, `cross`, `norm`, `inv`, `det`)
@@ -535,11 +535,11 @@ The following functionality already exists in Janus:
 - ✅ Optimization (`Opti`, IPOPT)
 - ✅ Trajectory optimization (collocation, multiple shooting)
 
-### When Building on Janus
+### When Building on Metis
 
-1. **Import via** `#include <janus/janus.hpp>` (includes everything)
-2. **Use Janus types** (`janus::Vec3<Scalar>`, `janus::SymbolicScalar`)
-3. **Use Janus math** (`janus::sin`, not `std::sin`)
-4. **Use Janus branching** (`janus::where`, not `if/else`)
+1. **Import via** `#include <metis/metis.hpp>` (includes everything)
+2. **Use Metis types** (`metis::Vec3<Scalar>`, `metis::SymbolicScalar`)
+3. **Use Metis math** (`metis::sin`, not `std::sin`)
+4. **Use Metis branching** (`metis::where`, not `if/else`)
 5. **Template everything** on `Scalar`
 6. **Test both modes** (numeric AND symbolic)

@@ -12,7 +12,7 @@ Phase 12 adds geodetic utility functions for pure geometric computations on the 
 ```mermaid
 graph LR
     Geodetic["geodetic/"] -->|LLA, EarthModel| Coordinates["coordinates/"]
-    Geodetic -->|janus::sin, etc.| Janus["janus/"]
+    Geodetic -->|metis::sin, etc.| Metis["metis/"]
     LocalFrames["LocalFrames.hpp"] -->|initial_bearing| Geodetic
     LocalFrames -->|NED transform| CoordinateFrame["CoordinateFrame.hpp"]
 ```
@@ -284,8 +284,8 @@ Add geodetic include:
 | `RayEllipsoid_Miss` | Ray pointing away | No hit |
 | `IsVisible_SameSide` | Two close points | Visible |
 | `IsVisible_Horizon` | Just at horizon limit | Boundary |
-| `Symbolic_Distance` | CasADi graph builds | Janus compatibility |
-| `Symbolic_Bearing` | CasADi graph builds | Janus compatibility |
+| `Symbolic_Distance` | CasADi graph builds | Metis compatibility |
+| `Symbolic_Bearing` | CasADi graph builds | Metis compatibility |
 
 #### CDA Frame Tests
 
@@ -298,7 +298,7 @@ Add geodetic include:
 | `CDA_DownRange_Distance` | Point on bearing = (0, d, 0) | Geometry check |
 | `CDA_CrossRange_Offset` | Point perpendicular = (c, 0, 0) | Geometry check |
 | `CDA_Altitude_Preserved` | Altitude consistent with LLA | Vertical axis |
-| `CDA_Symbolic_Frame` | CasADi graph builds | Janus compatibility |
+| `CDA_Symbolic_Frame` | CasADi graph builds | Metis compatibility |
 
 #### [MODIFY] [CMakeLists.txt](file:///home/tanged/sources/temp/vulcan/tests/CMakeLists.txt)
 

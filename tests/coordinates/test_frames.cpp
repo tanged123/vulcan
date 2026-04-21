@@ -4,7 +4,7 @@
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/core/Units.hpp>
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 // ============================================
 // Coordinate Frame Placeholder Tests
@@ -357,10 +357,10 @@ TEST(CoordinateFrame, TransformVector_Roundtrip) {
 }
 
 TEST(CoordinateFrame, Symbolic_ECI_Evaluation) {
-    using Scalar = janus::SymbolicScalar;
+    using Scalar = metis::SymbolicScalar;
 
     // Create symbolic GMST
-    Scalar gmst = janus::sym("gmst");
+    Scalar gmst = metis::sym("gmst");
 
     // Create ECI frame symbolically
     auto eci = vulcan::CoordinateFrame<Scalar>::eci(gmst);
@@ -369,7 +369,7 @@ TEST(CoordinateFrame, Symbolic_ECI_Evaluation) {
     EXPECT_FALSE(eci.x_axis(0).is_constant());
 
     // Create function to evaluate ECI basis vectors
-    janus::Function f("eci_basis", {gmst},
+    metis::Function f("eci_basis", {gmst},
                       {eci.x_axis(0), eci.x_axis(1), eci.x_axis(2),
                        eci.y_axis(0), eci.y_axis(1), eci.y_axis(2)});
 
@@ -389,11 +389,11 @@ TEST(CoordinateFrame, Symbolic_ECI_Evaluation) {
 }
 
 TEST(CoordinateFrame, Symbolic_NED_Evaluation) {
-    using Scalar = janus::SymbolicScalar;
+    using Scalar = metis::SymbolicScalar;
 
     // Create symbolic coordinates
-    Scalar lon = janus::sym("lon");
-    Scalar lat = janus::sym("lat");
+    Scalar lon = metis::sym("lon");
+    Scalar lat = metis::sym("lat");
 
     // Create NED frame symbolically
     auto ned = vulcan::CoordinateFrame<Scalar>::ned(lon, lat);
@@ -402,7 +402,7 @@ TEST(CoordinateFrame, Symbolic_NED_Evaluation) {
     EXPECT_FALSE(ned.x_axis(0).is_constant());
 
     // Create function to evaluate all NED basis vectors
-    janus::Function f("ned_basis", {lon, lat},
+    metis::Function f("ned_basis", {lon, lat},
                       {ned.x_axis(0), ned.x_axis(1), ned.x_axis(2),
                        ned.y_axis(0), ned.y_axis(1), ned.y_axis(2),
                        ned.z_axis(0), ned.z_axis(1), ned.z_axis(2)});
@@ -427,14 +427,14 @@ TEST(CoordinateFrame, Symbolic_NED_Evaluation) {
 }
 
 TEST(CoordinateFrame, Symbolic_Transform_Evaluation) {
-    using Scalar = janus::SymbolicScalar;
+    using Scalar = metis::SymbolicScalar;
 
     // Create symbolic inputs
-    Scalar lon = janus::sym("lon");
-    Scalar lat = janus::sym("lat");
-    Scalar vx = janus::sym("vx");
-    Scalar vy = janus::sym("vy");
-    Scalar vz = janus::sym("vz");
+    Scalar lon = metis::sym("lon");
+    Scalar lat = metis::sym("lat");
+    Scalar vx = metis::sym("vx");
+    Scalar vy = metis::sym("vy");
+    Scalar vz = metis::sym("vz");
 
     // Create symbolic NED frame
     auto ned = vulcan::CoordinateFrame<Scalar>::ned(lon, lat);
@@ -447,7 +447,7 @@ TEST(CoordinateFrame, Symbolic_Transform_Evaluation) {
     auto v_ned = ned.from_ecef(v_ecef);
 
     // Create function
-    janus::Function f("ecef_to_ned", {lon, lat, vx, vy, vz},
+    metis::Function f("ecef_to_ned", {lon, lat, vx, vy, vz},
                       {v_ned(0), v_ned(1), v_ned(2)});
 
     // Test with concrete values
@@ -468,13 +468,13 @@ TEST(CoordinateFrame, Symbolic_Transform_Evaluation) {
 }
 
 TEST(CoordinateFrame, Symbolic_Roundtrip_Evaluation) {
-    using Scalar = janus::SymbolicScalar;
+    using Scalar = metis::SymbolicScalar;
 
     // Create symbolic GMST and vector
-    Scalar gmst = janus::sym("gmst");
-    Scalar vx = janus::sym("vx");
-    Scalar vy = janus::sym("vy");
-    Scalar vz = janus::sym("vz");
+    Scalar gmst = metis::sym("gmst");
+    Scalar vx = metis::sym("vx");
+    Scalar vy = metis::sym("vy");
+    Scalar vz = metis::sym("vz");
 
     // Create symbolic ECI frame
     auto eci = vulcan::CoordinateFrame<Scalar>::eci(gmst);
@@ -488,7 +488,7 @@ TEST(CoordinateFrame, Symbolic_Roundtrip_Evaluation) {
     auto v_back = eci.to_ecef(v_eci);
 
     // Create function
-    janus::Function f("eci_roundtrip", {gmst, vx, vy, vz},
+    metis::Function f("eci_roundtrip", {gmst, vx, vy, vz},
                       {v_back(0), v_back(1), v_back(2)});
 
     // Test with concrete values

@@ -161,26 +161,26 @@ void demo_magnetic_field() {
 void demo_symbolic() {
     section("4. Symbolic Mode: Optimal Eclipse Avoidance");
 
-    std::cout << "Using Janus symbolic mode for autodiff...\n\n";
+    std::cout << "Using Metis symbolic mode for autodiff...\n\n";
 
     // Create symbolic satellite position
-    auto x = janus::sym("x");
-    auto y = janus::sym("y");
-    auto z = janus::sym("z");
+    auto x = metis::sym("x");
+    auto y = metis::sym("y");
+    auto z = metis::sym("z");
 
-    Vec3<janus::SymbolicScalar> r_sat;
+    Vec3<metis::SymbolicScalar> r_sat;
     r_sat << x, y, z;
 
     // Fixed sun position
-    Vec3<janus::SymbolicScalar> r_sun;
-    r_sun << janus::SymbolicScalar(1.5e11), janus::SymbolicScalar(0.0),
-        janus::SymbolicScalar(0.0);
+    Vec3<metis::SymbolicScalar> r_sun;
+    r_sun << metis::SymbolicScalar(1.5e11), metis::SymbolicScalar(0.0),
+        metis::SymbolicScalar(0.0);
 
     // Shadow function (want to maximize for optimal illumination)
     auto nu = eclipse::shadow_cylindrical(r_sat, r_sun);
 
     // Create a CasADi function for the shadow model
-    janus::Function shadow_fn("shadow", {x, y, z}, {nu});
+    metis::Function shadow_fn("shadow", {x, y, z}, {nu});
 
     // Evaluate gradient at a point near the shadow boundary
     std::cout << "Shadow function at test point (-7000km, 5000km, 0):\n";
@@ -188,8 +188,8 @@ void demo_symbolic() {
     std::cout << "  ν = " << result[0](0, 0) << "\n";
 
     // Show that we can compute gradients for optimization
-    auto grad = janus::jacobian(nu, x);
-    janus::Function grad_fn("grad_shadow", {x, y, z}, {grad});
+    auto grad = metis::jacobian(nu, x);
+    metis::Function grad_fn("grad_shadow", {x, y, z}, {grad});
     auto grad_result = grad_fn({-7000e3, 5000e3, 0.0});
     std::cout << "  ∂ν/∂x = " << grad_result[0](0, 0)
               << " (use for gradient-based optimization)\n";

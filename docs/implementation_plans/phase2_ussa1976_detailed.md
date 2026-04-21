@@ -127,7 +127,7 @@ For a fully analytical COESA model (reference: `AtmosphericLayers.m`, `CalcTemp.
 - Layer 10: 110-120 km, linear (L = 12 K/km)
 - Layer 11+: 120-1000 km, exponential approach to T_∞ = 1000 K
 
-This would eliminate table lookup overhead but requires complex `janus::where` branching for all 12+ layers.
+This would eliminate table lookup overhead but requires complex `metis::where` branching for all 12+ layers.
 
 ---
 

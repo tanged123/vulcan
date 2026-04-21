@@ -4,7 +4,7 @@
 
 #include <vulcan/core/VulcanTypes.hpp>
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 namespace vulcan::dynamics {
 
@@ -73,7 +73,7 @@ Scalar spring_damper_acceleration(const Scalar &x, const Scalar &x_dot,
 /// @return Natural frequency [rad/s]
 template <typename Scalar>
 Scalar spring_to_omega(const Scalar &stiffness, const Scalar &mass) {
-    return janus::sqrt(stiffness / mass);
+    return metis::sqrt(stiffness / mass);
 }
 
 /// Convert spring-damper parameters to damping ratio
@@ -85,7 +85,7 @@ Scalar spring_to_omega(const Scalar &stiffness, const Scalar &mass) {
 template <typename Scalar>
 Scalar spring_to_zeta(const Scalar &stiffness, const Scalar &damping,
                       const Scalar &mass) {
-    return damping / (Scalar(2) * janus::sqrt(stiffness * mass));
+    return damping / (Scalar(2) * metis::sqrt(stiffness * mass));
 }
 
 /// Compute natural period from frequency

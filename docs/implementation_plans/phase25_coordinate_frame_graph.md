@@ -442,7 +442,7 @@ private:
 template <typename Scalar>
 class QuaternionProvider : public TransformProvider<Scalar> {
 public:
-    explicit QuaternionProvider(janus::Quaternion<Scalar> q) : q_(std::move(q)) {}
+    explicit QuaternionProvider(metis::Quaternion<Scalar> q) : q_(std::move(q)) {}
 
     Vec3<Scalar> to_parent(const Vec3<Scalar>& v) const override {
         return q_.rotate(v);
@@ -453,7 +453,7 @@ public:
     }
 
 private:
-    janus::Quaternion<Scalar> q_;
+    metis::Quaternion<Scalar> q_;
 };
 
 } // namespace vulcan
@@ -622,7 +622,7 @@ public:
     void set_body_euler(Scalar yaw, Scalar pitch, Scalar roll);
 
     /// Set body frame from quaternion relative to NED
-    void set_body_quaternion(const janus::Quaternion<Scalar>& q);
+    void set_body_quaternion(const metis::Quaternion<Scalar>& q);
 
     /// Set a custom frame with a CoordinateFrame (backward compat)
     void set_frame(FrameID id, const CoordinateFrame<Scalar>& frame);
@@ -750,8 +750,8 @@ public:
     /// The angle is the Earth rotation angle (or GMST) at the current epoch.
     /// Can be a symbolic variable for CasADi graphs.
     explicit ECEFProvider(Scalar rotation_angle) {
-        c_ = janus::cos(rotation_angle);
-        s_ = janus::sin(rotation_angle);
+        c_ = metis::cos(rotation_angle);
+        s_ = metis::sin(rotation_angle);
     }
 
     /// Construct from a rotation model and time (numeric only)
@@ -879,10 +879,10 @@ class BodyProvider : public TransformProvider<Scalar> {
 public:
     /// From Euler angles
     BodyProvider(Scalar yaw, Scalar pitch, Scalar roll)
-        : q_(janus::Quaternion<Scalar>::from_euler(roll, pitch, yaw)) {}
+        : q_(metis::Quaternion<Scalar>::from_euler(roll, pitch, yaw)) {}
 
     /// From quaternion (body-to-NED rotation)
-    explicit BodyProvider(janus::Quaternion<Scalar> q) : q_(std::move(q)) {}
+    explicit BodyProvider(metis::Quaternion<Scalar> q) : q_(std::move(q)) {}
 
     // Body → NED (parent)
     Vec3<Scalar> to_parent(const Vec3<Scalar>& v_body) const override {
@@ -895,7 +895,7 @@ public:
     }
 
 private:
-    janus::Quaternion<Scalar> q_;
+    metis::Quaternion<Scalar> q_;
 };
 
 /// Wind ↔ Body transform provider (via alpha, beta)
@@ -905,8 +905,8 @@ public:
     WindProvider(Scalar alpha, Scalar beta) {
         // Wind axes rotation from body: first rotate by -beta about z,
         // then by alpha about y
-        Scalar ca = janus::cos(alpha), sa = janus::sin(alpha);
-        Scalar cb = janus::cos(beta),  sb = janus::sin(beta);
+        Scalar ca = metis::cos(alpha), sa = metis::sin(alpha);
+        Scalar cb = metis::cos(beta),  sb = metis::sin(beta);
 
         // Build DCM: wind-to-body
         R_(0,0) = ca*cb;  R_(0,1) = -ca*sb; R_(0,2) = -sa;
@@ -1068,7 +1068,7 @@ int main() {
 
     // === Custom frames ===
     // Add a sensor frame mounted on the body at a fixed offset
-    auto sensor_q = janus::Quaternion<double>::from_euler(
+    auto sensor_q = metis::Quaternion<double>::from_euler(
         0.0, 10.0 * constants::angle::deg2rad, 0.0);  // pitched 10deg
     auto sensor_id = ctx.add_frame("Sensor", FRAME_BODY,
         std::make_shared<QuaternionProvider<double>>(sensor_q));

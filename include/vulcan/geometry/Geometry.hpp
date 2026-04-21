@@ -6,10 +6,10 @@
 #include <vulcan/coordinates/Geodetic.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 
-#include <janus/math/Arithmetic.hpp>
-#include <janus/math/Linalg.hpp>
-#include <janus/math/Logic.hpp>
-#include <janus/math/Trig.hpp>
+#include <metis/math/Arithmetic.hpp>
+#include <metis/math/Linalg.hpp>
+#include <metis/math/Logic.hpp>
+#include <metis/math/Trig.hpp>
 
 namespace vulcan::geometry {
 
@@ -29,7 +29,7 @@ template <typename Scalar>
 Scalar slant_range(const Vec3<Scalar> &r_observer,
                    const Vec3<Scalar> &r_target) {
     Vec3<Scalar> delta = r_target - r_observer;
-    return janus::norm(delta);
+    return metis::norm(delta);
 }
 
 /**
@@ -57,21 +57,21 @@ Vec2<Scalar> los_angles(const Vec3<Scalar> &r_observer,
     Scalar dz = delta(2);
 
     // Horizontal distance
-    Scalar horiz_dist = janus::sqrt(dx * dx + dy * dy);
-    Scalar range = janus::norm(delta);
+    Scalar horiz_dist = metis::sqrt(dx * dx + dy * dy);
+    Scalar range = metis::norm(delta);
 
     // Avoid division by zero
     Scalar eps = Scalar(1e-12);
     Scalar is_zero = range < eps;
 
     // Azimuth: atan2(y, x)
-    Scalar azimuth = janus::atan2(dy, dx);
-    azimuth = janus::where(is_zero, Scalar(0), azimuth);
+    Scalar azimuth = metis::atan2(dy, dx);
+    azimuth = metis::where(is_zero, Scalar(0), azimuth);
 
     // Elevation: atan2(z, horizontal_distance)
     // Negative z means target is above in NED frame
-    Scalar elevation = janus::atan2(-dz, horiz_dist);
-    elevation = janus::where(is_zero, Scalar(0), elevation);
+    Scalar elevation = metis::atan2(-dz, horiz_dist);
+    elevation = metis::where(is_zero, Scalar(0), elevation);
 
     Vec2<Scalar> angles;
     angles << azimuth, elevation;
@@ -107,9 +107,9 @@ Vec2<Scalar> los_rate(const Vec3<Scalar> &r_obs, const Vec3<Scalar> &v_obs,
 
     // Range and range rate
     Scalar range_sq = dx * dx + dy * dy + dz * dz;
-    Scalar range = janus::sqrt(range_sq);
+    Scalar range = metis::sqrt(range_sq);
     Scalar horiz_sq = dx * dx + dy * dy;
-    Scalar horiz = janus::sqrt(horiz_sq);
+    Scalar horiz = metis::sqrt(horiz_sq);
 
     // Avoid division by zero
     Scalar eps = Scalar(1e-12);
@@ -118,17 +118,17 @@ Vec2<Scalar> los_rate(const Vec3<Scalar> &r_obs, const Vec3<Scalar> &v_obs,
 
     // Azimuth rate: d/dt[atan2(y,x)] = (x*vy - y*vx) / (x^2 + y^2)
     Scalar az_rate = (dx * vy - dy * vx) / horiz_sq;
-    az_rate = janus::where(is_horiz_zero, Scalar(0), az_rate);
+    az_rate = metis::where(is_horiz_zero, Scalar(0), az_rate);
 
     // Elevation rate: d/dt[atan2(-z, horiz)]
     // = d/dt[atan2(-z, sqrt(x^2+y^2))]
     // = (horiz * (-vz) - (-z) * d_horiz/dt) / (horiz^2 + z^2)
     // where d_horiz/dt = (x*vx + y*vy) / horiz
     Scalar d_horiz_dt = (dx * vx + dy * vy) / horiz;
-    d_horiz_dt = janus::where(is_horiz_zero, Scalar(0), d_horiz_dt);
+    d_horiz_dt = metis::where(is_horiz_zero, Scalar(0), d_horiz_dt);
 
     Scalar el_rate = (-horiz * vz + dz * d_horiz_dt) / range_sq;
-    el_rate = janus::where(is_range_zero, Scalar(0), el_rate);
+    el_rate = metis::where(is_range_zero, Scalar(0), el_rate);
 
     Vec2<Scalar> rates;
     rates << az_rate, el_rate;
@@ -161,10 +161,10 @@ Scalar ray_sphere_intersection(const Vec3<Scalar> &origin,
     Vec3<Scalar> oc = center - origin;
 
     // Project oc onto ray direction
-    Scalar tca = janus::dot(oc, direction);
+    Scalar tca = metis::dot(oc, direction);
 
     // Distance squared from sphere center to ray
-    Scalar oc_sq = janus::dot(oc, oc);
+    Scalar oc_sq = metis::dot(oc, oc);
     Scalar d_sq = oc_sq - tca * tca;
 
     // Check if ray misses sphere
@@ -172,7 +172,7 @@ Scalar ray_sphere_intersection(const Vec3<Scalar> &origin,
     Scalar misses = d_sq > r_sq;
 
     // Distance from closest approach to intersection points
-    Scalar thc = janus::sqrt(janus::abs(r_sq - d_sq));
+    Scalar thc = metis::sqrt(metis::abs(r_sq - d_sq));
 
     // Two intersection points at t = tca +/- thc
     // We want the nearest positive intersection
@@ -182,11 +182,11 @@ Scalar ray_sphere_intersection(const Vec3<Scalar> &origin,
     // If t0 is positive, use it; otherwise use t1 if positive
     Scalar t0_positive = t0 > Scalar(0);
     Scalar t1_positive = t1 > Scalar(0);
-    Scalar t = janus::where(t0_positive, t0, t1);
+    Scalar t = metis::where(t0_positive, t0, t1);
 
     // Return -1 if no valid intersection
     Scalar no_intersection = misses + (!t0_positive * !t1_positive) > Scalar(0);
-    return janus::where(no_intersection, Scalar(-1), t);
+    return metis::where(no_intersection, Scalar(-1), t);
 }
 
 /**
@@ -207,19 +207,19 @@ Scalar ray_plane_intersection(const Vec3<Scalar> &origin,
                               const Vec3<Scalar> &plane_normal,
                               const Vec3<Scalar> &plane_point) {
     // Compute denominator (dot of direction and normal)
-    Scalar denom = janus::dot(direction, plane_normal);
+    Scalar denom = metis::dot(direction, plane_normal);
 
     // Check if ray is parallel to plane
     Scalar eps = Scalar(1e-12);
-    Scalar is_parallel = janus::abs(denom) < eps;
+    Scalar is_parallel = metis::abs(denom) < eps;
 
     // Distance from origin to plane along normal
     Vec3<Scalar> diff = plane_point - origin;
-    Scalar t = janus::dot(diff, plane_normal) / denom;
+    Scalar t = metis::dot(diff, plane_normal) / denom;
 
     // Return -1 if parallel or intersection is behind ray origin
     Scalar invalid = is_parallel + (t < Scalar(0)) > Scalar(0);
-    return janus::where(invalid, Scalar(-1), t);
+    return metis::where(invalid, Scalar(-1), t);
 }
 
 /**
@@ -241,7 +241,7 @@ Scalar point_in_cone(const Vec3<Scalar> &point, const Vec3<Scalar> &apex,
                      const Vec3<Scalar> &axis, const Scalar &half_angle) {
     // Vector from apex to point
     Vec3<Scalar> to_point = point - apex;
-    Scalar dist = janus::norm(to_point);
+    Scalar dist = metis::norm(to_point);
 
     // Avoid division by zero
     Scalar eps = Scalar(1e-12);
@@ -251,15 +251,15 @@ Scalar point_in_cone(const Vec3<Scalar> &point, const Vec3<Scalar> &apex,
     Vec3<Scalar> to_point_norm = to_point / dist;
 
     // Angle between axis and direction to point
-    Scalar cos_angle = janus::dot(axis, to_point_norm);
-    Scalar cos_half_angle = janus::cos(half_angle);
+    Scalar cos_angle = metis::dot(axis, to_point_norm);
+    Scalar cos_half_angle = metis::cos(half_angle);
 
     // Point is inside if angle is less than half_angle
     // (cos_angle > cos_half_angle since cos is decreasing)
     Scalar inside = cos_angle > cos_half_angle;
 
     // Point at apex is considered inside
-    return janus::where(is_at_apex, Scalar(1), inside);
+    return metis::where(is_at_apex, Scalar(1), inside);
 }
 
 // =============================================================================
@@ -281,7 +281,7 @@ Vec3<Scalar> project_to_plane(const Vec3<Scalar> &point,
                               const Vec3<Scalar> &plane_point) {
     // Distance from point to plane along normal
     Vec3<Scalar> diff = point - plane_point;
-    Scalar dist = janus::dot(diff, plane_normal);
+    Scalar dist = metis::dot(diff, plane_normal);
 
     // Subtract the normal component
     return point - dist * plane_normal;

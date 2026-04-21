@@ -4,7 +4,7 @@
 
 #include <vulcan/core/VulcanTypes.hpp>
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 namespace vulcan::dynamics {
 
@@ -22,10 +22,10 @@ Vec3<Scalar> rail_direction_ned(const Scalar &azimuth,
                                 const Scalar &elevation) {
     // In NED: North=+X, East=+Y, Down=+Z
     // Azimuth from North, elevation from horizontal
-    Scalar cos_elev = janus::cos(elevation);
-    Scalar sin_elev = janus::sin(elevation);
-    Scalar cos_az = janus::cos(azimuth);
-    Scalar sin_az = janus::sin(azimuth);
+    Scalar cos_elev = metis::cos(elevation);
+    Scalar sin_elev = metis::sin(elevation);
+    Scalar cos_az = metis::cos(azimuth);
+    Scalar sin_az = metis::sin(azimuth);
 
     return Vec3<Scalar>{
         cos_elev * cos_az, // North component
@@ -62,12 +62,12 @@ Scalar rail_acceleration(const Scalar &s_dot, const Scalar &force_along,
                          const Scalar &gravity, const Scalar &elevation,
                          const Scalar &friction_coeff) {
     // Gravity component along rail (positive opposes motion for uphill)
-    Scalar gravity_along = gravity * janus::sin(elevation);
+    Scalar gravity_along = gravity * metis::sin(elevation);
 
     // Friction force (Coulomb friction opposing motion direction)
     Scalar friction_sign =
-        janus::where(s_dot > Scalar(0), Scalar(1),
-                     janus::where(s_dot < Scalar(0), Scalar(-1), Scalar(0)));
+        metis::where(s_dot > Scalar(0), Scalar(1),
+                     metis::where(s_dot < Scalar(0), Scalar(-1), Scalar(0)));
     Scalar friction_force = friction_coeff * force_perp_mag * friction_sign;
 
     // Net acceleration along rail
@@ -94,7 +94,7 @@ rail_acceleration_body(const Scalar &s_dot, const Vec3<Scalar> &force_body,
     Scalar force_along = force_body(0);
 
     // Perpendicular force magnitude (body Y and Z)
-    Scalar force_perp_mag = janus::sqrt(force_body(1) * force_body(1) +
+    Scalar force_perp_mag = metis::sqrt(force_body(1) * force_body(1) +
                                         force_body(2) * force_body(2));
 
     return rail_acceleration(s_dot, force_along, force_perp_mag, mass, gravity,
@@ -108,8 +108,8 @@ rail_acceleration_body(const Scalar &s_dot, const Vec3<Scalar> &force_body,
 /// @return 1.0 if on rail, 0.0 if departed (symbolic compatible)
 template <typename Scalar>
 Scalar on_rail(const Scalar &s, const Scalar &rail_length) {
-    return janus::where(s < rail_length,
-                        janus::where(s >= Scalar(0), Scalar(1), Scalar(0)),
+    return metis::where(s < rail_length,
+                        metis::where(s >= Scalar(0), Scalar(1), Scalar(0)),
                         Scalar(0));
 }
 
@@ -152,21 +152,21 @@ Vec3<Scalar> rail_velocity(const Scalar &s_dot, const Vec3<Scalar> &direction) {
 /// @param elevation Rail elevation from horizontal [rad]
 /// @return Quaternion rotating from body frame to NED reference
 template <typename Scalar>
-janus::Quaternion<Scalar> rail_aligned_attitude(const Scalar &azimuth,
+metis::Quaternion<Scalar> rail_aligned_attitude(const Scalar &azimuth,
                                                 const Scalar &elevation) {
     // Construct rotation: first rotate about Z by azimuth, then about Y by
     // pitch This aligns body +X with rail direction in NED frame
 
     // Yaw (azimuth rotation about NED Z-axis)
     Scalar half_az = azimuth / Scalar(2);
-    janus::Quaternion<Scalar> q_yaw(janus::cos(half_az), Scalar(0), Scalar(0),
-                                    janus::sin(half_az));
+    metis::Quaternion<Scalar> q_yaw(metis::cos(half_az), Scalar(0), Scalar(0),
+                                    metis::sin(half_az));
 
     // Pitch (elevation rotation about body Y-axis)
     // Positive elevation = pitch up = body X toward NED -Z
     Scalar half_pitch = elevation / Scalar(2);
-    janus::Quaternion<Scalar> q_pitch(janus::cos(half_pitch), Scalar(0),
-                                      janus::sin(half_pitch), Scalar(0));
+    metis::Quaternion<Scalar> q_pitch(metis::cos(half_pitch), Scalar(0),
+                                      metis::sin(half_pitch), Scalar(0));
 
     // Combined rotation: yaw then pitch
     return q_yaw * q_pitch;

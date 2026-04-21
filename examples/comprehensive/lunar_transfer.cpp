@@ -22,7 +22,7 @@
 #include <cmath>
 #include <iomanip>
 #include <iostream>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vector>
 #include <vulcan/vulcan.hpp>
 
@@ -103,7 +103,7 @@ compute_lunar_transfer(const Scalar &departure_jd, const Scalar &tof_days,
 
     // Phase correction penalty: non-optimal timing requires extra delta-V
     Scalar phase_penalty = Scalar(100.0) * phase_error * phase_error;
-    phase_penalty = janus::where(phase_penalty > Scalar(400.0), Scalar(400.0),
+    phase_penalty = metis::where(phase_penalty > Scalar(400.0), Scalar(400.0),
                                  phase_penalty);
 
     Scalar dv_tli = dv_tli_base + phase_penalty;
@@ -116,13 +116,13 @@ compute_lunar_transfer(const Scalar &departure_jd, const Scalar &tof_days,
 
     // Relative velocity depends on approach geometry
     Scalar geometry_factor =
-        Scalar(1.0) + Scalar(0.4) * janus::abs(phase_error);
-    Scalar v_inf = janus::abs(v_arrival - v_moon) * geometry_factor;
+        Scalar(1.0) + Scalar(0.4) * metis::abs(phase_error);
+    Scalar v_inf = metis::abs(v_arrival - v_moon) * geometry_factor;
 
     // 6. LOI delta-V (capture into lunar orbit)
     Scalar r_lunar_orbit = Scalar(params.r_lunar_orbit);
     Scalar v_hyp =
-        janus::sqrt(v_inf * v_inf + Scalar(2.0 * moon::mu) / r_lunar_orbit);
+        metis::sqrt(v_inf * v_inf + Scalar(2.0 * moon::mu) / r_lunar_orbit);
     Scalar v_circ_moon = quantities::circular_velocity(r_lunar_orbit, moon::mu);
     Scalar dv_loi = v_hyp - v_circ_moon;
 
@@ -131,10 +131,10 @@ compute_lunar_transfer(const Scalar &departure_jd, const Scalar &tof_days,
 
     // 8. ToF penalties for unrealistic transfers
     Scalar tof_penalty =
-        janus::where(tof_days < Scalar(2.0),
+        metis::where(tof_days < Scalar(2.0),
                      Scalar(1000.0) * (Scalar(2.0) - tof_days), Scalar(0.0));
     tof_penalty =
-        tof_penalty + janus::where(tof_days > Scalar(7.0),
+        tof_penalty + metis::where(tof_days > Scalar(7.0),
                                    Scalar(500.0) * (tof_days - Scalar(7.0)),
                                    Scalar(0.0));
 
@@ -159,7 +159,7 @@ Scalar compute_c3(const Scalar &departure_jd, const Scalar &tof_days,
     Scalar v_tli_total = v_parking + result.dv_tli;
 
     // v_inf² = v² - v_escape²
-    Scalar v_escape = janus::sqrt(Scalar(2.0) * earth::mu / params.r_parking);
+    Scalar v_escape = metis::sqrt(Scalar(2.0) * earth::mu / params.r_parking);
     Scalar c3 = v_tli_total * v_tli_total - v_escape * v_escape;
 
     return c3;
@@ -330,31 +330,31 @@ int main() {
         << "=== Part 5: Exporting Interactive Computational Graphs ===\n\n";
 
     // Create symbolic variables
-    auto jd_sym = janus::sym("departure_jd");
-    auto tof_sym = janus::sym("tof_days");
+    auto jd_sym = metis::sym("departure_jd");
+    auto tof_sym = metis::sym("tof_days");
 
     // Build transfer computation graph
     auto transfer_sym = compute_lunar_transfer(jd_sym, tof_sym, params);
 
     // Export total delta-V objective
-    janus::export_graph_html(transfer_sym.dv_total, "graph_lunar_dv_total",
+    metis::export_graph_html(transfer_sym.dv_total, "graph_lunar_dv_total",
                              "Lunar_Transfer_DeltaV");
     std::cout
         << "✓ Exported: graph_lunar_dv_total.html (total delta-V objective)\n";
 
     // Export TLI delta-V
-    janus::export_graph_html(transfer_sym.dv_tli, "graph_lunar_tli",
+    metis::export_graph_html(transfer_sym.dv_tli, "graph_lunar_tli",
                              "Trans_Lunar_Injection");
     std::cout << "✓ Exported: graph_lunar_tli.html (TLI burn computation)\n";
 
     // Export LOI delta-V
-    janus::export_graph_html(transfer_sym.dv_loi, "graph_lunar_loi",
+    metis::export_graph_html(transfer_sym.dv_loi, "graph_lunar_loi",
                              "Lunar_Orbit_Insertion");
     std::cout << "✓ Exported: graph_lunar_loi.html (LOI burn computation)\n";
 
     // Export C3
     auto c3_sym = compute_c3(jd_sym, tof_sym, params);
-    janus::export_graph_html(c3_sym, "graph_lunar_c3", "Characteristic_Energy");
+    metis::export_graph_html(c3_sym, "graph_lunar_c3", "Characteristic_Energy");
     std::cout << "✓ Exported: graph_lunar_c3.html (C3 computation)\n";
 
     std::cout << "\nOpen these HTML files in a browser to explore the "

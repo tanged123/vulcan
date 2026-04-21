@@ -311,16 +311,16 @@ TEST(BankForTurnTest, LevelTurn) {
 // =============================================================================
 
 TEST(Guided5DofSymbolicTest, AttitudeResponse) {
-    auto angle = janus::sym("angle");
-    auto angle_dot = janus::sym("angle_dot");
-    auto angle_cmd = janus::sym("angle_cmd");
-    auto omega_n = janus::sym("omega_n");
-    auto zeta = janus::sym("zeta");
+    auto angle = metis::sym("angle");
+    auto angle_dot = metis::sym("angle_dot");
+    auto angle_cmd = metis::sym("angle_cmd");
+    auto omega_n = metis::sym("omega_n");
+    auto zeta = metis::sym("zeta");
 
     auto accel =
         attitude_response_accel(angle, angle_dot, angle_cmd, omega_n, zeta);
 
-    janus::Function f("attitude_accel",
+    metis::Function f("attitude_accel",
                       {angle, angle_dot, angle_cmd, omega_n, zeta}, {accel});
 
     auto result = f({0.0, 0.5, 0.1, 5.0, 0.7});
@@ -330,12 +330,12 @@ TEST(Guided5DofSymbolicTest, AttitudeResponse) {
 }
 
 TEST(Guided5DofSymbolicTest, ThrustDirectionBtt) {
-    auto gamma = janus::sym("gamma");
-    auto chi = janus::sym("chi");
+    auto gamma = metis::sym("gamma");
+    auto chi = metis::sym("chi");
 
     auto dir = thrust_direction_btt(gamma, chi);
 
-    janus::Function f("thrust_dir_btt", {gamma, chi}, {dir(0), dir(1), dir(2)});
+    metis::Function f("thrust_dir_btt", {gamma, chi}, {dir(0), dir(1), dir(2)});
 
     auto result = f({M_PI / 6, M_PI / 4});
 
@@ -346,18 +346,18 @@ TEST(Guided5DofSymbolicTest, ThrustDirectionBtt) {
 }
 
 TEST(Guided5DofSymbolicTest, VelocityDotBtt) {
-    auto T = janus::sym("T");
-    auto D = janus::sym("D");
-    auto L = janus::sym("L");
-    auto m = janus::sym("m");
-    auto g = janus::sym("g");
-    auto gamma = janus::sym("gamma");
-    auto chi = janus::sym("chi");
-    auto phi = janus::sym("phi");
+    auto T = metis::sym("T");
+    auto D = metis::sym("D");
+    auto L = metis::sym("L");
+    auto m = metis::sym("m");
+    auto g = metis::sym("g");
+    auto gamma = metis::sym("gamma");
+    auto chi = metis::sym("chi");
+    auto phi = metis::sym("phi");
 
     auto v_dot = velocity_dot_btt(T, D, L, m, g, gamma, chi, phi);
 
-    janus::Function f("vdot_btt", {T, D, L, m, g, gamma, chi, phi},
+    metis::Function f("vdot_btt", {T, D, L, m, g, gamma, chi, phi},
                       {v_dot(0), v_dot(1), v_dot(2)});
 
     auto result = f({1000.0, 100.0, 5000.0, 100.0, 9.81, 0.1, 0.2, 0.3});

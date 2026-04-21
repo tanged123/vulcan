@@ -1,6 +1,6 @@
 # Phase 11: Environmental Utilities Implementation Plan
 
-> **Purpose**: Implement environmental utilities for space applications, including solar position (approximate ephemeris), eclipse detection, and magnetic field (dipole model). All implementations follow Vulcan's Janus-compatible templated patterns.
+> **Purpose**: Implement environmental utilities for space applications, including solar position (approximate ephemeris), eclipse detection, and magnetic field (dipole model). All implementations follow Vulcan's Metis-compatible templated patterns.
 
 ---
 
@@ -29,7 +29,7 @@
 - `vulcan/time/JulianDate.hpp` - Julian centuries since J2000
 - `vulcan/core/Constants.hpp` - Physical constants
 - `vulcan/core/VulcanTypes.hpp` - Vec3 type aliases
-- `janus/janus.hpp` - Math dispatch and symbolic support
+- `metis/metis.hpp` - Math dispatch and symbolic support
 
 ---
 
@@ -93,7 +93,7 @@ Low-precision solar ephemeris using the algorithm from Vallado's "Fundamentals o
 // include/vulcan/environment/SolarPosition.hpp
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 #include <vulcan/time/JulianDate.hpp>
@@ -109,7 +109,7 @@ namespace detail {
     Scalar wrap_to_2pi(const Scalar& angle) {
         constexpr double two_pi = 2.0 * constants::angle::pi;
         // Use fmod-like behavior for symbolic compatibility
-        return angle - two_pi * janus::floor(angle / two_pi);
+        return angle - two_pi * metis::floor(angle / two_pi);
     }
 }
 
@@ -124,9 +124,9 @@ namespace detail {
  */
 template <typename Scalar>
 std::pair<Scalar, Scalar> ra_dec(const Scalar& jd) {
-    using janus::sin;
-    using janus::cos;
-    using janus::atan2;
+    using metis::sin;
+    using metis::cos;
+    using metis::atan2;
     
     // Julian centuries since J2000.0
     const Scalar T = time::jd_to_j2000_centuries(jd);
@@ -151,7 +151,7 @@ std::pair<Scalar, Scalar> ra_dec(const Scalar& jd) {
     const Scalar sin_eps = sin(epsilon);
     
     const Scalar ra = atan2(cos_eps * sin_lambda, cos_lambda);
-    const Scalar dec = janus::asin(sin_eps * sin_lambda);
+    const Scalar dec = metis::asin(sin_eps * sin_lambda);
     
     return {ra, dec};
 }
@@ -167,8 +167,8 @@ Scalar distance(const Scalar& jd) {
     const Scalar M = (357.5291092 + 35999.05034 * T) * constants::angle::deg2rad;
     
     // Distance in AU
-    const Scalar r_au = 1.000140612 - 0.016708617 * janus::cos(M) 
-                        - 0.000139589 * janus::cos(2.0 * M);
+    const Scalar r_au = 1.000140612 - 0.016708617 * metis::cos(M) 
+                        - 0.000139589 * metis::cos(2.0 * M);
     
     return r_au * detail::AU;
 }
@@ -183,12 +183,12 @@ Vec3<Scalar> position_eci(const Scalar& jd) {
     auto [ra, dec] = ra_dec(jd);
     const Scalar r = distance(jd);
     
-    const Scalar cos_dec = janus::cos(dec);
+    const Scalar cos_dec = metis::cos(dec);
     
     Vec3<Scalar> pos;
-    pos(0) = r * cos_dec * janus::cos(ra);
-    pos(1) = r * cos_dec * janus::sin(ra);
-    pos(2) = r * janus::sin(dec);
+    pos(0) = r * cos_dec * metis::cos(ra);
+    pos(1) = r * cos_dec * metis::sin(ra);
+    pos(2) = r * metis::sin(dec);
     
     return pos;
 }
@@ -199,12 +199,12 @@ Vec3<Scalar> position_eci(const Scalar& jd) {
 template <typename Scalar>
 Vec3<Scalar> unit_vector_eci(const Scalar& jd) {
     auto [ra, dec] = ra_dec(jd);
-    const Scalar cos_dec = janus::cos(dec);
+    const Scalar cos_dec = metis::cos(dec);
     
     Vec3<Scalar> u;
-    u(0) = cos_dec * janus::cos(ra);
-    u(1) = cos_dec * janus::sin(ra);
-    u(2) = janus::sin(dec);
+    u(0) = cos_dec * metis::cos(ra);
+    u(1) = cos_dec * metis::sin(ra);
+    u(2) = metis::sin(dec);
     
     return u;
 }
@@ -228,7 +228,7 @@ Implements cylindrical and conical shadow models for eclipse detection.
 // include/vulcan/environment/Eclipse.hpp
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 
@@ -259,7 +259,7 @@ Scalar shadow_cylindrical(const Vec3<Scalar>& r_sat,
                           const Vec3<Scalar>& r_sun,
                           double R_body = constants::earth::R_eq) {
     // Sun direction (unit vector from Earth to Sun)
-    const Scalar r_sun_mag = janus::norm(r_sun);
+    const Scalar r_sun_mag = metis::norm(r_sun);
     const Vec3<Scalar> s_hat = r_sun / r_sun_mag;
     
     // Projection of satellite onto sun direction
@@ -267,15 +267,15 @@ Scalar shadow_cylindrical(const Vec3<Scalar>& r_sat,
     
     // Satellite is on sunlit side if projection is positive
     // (Sun is behind satellite relative to Earth)
-    const Scalar on_sunlit_side = janus::where(proj > 0.0, Scalar(1.0), Scalar(0.0));
+    const Scalar on_sunlit_side = metis::where(proj > 0.0, Scalar(1.0), Scalar(0.0));
     
     // Perpendicular distance from shadow axis
     const Vec3<Scalar> r_perp = r_sat - proj * s_hat;
-    const Scalar d_perp = janus::norm(r_perp);
+    const Scalar d_perp = metis::norm(r_perp);
     
     // In shadow if behind Earth AND within shadow cylinder
-    const Scalar in_cylinder = janus::where(d_perp < R_body, Scalar(1.0), Scalar(0.0));
-    const Scalar behind_earth = janus::where(proj < 0.0, Scalar(1.0), Scalar(0.0));
+    const Scalar in_cylinder = metis::where(d_perp < R_body, Scalar(1.0), Scalar(0.0));
+    const Scalar behind_earth = metis::where(proj < 0.0, Scalar(1.0), Scalar(0.0));
     
     // Shadow = 0 (in shadow) or 1 (sunlit)
     const Scalar in_shadow = behind_earth * in_cylinder;
@@ -304,17 +304,17 @@ Scalar shadow_conical(const Vec3<Scalar>& r_sat,
                       double R_sun = detail::R_sun) {
     // Vector from satellite to Sun
     const Vec3<Scalar> r_sat_to_sun = r_sun - r_sat;
-    const Scalar s = janus::norm(r_sat_to_sun);
+    const Scalar s = metis::norm(r_sat_to_sun);
     
     // Apparent angular radii as seen from satellite
-    const Scalar r_sat_mag = janus::norm(r_sat);
-    const Scalar theta_body = janus::asin(R_body / r_sat_mag);  // Earth angular radius
-    const Scalar theta_sun = janus::asin(R_sun / s);            // Sun angular radius
+    const Scalar r_sat_mag = metis::norm(r_sat);
+    const Scalar theta_body = metis::asin(R_body / r_sat_mag);  // Earth angular radius
+    const Scalar theta_sun = metis::asin(R_sun / s);            // Sun angular radius
     
     // Angle between Earth center and Sun as seen from satellite
     // cos(θ) = -r_sat · r_sat_to_sun / (|r_sat| |r_sat_to_sun|)
     const Scalar cos_theta = -r_sat.dot(r_sat_to_sun) / (r_sat_mag * s);
-    const Scalar theta = janus::acos(cos_theta);
+    const Scalar theta = metis::acos(cos_theta);
     
     // Shadow geometry:
     // - Full sunlight: θ > θ_body + θ_sun
@@ -322,17 +322,17 @@ Scalar shadow_conical(const Vec3<Scalar>& r_sat,
     // - Umbra (full eclipse): θ < |θ_body - θ_sun| AND θ_body > θ_sun
     
     const Scalar sum_angles = theta_body + theta_sun;
-    const Scalar diff_angles = janus::abs(theta_body - theta_sun);
+    const Scalar diff_angles = metis::abs(theta_body - theta_sun);
     
     // Fully sunlit
-    const Scalar full_sun = janus::where(theta >= sum_angles, Scalar(1.0), Scalar(0.0));
+    const Scalar full_sun = metis::where(theta >= sum_angles, Scalar(1.0), Scalar(0.0));
     
     // Full umbra
-    const Scalar full_umbra = janus::where(theta <= diff_angles, Scalar(0.0), Scalar(1.0));
+    const Scalar full_umbra = metis::where(theta <= diff_angles, Scalar(0.0), Scalar(1.0));
     
     // Penumbra: linear interpolation (simple model)
     const Scalar penumbra_frac = (theta - diff_angles) / (sum_angles - diff_angles);
-    const Scalar in_penumbra = janus::where(
+    const Scalar in_penumbra = metis::where(
         (theta > diff_angles) * (theta < sum_angles),
         penumbra_frac,
         Scalar(0.0)
@@ -351,7 +351,7 @@ Scalar is_in_shadow(const Vec3<Scalar>& r_sat,
                     const Vec3<Scalar>& r_sun,
                     double R_body = constants::earth::R_eq) {
     const Scalar nu = shadow_cylindrical(r_sat, r_sun, R_body);
-    return janus::where(nu < 0.5, Scalar(1.0), Scalar(0.0));
+    return metis::where(nu < 0.5, Scalar(1.0), Scalar(0.0));
 }
 
 } // namespace vulcan::environment::eclipse
@@ -372,7 +372,7 @@ Implements Earth's magnetic field using a tilted dipole model. This is a first-o
 // include/vulcan/environment/MagneticField.hpp
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 
@@ -420,7 +420,7 @@ Vec3<Scalar> dipole_field_ecef(const Vec3<Scalar>& r_ecef,
     const Scalar z = r_ecef(2);
     
     const Scalar r2 = x*x + y*y + z*z;
-    const Scalar r = janus::sqrt(r2);
+    const Scalar r = metis::sqrt(r2);
     const Scalar r5 = r2 * r2 * r;
     
     // Dipole field coefficient: B0 * R³ / r⁵
@@ -449,7 +449,7 @@ Scalar field_magnitude(const Vec3<Scalar>& r_ecef,
                        double B0 = constants::B0,
                        double R = vulcan::constants::earth::R_eq) {
     const Vec3<Scalar> B = dipole_field_ecef(r_ecef, B0, R);
-    return janus::norm(B);
+    return metis::norm(B);
 }
 
 /**
@@ -478,8 +478,8 @@ Vec3<Scalar> field_ned(const Scalar& lat, const Scalar& lon, const Scalar& alt,
     // B_θ = B0 * (R/r)³ * cos(φ)
     const Scalar R_over_r_cubed = (R * R * R) / (r * r * r);
     
-    const Scalar sin_phi = janus::sin(phi);
-    const Scalar cos_phi = janus::cos(phi);
+    const Scalar sin_phi = metis::sin(phi);
+    const Scalar cos_phi = metis::cos(phi);
     
     const Scalar B_r = -2.0 * B0 * R_over_r_cubed * sin_phi;
     const Scalar B_theta = B0 * R_over_r_cubed * cos_phi;
@@ -503,8 +503,8 @@ Vec3<Scalar> field_ned(const Scalar& lat, const Scalar& lon, const Scalar& alt,
  */
 template <typename Scalar>
 Scalar surface_intensity(const Scalar& lat, double B0 = constants::B0) {
-    const Scalar sin_lat = janus::sin(lat);
-    return B0 * janus::sqrt(1.0 + 3.0 * sin_lat * sin_lat);
+    const Scalar sin_lat = metis::sin(lat);
+    return B0 * metis::sqrt(1.0 + 3.0 * sin_lat * sin_lat);
 }
 
 } // namespace vulcan::environment::magnetic
@@ -543,7 +543,7 @@ Scalar surface_intensity(const Scalar& lat, double B0 = constants::B0) {
 #include <gtest/gtest.h>
 #include <vulcan/environment/SolarPosition.hpp>
 #include <vulcan/time/JulianDate.hpp>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 using namespace vulcan::environment;
 
@@ -586,14 +586,14 @@ TEST(SolarPosition, DistanceRange) {
 
 // Symbolic evaluation
 TEST(SolarPosition, SymbolicMode) {
-    auto jd = janus::sym("jd");
+    auto jd = metis::sym("jd");
     auto pos = solar::position_eci(jd);
     
     // Evaluate at J2000
     double jd_val = vulcan::time::calendar_to_jd(2000, 1, 1, 12, 0, 0.0);
-    double x = janus::eval(pos(0), {{"jd", jd_val}});
-    double y = janus::eval(pos(1), {{"jd", jd_val}});
-    double z = janus::eval(pos(2), {{"jd", jd_val}});
+    double x = metis::eval(pos(0), {{"jd", jd_val}});
+    double y = metis::eval(pos(1), {{"jd", jd_val}});
+    double z = metis::eval(pos(2), {{"jd", jd_val}});
     
     double r = std::sqrt(x*x + y*y + z*z);
     EXPECT_NEAR(r, 147.1e9, 1e9);  // ~147 million km in early January

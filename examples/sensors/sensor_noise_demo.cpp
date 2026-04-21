@@ -143,12 +143,12 @@ int main() {
     // ========================================
     std::cout << "=== Symbolic Mode Demo ===\n\n";
 
-    using Scalar = janus::SymbolicScalar;
+    using Scalar = metis::SymbolicScalar;
 
     // Create symbolic noise inputs
-    auto w1 = janus::sym("w_arw");
-    auto w2 = janus::sym("w_bias");
-    auto w3 = janus::sym("w_rrw");
+    auto w1 = metis::sym("w_arw");
+    auto w2 = metis::sym("w_bias");
+    auto w3 = metis::sym("w_rrw");
 
     // Initialize symbolic state
     auto sym_state = vulcan::allan::init_axis_state<Scalar>();
@@ -162,15 +162,15 @@ int main() {
     std::cout << "Symbolic noise expression created.\n";
     std::cout << "Output depends on: w_arw, w_bias, w_rrw\n";
 
-    // Create Janus function
-    janus::Function f("imu_noise", {w1, w2, w3}, {noise_output});
+    // Create Metis function
+    metis::Function f("imu_noise", {w1, w2, w3}, {noise_output});
 
     // Evaluate at specific values
     auto result = f({1.0, 0.5, 0.2});
     std::cout << "Evaluated at (1.0, 0.5, 0.2): " << result[0](0, 0) << "\n\n";
 
     // Export graph
-    janus::export_graph_html(noise_output, "graph_imu_noise", "IMU_Noise");
+    metis::export_graph_html(noise_output, "graph_imu_noise", "IMU_Noise");
     std::cout << "Generated: graph_imu_noise.html\n\n";
 
     // ========================================

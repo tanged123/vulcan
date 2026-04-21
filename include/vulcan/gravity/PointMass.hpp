@@ -2,7 +2,7 @@
 // Simple inverse-square gravitational acceleration
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 
@@ -23,7 +23,7 @@ namespace vulcan::gravity::point_mass {
 template <typename Scalar>
 Vec3<Scalar> acceleration(const Vec3<Scalar> &r_ecef,
                           double mu = constants::earth::mu) {
-    const Scalar r_mag = janus::norm(r_ecef);
+    const Scalar r_mag = metis::norm(r_ecef);
     const Scalar r_cubed = r_mag * r_mag * r_mag;
 
     // g = -μ/r³ · r
@@ -42,7 +42,7 @@ Vec3<Scalar> acceleration(const Vec3<Scalar> &r_ecef,
  */
 template <typename Scalar>
 Scalar potential(const Vec3<Scalar> &r_ecef, double mu = constants::earth::mu) {
-    const Scalar r_mag = janus::norm(r_ecef);
+    const Scalar r_mag = metis::norm(r_ecef);
     return -mu / r_mag;
 }
 

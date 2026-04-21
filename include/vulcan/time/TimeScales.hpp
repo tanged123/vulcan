@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cmath>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/time/JulianDate.hpp>
 #include <vulcan/time/LeapSeconds.hpp>
 #include <vulcan/time/TimeConstants.hpp>
@@ -194,7 +194,7 @@ template <typename Scalar> [[nodiscard]] Scalar tt_to_tdb(const Scalar &tt_jd) {
     Scalar g = (357.5277233 + 35999.05034 * T) * M_PI / 180.0;
 
     // TDB - TT in seconds (simplified Fairhead & Bretagnon)
-    Scalar dt = 0.001657 * janus::sin(g);
+    Scalar dt = 0.001657 * metis::sin(g);
 
     return tt_jd + dt / constants::time::SECONDS_PER_DAY;
 }
@@ -214,7 +214,7 @@ template <typename Scalar>
     Scalar g = (357.5277233 + 35999.05034 * T) * M_PI / 180.0;
 
     // Correction
-    Scalar dt = 0.001657 * janus::sin(g);
+    Scalar dt = 0.001657 * metis::sin(g);
 
     return tdb_jd - dt / constants::time::SECONDS_PER_DAY;
 }
@@ -226,7 +226,7 @@ template <typename Scalar>
 /**
  * @brief Convert UTC Julian Date to TAI Julian Date (fully symbolic)
  *
- * Uses janus::Interpolator for smooth leap second lookup.
+ * Uses metis::Interpolator for smooth leap second lookup.
  * Suitable for optimization problems spanning leap second boundaries.
  *
  * @tparam Scalar Numeric or symbolic type
@@ -242,7 +242,7 @@ template <typename Scalar>
 /**
  * @brief Convert TAI Julian Date to UTC Julian Date (fully symbolic)
  *
- * Uses janus::Interpolator for smooth leap second lookup.
+ * Uses metis::Interpolator for smooth leap second lookup.
  * Note: For TAI→UTC, we approximate by using the TAI JD directly
  * in the interpolator (small error during leap second transitions).
  */

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 namespace vulcan::tf {
 
@@ -71,7 +71,7 @@ Scalar first_order_step(const FirstOrderCoeffs<Scalar> &coeffs,
  */
 template <typename Scalar>
 Scalar first_order_response(double tau, double K, const Scalar &t) {
-    return static_cast<Scalar>(K) * (1.0 - janus::exp(-t / tau));
+    return static_cast<Scalar>(K) * (1.0 - metis::exp(-t / tau));
 }
 
 } // namespace vulcan::tf

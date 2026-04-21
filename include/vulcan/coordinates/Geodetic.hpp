@@ -5,9 +5,9 @@
 #include <vulcan/coordinates/EarthModel.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 
-#include <janus/math/Arithmetic.hpp>
-#include <janus/math/Logic.hpp>
-#include <janus/math/Trig.hpp>
+#include <metis/math/Arithmetic.hpp>
+#include <metis/math/Logic.hpp>
+#include <metis/math/Trig.hpp>
 
 namespace vulcan {
 
@@ -22,7 +22,7 @@ namespace vulcan {
 /// - Latitude is geodetic (angle from equatorial plane to ellipsoid normal)
 /// - Altitude is height above the reference ellipsoid surface
 ///
-/// @tparam Scalar Scalar type (double for numeric, janus::SymbolicScalar for
+/// @tparam Scalar Scalar type (double for numeric, metis::SymbolicScalar for
 /// symbolic)
 template <typename Scalar> struct LLA {
     Scalar lon; ///< Longitude [rad], positive East, range [-π, π]
@@ -44,7 +44,7 @@ template <typename Scalar> struct LLA {
 /// Unlike geodetic coordinates, geocentric latitude is measured as the angle
 /// from the equatorial plane to the position vector (not the ellipsoid normal).
 ///
-/// @tparam Scalar Scalar type (double for numeric, janus::SymbolicScalar for
+/// @tparam Scalar Scalar type (double for numeric, metis::SymbolicScalar for
 /// symbolic)
 template <typename Scalar> struct Spherical {
     Scalar lon;    ///< Longitude [rad], positive East, range [-π, π]
@@ -102,37 +102,37 @@ LLA<Scalar> ecef_to_lla(const Vec3<Scalar> &r,
     // t = ∛(1 + s + √(s(2+s)))
     // Note: For numerical stability when s is small, this still works
     const Scalar s_term = s * (2.0 + s);
-    const Scalar t = janus::pow(1.0 + s + janus::sqrt(s_term), 1.0 / 3.0);
+    const Scalar t = metis::pow(1.0 + s + metis::sqrt(s_term), 1.0 / 3.0);
 
     // u = r (1 + t + 1/t)
     const Scalar u = r_val * (1.0 + t + 1.0 / t);
 
     // v = √(u² + e⁴ q)
-    const Scalar v = janus::sqrt(u * u + e4 * q);
+    const Scalar v = metis::sqrt(u * u + e4 * q);
 
     // w = e² (u + v - q) / (2v)
     const Scalar w = e2 * (u + v - q) / (2.0 * v);
 
     // k = √(u + v + w²) - w
-    const Scalar k = janus::sqrt(u + v + w * w) - w;
+    const Scalar k = metis::sqrt(u + v + w * w) - w;
 
     // D = k √(x² + y²) / (k + e²)
-    const Scalar xy_dist = janus::sqrt(x * x + y * y);
+    const Scalar xy_dist = metis::sqrt(x * x + y * y);
     const Scalar D = k * xy_dist / (k + e2);
 
     // Compute geodetic latitude
     // φ = 2 atan2(z, D + √(D² + z²))
-    const Scalar lat = 2.0 * janus::atan2(z, D + janus::sqrt(D * D + z * z));
+    const Scalar lat = 2.0 * metis::atan2(z, D + metis::sqrt(D * D + z * z));
 
     // Compute altitude
     // h = (k + e² - 1) / k · √(D² + z²)
-    const Scalar alt = (k + e2 - 1.0) / k * janus::sqrt(D * D + z * z);
+    const Scalar alt = (k + e2 - 1.0) / k * metis::sqrt(D * D + z * z);
 
     // Compute longitude with pole handling
     // At poles (xy_dist ≈ 0), longitude is undefined; we set it to 0
     constexpr double eps = 1e-15;
     const Scalar is_pole = xy_dist < eps;
-    const Scalar lon = janus::where(is_pole, Scalar(0.0), janus::atan2(y, x));
+    const Scalar lon = metis::where(is_pole, Scalar(0.0), metis::atan2(y, x));
 
     return LLA<Scalar>(lon, lat, alt);
 }
@@ -151,17 +151,17 @@ LLA<Scalar> ecef_to_lla(const Vec3<Scalar> &r,
 template <typename Scalar>
 Vec3<Scalar> lla_to_ecef(const LLA<Scalar> &lla,
                          const EarthModel &m = EarthModel::WGS84()) {
-    const Scalar sin_lat = janus::sin(lla.lat);
-    const Scalar cos_lat = janus::cos(lla.lat);
-    const Scalar sin_lon = janus::sin(lla.lon);
-    const Scalar cos_lon = janus::cos(lla.lon);
+    const Scalar sin_lat = metis::sin(lla.lat);
+    const Scalar cos_lat = metis::cos(lla.lat);
+    const Scalar sin_lon = metis::sin(lla.lon);
+    const Scalar cos_lon = metis::cos(lla.lon);
 
     const double a = m.a;
     const double e2 = m.e2;
 
     // Radius of curvature in the prime vertical
     // N = a / √(1 - e² sin²φ)
-    const Scalar N = a / janus::sqrt(1.0 - e2 * sin_lat * sin_lat);
+    const Scalar N = a / metis::sqrt(1.0 - e2 * sin_lat * sin_lat);
 
     // ECEF coordinates
     // x = (N + h) cos(φ) cos(λ)
@@ -193,16 +193,16 @@ Spherical<Scalar> ecef_to_spherical(const Vec3<Scalar> &r) {
     const Scalar z = r(2);
 
     // Radius (distance from Earth center)
-    const Scalar radius = janus::sqrt(x * x + y * y + z * z);
+    const Scalar radius = metis::sqrt(x * x + y * y + z * z);
 
     // Geocentric latitude (angle from equatorial plane to position vector)
-    const Scalar lat_gc = janus::asin(z / radius);
+    const Scalar lat_gc = metis::asin(z / radius);
 
     // Longitude with pole handling
-    const Scalar xy_dist = janus::sqrt(x * x + y * y);
+    const Scalar xy_dist = metis::sqrt(x * x + y * y);
     constexpr double eps = 1e-15;
     const Scalar is_pole = xy_dist < eps;
-    const Scalar lon = janus::where(is_pole, Scalar(0.0), janus::atan2(y, x));
+    const Scalar lon = metis::where(is_pole, Scalar(0.0), metis::atan2(y, x));
 
     return Spherical<Scalar>(lon, lat_gc, radius);
 }
@@ -219,10 +219,10 @@ Spherical<Scalar> ecef_to_spherical(const Vec3<Scalar> &r) {
 /// @return Position in ECEF [m]
 template <typename Scalar>
 Vec3<Scalar> spherical_to_ecef(const Spherical<Scalar> &geo) {
-    const Scalar sin_lat = janus::sin(geo.lat_gc);
-    const Scalar cos_lat = janus::cos(geo.lat_gc);
-    const Scalar sin_lon = janus::sin(geo.lon);
-    const Scalar cos_lon = janus::cos(geo.lon);
+    const Scalar sin_lat = metis::sin(geo.lat_gc);
+    const Scalar cos_lat = metis::cos(geo.lat_gc);
+    const Scalar sin_lon = metis::sin(geo.lon);
+    const Scalar cos_lon = metis::cos(geo.lon);
 
     Vec3<Scalar> r;
     r(0) = geo.radius * cos_lat * cos_lon;
@@ -248,7 +248,7 @@ template <typename Scalar>
 Scalar geodetic_to_geocentric_lat(Scalar lat_gd,
                                   const EarthModel &m = EarthModel::WGS84()) {
     // tan(φ_gc) = (1 - e²) tan(φ_gd)
-    return janus::atan((1.0 - m.e2) * janus::tan(lat_gd));
+    return metis::atan((1.0 - m.e2) * metis::tan(lat_gd));
 }
 
 /// Convert geocentric latitude to geodetic latitude
@@ -260,7 +260,7 @@ template <typename Scalar>
 Scalar geocentric_to_geodetic_lat(Scalar lat_gc,
                                   const EarthModel &m = EarthModel::WGS84()) {
     // tan(φ_gd) = tan(φ_gc) / (1 - e²)
-    return janus::atan(janus::tan(lat_gc) / (1.0 - m.e2));
+    return metis::atan(metis::tan(lat_gc) / (1.0 - m.e2));
 }
 
 /// Compute the radius of curvature in the prime vertical (N)
@@ -274,8 +274,8 @@ Scalar geocentric_to_geodetic_lat(Scalar lat_gc,
 template <typename Scalar>
 Scalar radius_of_curvature_N(Scalar lat,
                              const EarthModel &m = EarthModel::WGS84()) {
-    const Scalar sin_lat = janus::sin(lat);
-    return m.a / janus::sqrt(1.0 - m.e2 * sin_lat * sin_lat);
+    const Scalar sin_lat = metis::sin(lat);
+    return m.a / metis::sqrt(1.0 - m.e2 * sin_lat * sin_lat);
 }
 
 /// Compute the radius of curvature in the meridian (M)
@@ -289,9 +289,9 @@ Scalar radius_of_curvature_N(Scalar lat,
 template <typename Scalar>
 Scalar radius_of_curvature_M(Scalar lat,
                              const EarthModel &m = EarthModel::WGS84()) {
-    const Scalar sin_lat = janus::sin(lat);
+    const Scalar sin_lat = metis::sin(lat);
     const Scalar denom = 1.0 - m.e2 * sin_lat * sin_lat;
-    return m.a * (1.0 - m.e2) / janus::pow(denom, 1.5);
+    return m.a * (1.0 - m.e2) / metis::pow(denom, 1.5);
 }
 
 } // namespace vulcan

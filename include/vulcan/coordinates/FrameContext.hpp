@@ -97,7 +97,7 @@ template <typename Scalar> class FrameContext {
         }
     }
 
-    void set_body_quaternion(const janus::Quaternion<Scalar> &q) {
+    void set_body_quaternion(const metis::Quaternion<Scalar> &q) {
         providers_[FRAME_BODY.id] = std::make_shared<BodyProvider<Scalar>>(q);
 
         if (has_cached_frame(FRAME_NED)) {

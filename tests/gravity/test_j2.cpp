@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/gravity/J2.hpp>
 #include <vulcan/gravity/PointMass.hpp>
@@ -24,7 +24,7 @@ TEST(J2Gravity, EquatorialSurfaceJ2Effect) {
     EXPECT_LT(g_j2(0), 0.0);
     EXPECT_LT(g_pm(0), 0.0);
     // Difference should be small (within a few percent)
-    EXPECT_NEAR(janus::norm(g_j2), janus::norm(g_pm), janus::norm(g_pm) * 0.01);
+    EXPECT_NEAR(metis::norm(g_j2), metis::norm(g_pm), metis::norm(g_pm) * 0.01);
 }
 
 TEST(J2Gravity, PolarSurfaceJ2Effect) {
@@ -39,7 +39,7 @@ TEST(J2Gravity, PolarSurfaceJ2Effect) {
     EXPECT_LT(g_j2(2), 0.0);
     EXPECT_LT(g_pm(2), 0.0);
     // Difference should be small
-    EXPECT_NEAR(janus::norm(g_j2), janus::norm(g_pm), janus::norm(g_pm) * 0.02);
+    EXPECT_NEAR(metis::norm(g_j2), metis::norm(g_pm), metis::norm(g_pm) * 0.02);
 }
 
 TEST(J2Gravity, ReferenceValueLEO) {
@@ -48,7 +48,7 @@ TEST(J2Gravity, ReferenceValueLEO) {
     r << constants::earth::R_eq + 400000.0, 0.0, 0.0;
 
     auto g = j2::acceleration(r);
-    double g_mag = janus::norm(g);
+    double g_mag = metis::norm(g);
 
     // Expected ~8.7 m/s² at 400 km
     EXPECT_NEAR(g_mag, 8.7, 0.1);
@@ -77,7 +77,7 @@ TEST(J2Gravity, EquatorPoleAsymmetry) {
     auto g_pole = j2::acceleration(r_pole);
 
     // Polar gravity should be stronger due to closer distance and J2
-    EXPECT_GT(janus::norm(g_pole), janus::norm(g_eq));
+    EXPECT_GT(metis::norm(g_pole), metis::norm(g_eq));
 }
 
 // ============================================
@@ -118,17 +118,17 @@ TEST(J2Gravity, Potential) {
 // ============================================
 
 TEST(J2Gravity, SymbolicEvaluation) {
-    auto x = janus::sym("x");
-    auto y = janus::sym("y");
-    auto z = janus::sym("z");
+    auto x = metis::sym("x");
+    auto y = metis::sym("y");
+    auto z = metis::sym("z");
 
-    Vec3<janus::SymbolicScalar> r;
+    Vec3<metis::SymbolicScalar> r;
     r << x, y, z;
 
     auto g = j2::acceleration(r);
 
     // Create function for evaluation
-    janus::Function f("j2_accel", {x, y, z}, {g(0), g(1), g(2)});
+    metis::Function f("j2_accel", {x, y, z}, {g(0), g(1), g(2)});
 
     // Evaluate at specific point
     double R = constants::earth::R_eq;
@@ -141,11 +141,11 @@ TEST(J2Gravity, SymbolicEvaluation) {
 }
 
 TEST(J2Gravity, SymbolicMatchesNumeric) {
-    auto x = janus::sym("x");
-    auto y = janus::sym("y");
-    auto z = janus::sym("z");
+    auto x = metis::sym("x");
+    auto y = metis::sym("y");
+    auto z = metis::sym("z");
 
-    Vec3<janus::SymbolicScalar> r_sym;
+    Vec3<metis::SymbolicScalar> r_sym;
     r_sym << x, y, z;
 
     Vec3<double> r_num;
@@ -154,7 +154,7 @@ TEST(J2Gravity, SymbolicMatchesNumeric) {
     auto g_sym = j2::acceleration(r_sym);
     auto g_num = j2::acceleration(r_num);
 
-    janus::Function f("j2_accel_test", {x, y, z},
+    metis::Function f("j2_accel_test", {x, y, z},
                       {g_sym(0), g_sym(1), g_sym(2)});
     auto result = f({r_num(0), r_num(1), r_num(2)});
 
@@ -164,16 +164,16 @@ TEST(J2Gravity, SymbolicMatchesNumeric) {
 }
 
 TEST(J2Gravity, SymbolicPotential) {
-    auto x = janus::sym("x");
-    auto y = janus::sym("y");
-    auto z = janus::sym("z");
+    auto x = metis::sym("x");
+    auto y = metis::sym("y");
+    auto z = metis::sym("z");
 
-    Vec3<janus::SymbolicScalar> r;
+    Vec3<metis::SymbolicScalar> r;
     r << x, y, z;
 
     auto U = j2::potential(r);
 
-    janus::Function f("j2_potential", {x, y, z}, {U});
+    metis::Function f("j2_potential", {x, y, z}, {U});
 
     Vec3<double> r_num;
     r_num << 7000000.0, 0.0, 1000000.0;

@@ -1,6 +1,6 @@
 # Aerodynamics Module
 
-The `vulcan::aero` module provides fundamental aerodynamic calculations for flight mechanics and trajectory optimization. It is designed to work seamlessly with both numeric types (`double`) and symbolic types (`janus::SymbolicScalar`) for automatic differentiation.
+The `vulcan::aero` module provides fundamental aerodynamic calculations for flight mechanics and trajectory optimization. It is designed to work seamlessly with both numeric types (`double`) and symbolic types (`metis::SymbolicScalar`) for automatic differentiation.
 
 ## Overview
 
@@ -81,12 +81,12 @@ std::cout << "Dyn P: " << state.dynamic_pressure << std::endl;
 
 ## Symbolic Optimization
 
-The entire module is Janus-compatible. You can use `janus::SymbolicScalar` to build computational graphs for optimization problems.
+The entire module is Metis-compatible. You can use `metis::SymbolicScalar` to build computational graphs for optimization problems.
 
 ```cpp
 // Define symbolic optimization variables
-janus::SymbolicScalar alt = janus::sym("h");
-janus::SymbolicScalar velocity = janus::sym("v");
+metis::SymbolicScalar alt = metis::sym("h");
+metis::SymbolicScalar velocity = metis::sym("v");
 
 // Compute atmosphere symbolically
 auto atm = vulcan::ussa1976::state(alt);
@@ -97,4 +97,4 @@ auto q = vulcan::aero::dynamic_pressure(atm.density, velocity);
 // 'q' is now a symbolic expression graph that depends on h and v
 ```
 
-Note: `aero_angles` uses `janus::atan2` and `janus::asin`, which are fully differentiable and safe for symbolic use.
+Note: `aero_angles` uses `metis::atan2` and `metis::asin`, which are fully differentiable and safe for symbolic use.

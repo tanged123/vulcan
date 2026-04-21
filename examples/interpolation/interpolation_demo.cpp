@@ -17,7 +17,7 @@ int main() {
     // =========================================================================
     std::cout << "--- Table1D (Altitude vs Temperature) ---\n";
     {
-        janus::NumericVector alt(5), temp(5);
+        metis::NumericVector alt(5), temp(5);
         alt << 0, 5, 10, 15, 20;         // km
         temp << 288, 256, 223, 217, 217; // K
 
@@ -38,12 +38,12 @@ int main() {
     // =========================================================================
     std::cout << "--- TableND (Mach x Alpha -> CL) ---\n";
     {
-        janus::NumericVector mach(3), alpha(4);
+        metis::NumericVector mach(3), alpha(4);
         mach << 0.6, 0.8, 1.0;
         alpha << 0, 5, 10, 15;
 
         // CL values in Fortran order (Mach varies fastest)
-        janus::NumericVector cl(12);
+        metis::NumericVector cl(12);
         cl << 0.0, 0.05, 0.10, // alpha=0
             0.5, 0.55, 0.60,   // alpha=5
             1.0, 1.05, 1.10,   // alpha=10
@@ -55,7 +55,7 @@ int main() {
         std::cout << "Dimensions: " << table.dims() << "\n\n";
 
         // Query at test points
-        janus::NumericVector q1(2), q2(2);
+        metis::NumericVector q1(2), q2(2);
         q1 << 0.7, 7.5;
         q2 << 0.9, 12.0;
 
@@ -69,7 +69,7 @@ int main() {
     std::cout << "--- ScatteredTable1D (Non-uniform Points) ---\n";
     {
         // Non-uniformly spaced data (like wind tunnel test points)
-        janus::NumericVector x(8), y(8);
+        metis::NumericVector x(8), y(8);
         x << 0.0, 0.3, 0.7, 1.2, 2.0, 2.8, 3.5, 4.0;
         for (int i = 0; i < 8; ++i) {
             y(i) = std::sin(x(i)); // Sample sin(x)
@@ -98,8 +98,8 @@ int main() {
     {
         // 2D scattered data: z = x + y
         int n = 25;
-        janus::NumericMatrix points(n, 2);
-        janus::NumericVector values(n);
+        metis::NumericMatrix points(n, 2);
+        metis::NumericVector values(n);
 
         // 5x5 grid pattern
         int idx = 0;
@@ -122,7 +122,7 @@ int main() {
                   << "\n\n";
 
         // Query at center point
-        janus::NumericVector q(2);
+        metis::NumericVector q(2);
         q << 2.5, 2.5;
         double result = table(q);
         double expected = 5.0; // 2.5 + 2.5
@@ -136,7 +136,7 @@ int main() {
     std::cout << "--- Symbolic Mode ---\n";
     {
         // Create a simple table
-        janus::NumericVector x(5), y(5);
+        metis::NumericVector x(5), y(5);
         x << 0, 1, 2, 3, 4;
         y << 0, 1, 4, 9, 16; // y = x²
 
@@ -147,15 +147,15 @@ int main() {
         SymbolicScalar y_sym = table(x_sym);
 
         // Build function
-        janus::Function f("table_lookup", {x_sym}, {y_sym});
+        metis::Function f("table_lookup", {x_sym}, {y_sym});
 
         // Evaluate
         auto result = f(1.5);
         std::cout << "table(1.5) = " << double(result[0](0, 0)) << "\n";
 
         // Compute gradient
-        SymbolicScalar grad = janus::jacobian(y_sym, x_sym);
-        janus::Function df("table_derivative", {x_sym}, {grad});
+        SymbolicScalar grad = metis::jacobian(y_sym, x_sym);
+        metis::Function df("table_derivative", {x_sym}, {grad});
 
         auto slope = df(1.5);
         std::cout << "d/dx table(1.5) = " << double(slope[0](0, 0)) << "\n";

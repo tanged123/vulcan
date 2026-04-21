@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iomanip>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <sstream>
 #include <string>
 #include <vulcan/time/JulianDate.hpp>
@@ -32,7 +32,7 @@ namespace vulcan::time {
  * std::cout << "JD TT: " << epoch.jd_tt() << std::endl;
  *
  * // Symbolic mode
- * auto t_sym = janus::sym("t");
+ * auto t_sym = metis::sym("t");
  * auto sym_epoch = SymbolicEpoch::from_tai_seconds(t_sym);
  * auto centuries = sym_epoch.centuries_tt();
  * ```
@@ -223,9 +223,9 @@ template <typename Scalar> class Epoch {
             double days_into_week = days_since_gps_epoch - weeks * 7.0;
             return days_into_week * constants::time::SECONDS_PER_DAY;
         } else {
-            // Symbolic: use janus::fmod
+            // Symbolic: use metis::fmod
             Scalar days_into_week =
-                janus::fmod(days_since_gps_epoch, Scalar(7.0));
+                metis::fmod(days_since_gps_epoch, Scalar(7.0));
             return days_into_week * constants::time::SECONDS_PER_DAY;
         }
     }
@@ -338,6 +338,6 @@ template <typename Scalar> class Epoch {
 using NumericEpoch = Epoch<double>;
 
 /// Symbolic epoch (CasADi MX)
-using SymbolicEpoch = Epoch<janus::SymbolicScalar>;
+using SymbolicEpoch = Epoch<metis::SymbolicScalar>;
 
 } // namespace vulcan::time

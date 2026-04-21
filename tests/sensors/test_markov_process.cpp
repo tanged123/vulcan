@@ -223,10 +223,10 @@ TEST(MarkovProcess, CorrelationTimeEmpirical) {
 // =============================================================================
 
 TEST(MarkovProcess, SymbolicCompatibility) {
-    auto x0 = janus::sym("x0");
-    auto state = vulcan::markov::State<janus::SymbolicScalar>{.x = x0};
+    auto x0 = metis::sym("x0");
+    auto state = vulcan::markov::State<metis::SymbolicScalar>{.x = x0};
     auto coeffs = vulcan::markov::discretize(10.0, 0.5, 0.1);
-    auto noise = janus::sym("w");
+    auto noise = metis::sym("w");
 
     auto output = vulcan::markov::step(state, coeffs, noise);
 
@@ -234,7 +234,7 @@ TEST(MarkovProcess, SymbolicCompatibility) {
     EXPECT_FALSE(output.is_constant());
 
     // Create function and evaluate with zero noise = pure decay
-    janus::Function f("markov_step", {x0, noise}, {output});
+    metis::Function f("markov_step", {x0, noise}, {output});
     auto result = f({1.0, 0.0});
     EXPECT_NEAR(result[0](0, 0), coeffs.phi, 1e-10);
 }

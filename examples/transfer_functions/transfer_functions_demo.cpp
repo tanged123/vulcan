@@ -44,7 +44,7 @@ int main() {
     std::cout << "  deadband(0.5, 1.0) = " << deadband(0.5, 1.0) << "\n";
     std::cout << "  deadband(2.0, 1.0) = " << deadband(2.0, 1.0) << "\n\n";
 
-    std::cout << "All functions are symbolic-compatible for janus::Opti.\n";
+    std::cout << "All functions are symbolic-compatible for metis::Opti.\n";
 
     return 0;
 }

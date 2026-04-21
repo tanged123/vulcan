@@ -157,11 +157,11 @@ auto a_total = coriolis_centrifugal(r_ecef, v_ecef);
 
 ## 9. Symbolic Coordinate Operations
 
-All coordinate transformations in Vulcan are templated on `Scalar`, making them fully compatible with Janus's symbolic engine. This enables automatic differentiation and code generation for complex GNC algorithms.
+All coordinate transformations in Vulcan are templated on `Scalar`, making them fully compatible with Metis's symbolic engine. This enables automatic differentiation and code generation for complex GNC algorithms.
 
 ### Symbolic Computation Example
 
-You can use `janus::SymbolicScalar` (which aliases `casadi::MX`) to build computational graphs.
+You can use `metis::SymbolicScalar` (which aliases `casadi::MX`) to build computational graphs.
 
 ```cpp
 // Define symbolic inputs
@@ -176,14 +176,14 @@ sym_r_ecef << sym_x, sym_y, sym_z;
 LLA<SymbolicScalar> sym_lla = ecef_to_lla(sym_r_ecef);
 
 // Create a callable function
-janus::Function f("ecef_to_lla", 
+metis::Function f("ecef_to_lla", 
                   {sym_x, sym_y, sym_z}, 
                   {sym_lla.lon, sym_lla.lat, sym_lla.alt});
 ```
 
 ### Visualizing the Algorithm
 
-Janus can visualize the resulting computational graph. Below is the graph for the **Vermeille algorithm** used in `ecef_to_lla`, showing the flow from Cartesian inputs (bottom) to Geodetic outputs (top).
+Metis can visualize the resulting computational graph. Below is the graph for the **Vermeille algorithm** used in `ecef_to_lla`, showing the flow from Cartesian inputs (bottom) to Geodetic outputs (top).
 
 > [!TIP]
 > **Interactive Examples** - Explore the computational graphs:
@@ -194,4 +194,4 @@ Janus can visualize the resulting computational graph. Below is the graph for th
 
 ## Summary
 
-The Vulcan Coordinates module provides a rigorous, type-safe (via `Scalar` templates for Janus compatibility), and comprehensive set of tools for aerospace positioning and navigation.
+The Vulcan Coordinates module provides a rigorous, type-safe (via `Scalar` templates for Metis compatibility), and comprehensive set of tools for aerospace positioning and navigation.

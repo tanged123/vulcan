@@ -87,17 +87,17 @@ TEST(StateConversions, Elliptical) {
 
 // Test symbolic compatibility
 TEST(StateConversions, Symbolic_KeplerianToCartesian) {
-    OrbitalElements<janus::SymbolicScalar> oe;
-    oe.a = janus::sym("a");
-    oe.e = janus::sym("e");
-    oe.i = janus::sym("i");
-    oe.Omega = janus::sym("Omega");
-    oe.omega = janus::sym("omega");
-    oe.nu = janus::sym("nu");
+    OrbitalElements<metis::SymbolicScalar> oe;
+    oe.a = metis::sym("a");
+    oe.e = metis::sym("e");
+    oe.i = metis::sym("i");
+    oe.Omega = metis::sym("Omega");
+    oe.omega = metis::sym("omega");
+    oe.nu = metis::sym("nu");
 
     auto [r, v] = keplerian_to_cartesian(oe);
 
-    janus::Function f("kep2cart", {oe.a, oe.e, oe.i, oe.Omega, oe.omega, oe.nu},
+    metis::Function f("kep2cart", {oe.a, oe.e, oe.i, oe.Omega, oe.omega, oe.nu},
                       {r(0), r(1), r(2)});
 
     auto result = f({7000.0e3, 0.1, 0.5, 1.0, 0.5, 0.0});

@@ -1,13 +1,13 @@
 # Vulcan Repository Bootstrap Guide
 
-> **Purpose**: This document provides comprehensive instructions for an AI agent to create the **Vulcan** engineering utilities repository. Vulcan contains model-agnostic aerospace simulation utilities (coordinate frames, rotations, atmospheric models, gravity models, earth models, etc.) that utilize the **Janus** math library as a dependency.
+> **Purpose**: This document provides comprehensive instructions for an AI agent to create the **Vulcan** engineering utilities repository. Vulcan contains model-agnostic aerospace simulation utilities (coordinate frames, rotations, atmospheric models, gravity models, earth models, etc.) that utilize the **Metis** math library as a dependency.
 
 ---
 
 ## Table of Contents
 
 1. [Project Overview](#1-project-overview)
-2. [Understanding Janus's Dual Symbolic/Numeric Nature](#2-understanding-januss-dual-symbolicnumeric-nature)
+2. [Understanding Metis's Dual Symbolic/Numeric Nature](#2-understanding-metiss-dual-symbolicnumeric-nature)
 3. [Repository Structure](#3-repository-structure)
 4. [Nix Setup](#4-nix-setup)
 5. [CMake Configuration](#5-cmake-configuration)
@@ -42,23 +42,23 @@
 - **Unit Conversions**: SI, imperial, angular (deg/rad), and domain-specific conversions
 - **Data I/O**: HDF5 telemetry logging, CSV export, standardized frame-by-frame data recording for 6-DOF simulations
 
-### Key Design Principle: Janus Compatibility
+### Key Design Principle: Metis Compatibility
 
-All Vulcan utilities **MUST** be templated on a generic `Scalar` type to maintain compatibility with Janus's dual-backend system. This allows Vulcan models to work in both:
+All Vulcan utilities **MUST** be templated on a generic `Scalar` type to maintain compatibility with Metis's dual-backend system. This allows Vulcan models to work in both:
 
 1. **Numeric Mode**: Fast execution with `double`
 2. **Symbolic Mode**: Graph generation for optimization with `casadi::MX`
 
 ---
 
-## 2. Understanding Janus's Dual Symbolic/Numeric Nature
+## 2. Understanding Metis's Dual Symbolic/Numeric Nature
 
 > [!IMPORTANT]
 > This section is **CRITICAL**. Every line of Vulcan code must respect these constraints.
 
 ### The Core Paradigm
 
-Janus implements **Code Transformations** - write physics once, execute in two modes:
+Metis implements **Code Transformations** - write physics once, execute in two modes:
 
 | Mode | Scalar Type | Matrix Type | Purpose |
 |------|-------------|-------------|---------|
@@ -79,19 +79,19 @@ Scalar compute_gravity(const Scalar& altitude, const Scalar& latitude);
 double compute_gravity(double altitude, double latitude);
 ```
 
-#### 2. Math Dispatch - Use `janus::` Namespace
+#### 2. Math Dispatch - Use `metis::` Namespace
 ```cpp
-// ✅ CORRECT: Uses janus:: namespace
-auto result = janus::sin(theta) * janus::pow(r, 2);
+// ✅ CORRECT: Uses metis:: namespace
+auto result = metis::sin(theta) * metis::pow(r, 2);
 
 // ❌ WRONG: Uses std:: namespace (breaks symbolic mode)
 auto result = std::sin(theta) * std::pow(r, 2);
 ```
 
-#### 3. Branching - Use `janus::where()`, NEVER `if/else`
+#### 3. Branching - Use `metis::where()`, NEVER `if/else`
 ```cpp
 // ✅ CORRECT: Symbolic-compatible branching
-Scalar cd = janus::where(mach > 1.0, 0.5, 0.02);
+Scalar cd = metis::where(mach > 1.0, 0.5, 0.02);
 
 // ❌ WRONG: Breaks symbolic graph (MX doesn't evaluate to bool)
 Scalar cd;
@@ -106,7 +106,7 @@ if (mach > 1.0) {  // COMPILATION ERROR with MX!
 ```cpp
 // ✅ CORRECT: Loop bound is a compile-time constant
 for (int i = 0; i < NUM_TERMS; ++i) {
-    result += coefficients[i] * janus::pow(x, i);
+    result += coefficients[i] * metis::pow(x, i);
 }
 
 // ❌ WRONG: Loop bound depends on optimization variable
@@ -115,45 +115,45 @@ for (int i = 0; i < some_scalar_value; ++i) {  // FORBIDDEN!
 }
 ```
 
-### Janus Type Aliases (Use These!)
+### Metis Type Aliases (Use These!)
 
-When using Janus types, prefer the native aliases:
+When using Metis types, prefer the native aliases:
 
 ```cpp
-#include <janus/core/JanusTypes.hpp>
+#include <metis/core/MetisTypes.hpp>
 
 // Fixed-size vectors/matrices
-janus::Vec2<Scalar>  // 2D column vector
-janus::Vec3<Scalar>  // 3D column vector
-janus::Vec4<Scalar>  // 4D column vector
-janus::Mat2<Scalar>  // 2x2 matrix
-janus::Mat3<Scalar>  // 3x3 matrix
-janus::Mat4<Scalar>  // 4x4 matrix
+metis::Vec2<Scalar>  // 2D column vector
+metis::Vec3<Scalar>  // 3D column vector
+metis::Vec4<Scalar>  // 4D column vector
+metis::Mat2<Scalar>  // 2x2 matrix
+metis::Mat3<Scalar>  // 3x3 matrix
+metis::Mat4<Scalar>  // 4x4 matrix
 
 // Dynamic types
-janus::VecX<Scalar>  // Dynamic column vector
-janus::MatX<Scalar>  // Dynamic matrix
-janus::RowVecX<Scalar>  // Dynamic row vector
+metis::VecX<Scalar>  // Dynamic column vector
+metis::MatX<Scalar>  // Dynamic matrix
+metis::RowVecX<Scalar>  // Dynamic row vector
 ```
 
 ### Advanced Control Flow Patterns
 
-Beyond the basic `janus::where()`, Vulcan implementations will need more sophisticated patterns for complex aerospace logic.
+Beyond the basic `metis::where()`, Vulcan implementations will need more sophisticated patterns for complex aerospace logic.
 
-#### Multi-Way Branching with `janus::select()`
+#### Multi-Way Branching with `metis::select()`
 
-For switch-case style logic, use `janus::select()` instead of nested `where()`:
+For switch-case style logic, use `metis::select()` instead of nested `where()`:
 
 ```cpp
 // ❌ Hard to read with nested where()
-Scalar cd = janus::where(mach < 0.3,
+Scalar cd = metis::where(mach < 0.3,
                Scalar(0.02),
-               janus::where(mach < 0.8, 
+               metis::where(mach < 0.8, 
                    Scalar(0.025),
-                   janus::where(mach < 1.2, Scalar(0.05), Scalar(0.03))));
+                   metis::where(mach < 1.2, Scalar(0.05), Scalar(0.03))));
 
 // ✅ Clean with select() - Conditions checked in order, first match wins
-Scalar cd = janus::select(
+Scalar cd = metis::select(
     {mach < 0.3, mach < 0.8, mach < 1.2},    // conditions
     {Scalar(0.02), Scalar(0.025), Scalar(0.05)},  // values
     Scalar(0.03));  // default if none match
@@ -167,27 +167,27 @@ When branches require multi-step calculations, use helper functions:
 // Helper functions for complex flow regimes
 template <typename Scalar>
 Scalar turbulent_skin_friction(const Scalar& re, const Scalar& mach) {
-    auto cf = 0.074 / janus::pow(re, 0.2);
-    auto compressibility = 1.0 + 0.144 * janus::pow(mach, 2.0);
+    auto cf = 0.074 / metis::pow(re, 0.2);
+    auto compressibility = 1.0 + 0.144 * metis::pow(mach, 2.0);
     return cf * compressibility;
 }
 
 template <typename Scalar>
 Scalar laminar_skin_friction(const Scalar& re) {
-    return 1.328 / janus::sqrt(re);
+    return 1.328 / metis::sqrt(re);
 }
 
 // Use in branching - both branches are ALWAYS evaluated in symbolic mode!
 template <typename Scalar>
 Scalar skin_friction(const Scalar& re, const Scalar& mach) {
-    return janus::where(re > 5e5,
+    return metis::where(re > 5e5,
                        turbulent_skin_friction(re, mach),
                        laminar_skin_friction(re));
 }
 ```
 
 > [!WARNING]
-> Both branches of `janus::where()` are **always evaluated** in symbolic mode (that's how computational graphs work). The condition only selects which result to use. Avoid expensive computations in branches that might not be needed.
+> Both branches of `metis::where()` are **always evaluated** in symbolic mode (that's how computational graphs work). The condition only selects which result to use. Avoid expensive computations in branches that might not be needed.
 
 #### Compound Conditions
 
@@ -197,11 +197,11 @@ Combine multiple conditions using logical operators:
 template <typename Scalar>
 Scalar apply_stall_correction(const Scalar& cl, const Scalar& alpha,
                                const Scalar& reynolds) {
-    auto is_stalled = janus::abs(alpha) > 0.26;  // ~15 deg
+    auto is_stalled = metis::abs(alpha) > 0.26;  // ~15 deg
     auto low_reynolds = reynolds < 1e5;
     
     // Combine conditions - both must be true
-    return janus::where(is_stalled && low_reynolds,
+    return metis::where(is_stalled && low_reynolds,
                        cl * 0.7,   // Apply 30% reduction
                        cl);        // No correction
 }
@@ -224,7 +224,7 @@ template <typename Scalar>
 Scalar polynomial_eval(const Scalar& x, const std::vector<double>& coeffs) {
     Scalar result = 0.0;
     for (int i = 0; i < static_cast<int>(coeffs.size()); ++i) {
-        result += coeffs[i] * janus::pow(x, static_cast<double>(i));
+        result += coeffs[i] * metis::pow(x, static_cast<double>(i));
     }
     return result;
 }
@@ -261,15 +261,15 @@ for (int i = 0; i < n; ++i) {
 
 // ✅ WORKS (both modes) - use where() for conditional logic
 template <typename Scalar>
-Scalar conditional_sum(const janus::VecX<Scalar>& values,
+Scalar conditional_sum(const metis::VecX<Scalar>& values,
                        const Scalar& threshold) {
     Scalar sum = 0.0;
     auto exceeded = Scalar(0.0);  // Flag: have we exceeded threshold?
     
     for (int i = 0; i < values.size(); ++i) {
         auto should_add = (values(i) <= threshold) && (exceeded < 0.5);
-        sum += janus::where(should_add, values(i), Scalar(0.0));
-        exceeded = janus::where(values(i) > threshold, Scalar(1.0), exceeded);
+        sum += metis::where(should_add, values(i), Scalar(0.0));
+        exceeded = metis::where(values(i) > threshold, Scalar(1.0), exceeded);
     }
     return sum;
 }
@@ -314,12 +314,12 @@ Scalar gravity_potential(const Scalar& r, const Scalar& phi, int n_max) {
     // Harmonic expansion - structural loop (n_max is fixed at call time)
     for (int n = 2; n <= n_max; ++n) {
         for (int m = 0; m <= n; ++m) {
-            auto P_nm = legendre(n, m, janus::sin(phi));
-            auto factor = janus::pow(R_e / r, n);
+            auto P_nm = legendre(n, m, metis::sin(phi));
+            auto factor = metis::pow(R_e / r, n);
             
             // Use where() for any conditional logic on symbolic values
-            potential += factor * (C[n][m] * janus::cos(m * lambda)
-                                 + S[n][m] * janus::sin(m * lambda)) * P_nm;
+            potential += factor * (C[n][m] * metis::cos(m * lambda)
+                                 + S[n][m] * metis::sin(m * lambda)) * P_nm;
         }
     }
     return potential;
@@ -328,10 +328,10 @@ Scalar gravity_potential(const Scalar& r, const Scalar& phi, int n_max) {
 
 ### Control Flow Quick Reference
 
-| Pattern | C++ Standard | Janus Equivalent |
+| Pattern | C++ Standard | Metis Equivalent |
 |---------|--------------|------------------|
-| `if (x < 0) a else b` | `if/else` | `janus::where(x < 0, a, b)` |
-| `switch (regime)` | `switch/case` | `janus::select({cond1, cond2}, {val1, val2}, default)` |
+| `if (x < 0) a else b` | `if/else` | `metis::where(x < 0, a, b)` |
+| `switch (regime)` | `switch/case` | `metis::select({cond1, cond2}, {val1, val2}, default)` |
 | `while (error > tol)` | `while` | Fixed iteration: `for (int i = 0; i < N; i++)` |
 | `if (cond) break` | `break` | Conditional accumulation with `where()` |
 | `if (cond) continue` | `continue` | Conditional update with `where()` |
@@ -339,12 +339,12 @@ Scalar gravity_potential(const Scalar& r, const Scalar& phi, int n_max) {
 ### Namespace Organization (No Factories!)
 
 > [!IMPORTANT]
-> **Do NOT use factory patterns with virtual dispatch** in Vulcan. Runtime polymorphism breaks Janus symbolic tracing and prevents autodiff.
+> **Do NOT use factory patterns with virtual dispatch** in Vulcan. Runtime polymorphism breaks Metis symbolic tracing and prevents autodiff.
 
-#### Why Factories Break Janus
+#### Why Factories Break Metis
 
 ```cpp
-// ❌ BREAKS JANUS - virtual calls can't be traced through
+// ❌ BREAKS METIS - virtual calls can't be traced through
 class AtmosphereModel {
     virtual double density(double alt) = 0;  // Virtual = no autodiff
 };
@@ -487,7 +487,7 @@ vulcan/
 │   ├── atmosphere/         # Atmospheric model examples
 │   ├── gravity/            # Gravity model examples
 │   ├── coordinates/        # Coordinate frame examples
-│   └── integration/        # Integration with Janus optimization
+│   └── integration/        # Integration with Metis optimization
 ├── include/
 │   └── vulcan/
 │       ├── vulcan.hpp      # Main entry point (includes all)
@@ -571,7 +571,7 @@ vulcan/
 
 ### flake.nix
 
-Create a Nix flake that brings in Janus as a dependency:
+Create a Nix flake that brings in Metis as a dependency:
 
 ```nix
 {
@@ -582,22 +582,22 @@ Create a Nix flake that brings in Janus as a dependency:
     flake-utils.url = "github:numtide/flake-utils";
     treefmt-nix.url = "github:numtide/treefmt-nix";
     
-    # Janus as a flake input
-    janus = {
-      url = "github:tanged123/janus";
+    # Metis as a flake input
+    metis = {
+      url = "github:tanged123/metis";
       # Or for local development:
-      # url = "path:/home/tanged/sources/janus";
+      # url = "path:/home/tanged/sources/metis";
     };
   };
 
-  outputs = { self, nixpkgs, flake-utils, treefmt-nix, janus }:
+  outputs = { self, nixpkgs, flake-utils, treefmt-nix, metis }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
         stdenv = pkgs.llvmPackages_latest.stdenv;
         
-        # Get janus package from input
-        janusPackage = janus.packages.${system}.default;
+        # Get metis package from input
+        metisPackage = metis.packages.${system}.default;
 
         # Treefmt configuration
         treefmtEval = treefmt-nix.lib.evalModule pkgs {
@@ -624,7 +624,7 @@ Create a Nix flake that brings in Janus as a dependency:
             pkgs.casadi
             pkgs.hdf5
             pkgs.highfive  # C++ HDF5 wrapper
-            janusPackage
+            metisPackage
           ];
 
           cmakeFlags = [
@@ -648,12 +648,12 @@ Create a Nix flake that brings in Janus as a dependency:
             lcov
             llvmPackages_latest.llvm
           ] ++ [
-            janusPackage
+            metisPackage
             treefmtEval.config.build.wrapper
           ];
 
           shellHook = ''
-            export CMAKE_PREFIX_PATH=${pkgs.eigen}:${pkgs.casadi}:${pkgs.gtest}:${pkgs.hdf5}:${pkgs.highfive}:${janusPackage}
+            export CMAKE_PREFIX_PATH=${pkgs.eigen}:${pkgs.casadi}:${pkgs.gtest}:${pkgs.hdf5}:${pkgs.highfive}:${metisPackage}
           '';
         };
 
@@ -667,13 +667,13 @@ Create a Nix flake that brings in Janus as a dependency:
 }
 ```
 
-### Alternative: Local Janus Path
+### Alternative: Local Metis Path
 
-For development alongside Janus, use a local path input:
+For development alongside Metis, use a local path input:
 
 ```nix
-janus = {
-  url = "path:/home/tanged/sources/janus";
+metis = {
+  url = "path:/home/tanged/sources/metis";
 };
 ```
 
@@ -696,7 +696,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # --- Dependencies ---
 find_package(Eigen3 3.4 REQUIRED)
 find_package(casadi REQUIRED)
-find_package(janus REQUIRED)  # Janus as external dependency
+find_package(metis REQUIRED)  # Metis as external dependency
 find_package(HDF5 REQUIRED COMPONENTS C CXX)
 find_package(HighFive REQUIRED)  # C++ HDF5 wrapper
 
@@ -707,7 +707,7 @@ target_include_directories(
                    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 # Link Dependencies
-target_link_libraries(vulcan INTERFACE Eigen3::Eigen casadi janus::janus HighFive)
+target_link_libraries(vulcan INTERFACE Eigen3::Eigen casadi metis::metis HighFive)
 
 # --- Coverage ---
 option(ENABLE_COVERAGE "Enable coverage reporting" OFF)
@@ -806,7 +806,7 @@ add_executable(gravity_comparison gravity/gravity_comparison.cpp)
 target_link_libraries(gravity_comparison PRIVATE vulcan)
 
 # =============================================================================
-# Integration with Janus Optimization
+# Integration with Metis Optimization
 # =============================================================================
 add_executable(trajectory_opt integration/trajectory_optimization.cpp)
 target_link_libraries(trajectory_opt PRIVATE vulcan)
@@ -982,7 +982,7 @@ echo "   Your code will be auto-formatted before each commit."
 
 ## 1. Project Mission
 
-Vulcan is an aerospace engineering utilities library built on the Janus framework...
+Vulcan is an aerospace engineering utilities library built on the Metis framework...
 
 ## 2. Core Modules
 
@@ -994,7 +994,7 @@ Vulcan is an aerospace engineering utilities library built on the Janus framewor
 ```
 
 #### docs/user_guides/
-Create focused guides for each module, similar to Janus's pattern:
+Create focused guides for each module, similar to Metis's pattern:
 - `coordinate_systems.md`
 - `atmosphere_models.md` 
 - `gravity_models.md`
@@ -1036,7 +1036,7 @@ int main() {
     // 2. Symbolic Mode: For optimization
     // ========================================
     std::cout << "\n=== Symbolic Mode ===" << std::endl;
-    janus::Opti opti;
+    metis::Opti opti;
     auto h = opti.variable(5000.0);  // Altitude as decision variable
     
     auto rho_sym = air_density(h);
@@ -1063,7 +1063,7 @@ Every Vulcan module must have tests for both numeric AND symbolic modes:
 ```cpp
 #include <gtest/gtest.h>
 #include <vulcan/atmosphere/StandardAtmosphere.hpp>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 // ============================================
 // Numeric Tests
@@ -1082,26 +1082,26 @@ TEST(StandardAtmosphere, TropopauseDensity) {
 // Symbolic Tests (Graph Generation)
 // ============================================
 TEST(StandardAtmosphere, SymbolicEvaluation) {
-    auto alt = janus::sym("altitude");
+    auto alt = metis::sym("altitude");
     auto rho = vulcan::standard_atmosphere::density(alt);
     
     // Verify symbolic expression was created
     EXPECT_FALSE(rho.is_constant());
     
     // Evaluate symbolically-created function
-    double result = janus::eval(rho, {{"altitude", 0.0}});
+    double result = metis::eval(rho, {{"altitude", 0.0}});
     EXPECT_NEAR(result, 1.225, 1e-3);
 }
 
 TEST(StandardAtmosphere, SymbolicGradient) {
-    auto alt = janus::sym("altitude");
+    auto alt = metis::sym("altitude");
     auto rho = vulcan::standard_atmosphere::density(alt);
     
     // Verify derivatives exist
-    auto drho_dalt = janus::jacobian(rho, alt);
+    auto drho_dalt = metis::jacobian(rho, alt);
     
     // Density should decrease with altitude
-    double grad = janus::eval(drho_dalt, {{"altitude", 5000.0}});
+    double grad = metis::eval(drho_dalt, {{"altitude", 5000.0}});
     EXPECT_LT(grad, 0.0);
 }
 ```
@@ -1196,7 +1196,7 @@ Create `.cursorrules` at the repository root:
 ```markdown
 # Agent Ruleset: Vulcan Project
 
-You are an advanced AI coding assistant working on **Vulcan**, an aerospace engineering utilities library built on the Janus framework. Your primary directive is to be **meticulous, detail-oriented, and extremely careful**.
+You are an advanced AI coding assistant working on **Vulcan**, an aerospace engineering utilities library built on the Metis framework. Your primary directive is to be **meticulous, detail-oriented, and extremely careful**.
 
 ## Global Behavioral Rules
 
@@ -1211,7 +1211,7 @@ You are an advanced AI coding assistant working on **Vulcan**, an aerospace engi
     *   Double-check types, templates, and constraints.
     *   When refactoring, ensure no functionality is lost.
     *   Prefer clarity and correctness over brevity.
-4.  **No Hallucinations**: Do not invent APIs. If you are unsure about a Janus or Vulcan API, search the codebase first.
+4.  **No Hallucinations**: Do not invent APIs. If you are unsure about a Metis or Vulcan API, search the codebase first.
 5.  **Context Preservation**:
     *   **Documentation First**: You must CONSTANTLY create and update documentation inside `docs/` to maintain context between agents and resets.
     *   **Artifacts**: Create implementation plans, TODO lists, and architectural notes in `docs/` (e.g., `docs/implementation_plans/`, `docs/TODO.md`).
@@ -1219,17 +1219,17 @@ You are an advanced AI coding assistant working on **Vulcan**, an aerospace engi
 
 ## Vulcan-Specific Rules (CRITICAL)
 
-### 1. Janus Compatibility (The "Red Line")
+### 1. Metis Compatibility (The "Red Line")
 *   **Template-First**: ALL engineering models MUST be templated on a generic `Scalar` type.
 *   **Dual-Backend Compatibility**: Code must compile and run correctly for both:
     *   **Numeric Mode**: `double` / `Eigen::MatrixXd`
     *   **Symbolic Mode**: `casadi::MX` / `Eigen::Matrix<casadi::MX>`
 
 ### 2. Math & Control Flow (MANDATORY)
-*   **Math Dispatch**: ALWAYS use `janus::` namespace for math operations (e.g., `janus::sin`, `janus::pow`) instead of `std::`.
+*   **Math Dispatch**: ALWAYS use `metis::` namespace for math operations (e.g., `metis::sin`, `metis::pow`) instead of `std::`.
 *   **Branching**:
     *   **NEVER** use standard C++ `if/else` on `Scalar` types.
-    *   **ALWAYS** use `janus::where(condition, true_val, false_val)` for branching logic involving scalars.
+    *   **ALWAYS** use `metis::where(condition, true_val, false_val)` for branching logic involving scalars.
 *   **Loops**:
     *   Standard `for` loops are allowed ONLY if bounds are structural (integers/constants), not optimization variables.
 
@@ -1340,7 +1340,7 @@ IndentWidth: 4
 
 ### Phase 1: Core Infrastructure
 - [x] Set up repository structure
-- [x] Configure Nix flake with Janus dependency
+- [x] Configure Nix flake with Metis dependency
 - [x] Configure CMake
 - [x] Set up CI/CD workflows
 - [x] Create initial documentation
@@ -1358,7 +1358,7 @@ IndentWidth: 4
 - [x] Transformation matrices (templated)
 
 ### Phase 4: Rotations
-- [x] DCM utilities (extend Janus quaternions)
+- [x] DCM utilities (extend Metis quaternions)
 - [x] Euler angle sequences (all 12)
 - [x] Axis-angle conversions
 - [x] Rotation composition
@@ -1419,7 +1419,7 @@ Before considering the repository "bootstrapped", verify:
 - [ ] A simple example compiles and runs:
   - Numeric mode evaluation works
   - Symbolic mode graph generation works
-  - Integration with `janus::Opti` works
+  - Integration with `metis::Opti` works
 
 ---
 
@@ -1431,7 +1431,7 @@ Here's an example of a properly structured Vulcan header:
 // include/vulcan/atmosphere/StandardAtmosphere.hpp
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/Constants.hpp>
 
 namespace vulcan::standard_atmosphere {
@@ -1450,7 +1450,7 @@ Scalar temperature(const Scalar& altitude) {
     constexpr double L = 0.0065;       // Lapse rate [K/m]
     constexpr double h_tropopause = 11000.0;  // Tropopause altitude [m]
     
-    // Use janus::where for branching (MANDATORY for symbolic compatibility)
+    // Use metis::where for branching (MANDATORY for symbolic compatibility)
     auto in_troposphere = (altitude < h_tropopause);
     
     // Troposphere: linear decrease
@@ -1459,7 +1459,7 @@ Scalar temperature(const Scalar& altitude) {
     // Stratosphere: isothermal at tropopause temperature
     Scalar T_stratosphere = T0 - L * h_tropopause;
     
-    return janus::where(in_troposphere, T_troposphere, T_stratosphere);
+    return metis::where(in_troposphere, T_troposphere, T_stratosphere);
 }
 
 /**
@@ -1476,7 +1476,7 @@ Scalar density(const Scalar& altitude) {
     
     // Barometric formula (simplified for troposphere)
     Scalar exponent = g0 * M / (R * 0.0065);
-    return rho0 * janus::pow(T / 288.15, exponent - 1.0);
+    return rho0 * metis::pow(T / 288.15, exponent - 1.0);
 }
 
 }  // namespace vulcan::standard_atmosphere
@@ -1484,4 +1484,4 @@ Scalar density(const Scalar& altitude) {
 
 ---
 
-This document should provide all the context needed to bootstrap the Vulcan repository with proper structure, tooling, and Janus integration.
+This document should provide all the context needed to bootstrap the Vulcan repository with proper structure, tooling, and Metis integration.

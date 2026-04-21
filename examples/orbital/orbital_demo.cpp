@@ -131,8 +131,8 @@ int main() {
     Vec3<double> r_sun = ephemeris::analytical::sun_position_eci(jd_j2000);
     Vec3<double> r_moon = ephemeris::analytical::moon_position_eci(jd_j2000);
 
-    double sun_dist_au = janus::norm(r_sun) / constants::sun::AU;
-    double moon_dist_km = janus::norm(r_moon) / 1000.0;
+    double sun_dist_au = metis::norm(r_sun) / constants::sun::AU;
+    double moon_dist_km = metis::norm(r_moon) / 1000.0;
 
     std::cout << "At J2000 epoch (2000-01-01 12:00 TT):\n\n";
     std::cout << "Sun position (ECI):\n";
@@ -150,12 +150,12 @@ int main() {
     // =========================================================================
     std::cout << "--- 6. Symbolic Computation ---\n\n";
 
-    auto a_sym = janus::sym("a");
-    auto e_sym = janus::sym("e");
+    auto a_sym = metis::sym("a");
+    auto e_sym = metis::sym("e");
 
     // Create symbolic period function
     auto T_sym = quantities::period(a_sym);
-    janus::Function f_period("period", {a_sym}, {T_sym});
+    metis::Function f_period("period", {a_sym}, {T_sym});
 
     // Evaluate
     auto T_result = f_period({7000.0e3});
@@ -164,9 +164,9 @@ int main() {
               << " minutes\n\n";
 
     // Kepler solver symbolically
-    auto M_sym = janus::sym("M");
+    auto M_sym = metis::sym("M");
     auto E_solve = anomaly::mean_to_eccentric(M_sym, e_sym);
-    janus::Function f_kepler("kepler", {M_sym, e_sym}, {E_solve});
+    metis::Function f_kepler("kepler", {M_sym, e_sym}, {E_solve});
 
     auto E_result = f_kepler({1.0, 0.5});
     std::cout << "Symbolic Kepler solver:\n";

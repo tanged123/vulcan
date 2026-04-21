@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <vulcan/rotations/Rotations.hpp>
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 #include <cmath>
 #include <numbers>
@@ -67,19 +67,19 @@ TEST(DCMFromEuler, IdentityAllSequences) {
     }
 }
 
-TEST(DCMFromEuler, ZYX_MatchesJanus) {
-    // Verify ZYX matches Janus rotation_matrix_from_euler_angles
+TEST(DCMFromEuler, ZYX_MatchesMetis) {
+    // Verify ZYX matches Metis rotation_matrix_from_euler_angles
     double roll = 0.3;
     double pitch = 0.2;
     double yaw = 0.5;
 
     auto R_vulcan =
         vulcan::dcm_from_euler(yaw, pitch, roll, vulcan::EulerSequence::ZYX);
-    auto R_janus = janus::rotation_matrix_from_euler_angles(roll, pitch, yaw);
+    auto R_metis = metis::rotation_matrix_from_euler_angles(roll, pitch, yaw);
 
     for (int i = 0; i < 3; ++i) {
         for (int j = 0; j < 3; ++j) {
-            EXPECT_NEAR(R_vulcan(i, j), R_janus(i, j), 1e-12)
+            EXPECT_NEAR(R_vulcan(i, j), R_metis(i, j), 1e-12)
                 << "Mismatch at (" << i << "," << j << ")";
         }
     }
@@ -230,11 +230,11 @@ TEST(GimbalLock, ZXZ_Nutation0) {
 // =============================================================================
 
 TEST(SymbolicEuler, DCMConstruction) {
-    using Scalar = janus::SymbolicScalar;
+    using Scalar = metis::SymbolicScalar;
 
-    Scalar e1 = janus::sym("e1");
-    Scalar e2 = janus::sym("e2");
-    Scalar e3 = janus::sym("e3");
+    Scalar e1 = metis::sym("e1");
+    Scalar e2 = metis::sym("e2");
+    Scalar e3 = metis::sym("e3");
 
     auto R = vulcan::dcm_from_euler(e1, e2, e3, vulcan::EulerSequence::ZYX);
 
@@ -242,7 +242,7 @@ TEST(SymbolicEuler, DCMConstruction) {
     EXPECT_FALSE(R(0, 0).is_constant());
 
     // Create function and evaluate
-    janus::Function f("dcm_zyx", {e1, e2, e3}, {R(0, 0), R(1, 0), R(2, 0)});
+    metis::Function f("dcm_zyx", {e1, e2, e3}, {R(0, 0), R(1, 0), R(2, 0)});
 
     double test_e1 = 0.5;
     double test_e2 = 0.2;

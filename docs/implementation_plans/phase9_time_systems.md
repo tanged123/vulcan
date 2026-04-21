@@ -71,27 +71,27 @@ inline double utc_to_tai(double utc_jd) {
 
 **Rationale**: In optimization, the user knows their simulation's time range. Leap seconds change at most once per year, so providing a constant is practical and enables full symbolic tracing.
 
-#### Approach 2: Symbolic Table Lookup via `janus::Interpolator`
+#### Approach 2: Symbolic Table Lookup via `metis::Interpolator`
 
-For trajectories spanning leap second boundaries, use Janus's symbolic-compatible interpolation:
+For trajectories spanning leap second boundaries, use Metis's symbolic-compatible interpolation:
 
 ```cpp
-#include <janus/math/Interpolate.hpp>
+#include <metis/math/Interpolate.hpp>
 
 // Create a leap second lookup table as Linear interpolator
 // Linear gives smooth (differentiable) approximation at transitions
-inline const janus::Interpolator& leap_second_interpolator() {
-    static janus::Interpolator interp = []() {
+inline const metis::Interpolator& leap_second_interpolator() {
+    static metis::Interpolator interp = []() {
         // Build JD and delta_at vectors from LEAP_SECOND_TABLE
-        janus::NumericVector jd_points(LEAP_SECOND_TABLE.size());
-        janus::NumericVector delta_at(LEAP_SECOND_TABLE.size());
+        metis::NumericVector jd_points(LEAP_SECOND_TABLE.size());
+        metis::NumericVector delta_at(LEAP_SECOND_TABLE.size());
         for (size_t i = 0; i < LEAP_SECOND_TABLE.size(); ++i) {
             const auto& entry = LEAP_SECOND_TABLE[i];
             jd_points(i) = calendar_to_jd(entry.year, entry.month, entry.day);
             delta_at(i) = static_cast<double>(entry.delta_at);
         }
-        return janus::Interpolator(jd_points, delta_at,
-                                   janus::InterpolationMethod::Linear);
+        return metis::Interpolator(jd_points, delta_at,
+                                   metis::InterpolationMethod::Linear);
     }();
     return interp;
 }
@@ -296,7 +296,7 @@ inline constexpr double TIME_TOLERANCE = 1.0e-9;
 #pragma once
 
 #include <vulcan/time/TimeConstants.hpp>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <cmath>
 #include <tuple>
 
@@ -485,7 +485,7 @@ template <typename Scalar>
 
 #include <vulcan/time/TimeConstants.hpp>
 #include <vulcan/time/JulianDate.hpp>
-#include <janus/math/Interpolate.hpp>  // For symbolic leap second lookup
+#include <metis/math/Interpolate.hpp>  // For symbolic leap second lookup
 #include <array>
 #include <stdexcept>
 
@@ -668,7 +668,7 @@ inline constexpr std::array<LeapSecondEntry, 28> LEAP_SECOND_TABLE = {{
 }
 
 // =============================================================================
-// Symbolic Leap Second Lookup (via janus::Interpolator)
+// Symbolic Leap Second Lookup (via metis::Interpolator)
 // =============================================================================
 
 /**
@@ -679,17 +679,17 @@ inline constexpr std::array<LeapSecondEntry, 28> LEAP_SECOND_TABLE = {{
  *
  * @note The returned interpolator is constructed once and cached.
  */
-[[nodiscard]] inline const janus::Interpolator& leap_second_interpolator() {
-    static const janus::Interpolator interp = []() {
-        janus::NumericVector jd_points(LEAP_SECOND_TABLE.size());
-        janus::NumericVector delta_at(LEAP_SECOND_TABLE.size());
+[[nodiscard]] inline const metis::Interpolator& leap_second_interpolator() {
+    static const metis::Interpolator interp = []() {
+        metis::NumericVector jd_points(LEAP_SECOND_TABLE.size());
+        metis::NumericVector delta_at(LEAP_SECOND_TABLE.size());
         for (size_t i = 0; i < LEAP_SECOND_TABLE.size(); ++i) {
             const auto& entry = LEAP_SECOND_TABLE[i];
             jd_points(static_cast<int>(i)) = calendar_to_jd(entry.year, entry.month, entry.day);
             delta_at(static_cast<int>(i)) = static_cast<double>(entry.delta_at);
         }
-        return janus::Interpolator(jd_points, delta_at,
-                                   janus::InterpolationMethod::Linear);
+        return metis::Interpolator(jd_points, delta_at,
+                                   metis::InterpolationMethod::Linear);
     }();
     return interp;
 }
@@ -697,7 +697,7 @@ inline constexpr std::array<LeapSecondEntry, 28> LEAP_SECOND_TABLE = {{
 /**
  * @brief Symbolic leap second lookup (smooth approximation)
  *
- * Uses janus::Interpolator for symbolic-compatible table lookup.
+ * Uses metis::Interpolator for symbolic-compatible table lookup.
  * Linear interpolation provides smooth transitions at leap second boundaries.
  *
  * @tparam Scalar Numeric or symbolic type
@@ -724,7 +724,7 @@ template <typename Scalar>
 #include <vulcan/time/TimeConstants.hpp>
 #include <vulcan/time/JulianDate.hpp>
 #include <vulcan/time/LeapSeconds.hpp>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <cmath>
 
 namespace vulcan::time {
@@ -912,7 +912,7 @@ template <typename Scalar>
     Scalar g = 6.24006013 + 628.301955 * T;
 
     // TDB - TT in seconds (simplified formula, ~30 μs accuracy)
-    Scalar dt = 0.001657 * janus::sin(g) + 0.000022 * janus::sin(2.0 * g);
+    Scalar dt = 0.001657 * metis::sin(g) + 0.000022 * metis::sin(2.0 * g);
 
     return tt_jd + dt / constants::time::SECONDS_PER_DAY;
 }
@@ -985,7 +985,7 @@ template <typename Scalar>
 #include <vulcan/time/JulianDate.hpp>
 #include <vulcan/time/LeapSeconds.hpp>
 #include <vulcan/time/TimeScales.hpp>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <string>
 #include <sstream>
 #include <iomanip>
@@ -1010,8 +1010,8 @@ namespace vulcan::time {
  *   double jd_tt = epoch.jd_tt();
  *
  *   // Symbolic mode: Create from symbolic TAI seconds
- *   auto t = janus::sym("t");  // Optimization variable
- *   auto sym_epoch = Epoch<janus::SymbolicScalar>::from_tai_seconds(t);
+ *   auto t = metis::sym("t");  // Optimization variable
+ *   auto sym_epoch = Epoch<metis::SymbolicScalar>::from_tai_seconds(t);
  *   auto jd = sym_epoch.jd_tt();  // Symbolic expression
  * @endcode
  */
@@ -1325,7 +1325,7 @@ private:
 using NumericEpoch = Epoch<double>;
 
 /// Symbolic epoch for optimization
-using SymbolicEpoch = Epoch<janus::SymbolicScalar>;
+using SymbolicEpoch = Epoch<metis::SymbolicScalar>;
 
 // =============================================================================
 // Stream Output (Numeric Only)
@@ -1585,7 +1585,7 @@ tests/
 | `TDB_TT_Range` | \|TDB - TT\| < 2 ms | IERS |
 | `ConvertTimescale_AllPairs` | All scale combinations | |
 | `Symbolic_TAI_TT` | Symbolic tai_to_tt graph | |
-| `Symbolic_TT_TDB` | Symbolic tt_to_tdb (uses janus::sin) | |
+| `Symbolic_TT_TDB` | Symbolic tt_to_tdb (uses metis::sin) | |
 | `Symbolic_UTC_TAI_WithDeltaAT` | Symbolic utc_to_tai with parameter | |
 
 #### test_epoch.cpp
@@ -1602,7 +1602,7 @@ tests/
 | `Symbolic_FromTAISeconds` | Symbolic epoch creation | |
 | `Symbolic_JD_TT` | Symbolic JD(TT) computation | |
 | `Symbolic_Arithmetic` | Symbolic epoch + dt | |
-| `Symbolic_TDB_Conversion` | Symbolic TT→TDB (uses janus::sin) | |
+| `Symbolic_TDB_Conversion` | Symbolic TT→TDB (uses metis::sin) | |
 
 #### test_gps_time.cpp
 
@@ -1706,7 +1706,7 @@ Before marking Phase 9 complete:
 ### Compilation
 - [ ] All headers compile without warnings (`-Wall -Wextra`)
 - [ ] Templates instantiate correctly for `double`
-- [ ] Templates instantiate correctly for `janus::SymbolicScalar`
+- [ ] Templates instantiate correctly for `metis::SymbolicScalar`
 
 ### Numeric Mode Tests
 - [ ] All tests pass in numeric mode
@@ -1719,7 +1719,7 @@ Before marking Phase 9 complete:
 - [ ] `Epoch<SymbolicScalar>` creates valid symbolic graphs
 - [ ] Time scale conversions (TAI↔TT, TAI↔GPS, TT↔TDB) produce traceable expressions
 - [ ] Arithmetic operations (+, -, +=, -=) work symbolically
-- [ ] `janus::Function` can be created from time expressions
+- [ ] `metis::Function` can be created from time expressions
 - [ ] Numeric evaluation of symbolic expressions matches direct numeric computation
 
 ### Documentation & Integration
@@ -1777,7 +1777,7 @@ int main() {
 
 ```cpp
 #include <vulcan/vulcan.hpp>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 // Physics model: orbital period depends on time (e.g., due to drag)
 template <typename Scalar>
@@ -1791,10 +1791,10 @@ Scalar orbital_period(const vulcan::time::Epoch<Scalar>& epoch) {
 
 int main() {
     using namespace vulcan::time;
-    using Scalar = janus::SymbolicScalar;
+    using Scalar = metis::SymbolicScalar;
 
     // Create symbolic time variable
-    auto t_sym = janus::sym("t");  // TAI seconds since J2000
+    auto t_sym = metis::sym("t");  // TAI seconds since J2000
 
     // Create symbolic epoch
     auto epoch = Epoch<Scalar>::from_tai_seconds(t_sym);
@@ -1803,7 +1803,7 @@ int main() {
     auto period = orbital_period(epoch);
 
     // Create evaluable function
-    janus::Function f("period", {t_sym}, {period});
+    metis::Function f("period", {t_sym}, {period});
 
     // Evaluate at specific times
     double t_2024 = 788918400.0;  // Approx mid-2024 in TAI seconds since J2000
@@ -1811,8 +1811,8 @@ int main() {
     std::cout << "Period at 2024: " << result[0](0, 0) << " seconds" << std::endl;
 
     // Can also compute gradients!
-    auto jacobian = janus::jacobian(period, t_sym);
-    janus::Function df("dperiod_dt", {t_sym}, {jacobian});
+    auto jacobian = metis::jacobian(period, t_sym);
+    metis::Function df("dperiod_dt", {t_sym}, {jacobian});
     auto grad = df({t_2024});
     std::cout << "dPeriod/dt: " << grad[0](0, 0) << " s/s" << std::endl;
 
@@ -1832,9 +1832,9 @@ Scalar compute_utc_offset(const Scalar& tai_jd, int delta_at) {
 }
 
 int main() {
-    using Scalar = janus::SymbolicScalar;
+    using Scalar = metis::SymbolicScalar;
 
-    auto tai_jd = janus::sym("tai_jd");
+    auto tai_jd = metis::sym("tai_jd");
 
     // User knows their simulation epoch is in 2024, where TAI-UTC = 37s
     constexpr int DELTA_AT_2024 = 37;
@@ -1842,7 +1842,7 @@ int main() {
     auto utc_jd = compute_utc_offset(tai_jd, DELTA_AT_2024);
 
     // This creates a traceable symbolic expression
-    janus::Function f("tai_to_utc", {tai_jd}, {utc_jd});
+    metis::Function f("tai_to_utc", {tai_jd}, {utc_jd});
 
     // Works correctly for any TAI JD in the 2024 leap second era
     double test_tai_jd = 2460500.5;  // Some date in 2024

@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 #include <vulcan/geometry/Geometry.hpp>
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 #include <cmath>
 

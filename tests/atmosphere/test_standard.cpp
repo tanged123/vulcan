@@ -1,6 +1,6 @@
 // Tests for US Standard Atmosphere 1976 (USSA1976)
 #include <gtest/gtest.h>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/atmosphere/USSA1976.hpp>
 
 // ============================================
@@ -79,23 +79,23 @@ TEST(USSA1976, StateStructAt20km) {
 // ============================================
 
 TEST(USSA1976, SymbolicEvaluation) {
-    auto alt = janus::sym("altitude");
+    auto alt = metis::sym("altitude");
     auto T = vulcan::ussa1976::temperature(alt);
 
     EXPECT_FALSE(T.is_constant());
 
-    janus::Function f("T_ussa1976", {alt}, {T});
+    metis::Function f("T_ussa1976", {alt}, {T});
     auto result = f({10000.0});
     EXPECT_NEAR(result[0](0, 0), 223.3, 0.5);
 }
 
 TEST(USSA1976, SymbolicGradient) {
-    auto alt = janus::sym("altitude");
+    auto alt = metis::sym("altitude");
     auto rho = vulcan::ussa1976::density(alt);
 
-    auto drho_dalt = janus::jacobian(rho, alt);
+    auto drho_dalt = metis::jacobian(rho, alt);
 
-    janus::Function f("drho_dalt_ussa1976", {alt}, {drho_dalt});
+    metis::Function f("drho_dalt_ussa1976", {alt}, {drho_dalt});
     auto result = f({5000.0});
 
     // Density should decrease with altitude
@@ -103,7 +103,7 @@ TEST(USSA1976, SymbolicGradient) {
 }
 
 TEST(USSA1976, SymbolicState) {
-    auto alt = janus::sym("altitude");
+    auto alt = metis::sym("altitude");
     auto state = vulcan::ussa1976::state(alt);
 
     // Verify all fields are symbolic
@@ -114,7 +114,7 @@ TEST(USSA1976, SymbolicState) {
     EXPECT_FALSE(state.gravity.is_constant());
 
     // Create function with all outputs
-    janus::Function f("state_ussa1976", {alt},
+    metis::Function f("state_ussa1976", {alt},
                       {state.temperature, state.pressure, state.density,
                        state.speed_of_sound, state.gravity});
 
@@ -125,7 +125,7 @@ TEST(USSA1976, SymbolicState) {
 }
 
 TEST(USSA1976, BatchQuery) {
-    janus::NumericVector altitudes(4);
+    metis::NumericVector altitudes(4);
     altitudes << 0, 5000, 10000, 20000;
 
     auto temps = vulcan::ussa1976::detail::temperature_table()(altitudes);

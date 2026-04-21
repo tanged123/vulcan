@@ -86,24 +86,24 @@ TEST(AnomalyConversions, EccentricToMean) {
 
 // Symbolic tests
 TEST(AnomalyConversions, Symbolic_EccentricToTrue) {
-    auto E_sym = janus::sym("E");
-    auto e_sym = janus::sym("e");
+    auto E_sym = metis::sym("E");
+    auto e_sym = metis::sym("e");
 
     auto nu = eccentric_to_true(E_sym, e_sym);
 
-    janus::Function f("e2true", {E_sym, e_sym}, {nu});
+    metis::Function f("e2true", {E_sym, e_sym}, {nu});
     auto result = f({0.5, 0.3});
 
     EXPECT_GT(std::abs(result[0](0, 0)), 0.0);
 }
 
 TEST(AnomalyConversions, Symbolic_KeplerSolver) {
-    auto M_sym = janus::sym("M");
-    auto e_sym = janus::sym("e");
+    auto M_sym = metis::sym("M");
+    auto e_sym = metis::sym("e");
 
     auto E = mean_to_eccentric(M_sym, e_sym);
 
-    janus::Function f("kepler", {M_sym, e_sym}, {E});
+    metis::Function f("kepler", {M_sym, e_sym}, {E});
     auto result = f({1.0, 0.3});
 
     EXPECT_GT(result[0](0, 0), 0.0);

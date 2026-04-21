@@ -2,7 +2,7 @@
 // Low-precision Sun and Moon positions using Meeus/Vallado algorithms
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <utility>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
@@ -26,10 +26,10 @@ namespace vulcan::orbital::ephemeris::analytical {
  */
 template <typename Scalar>
 std::pair<Scalar, Scalar> sun_ra_dec(const Scalar &jd) {
-    using janus::asin;
-    using janus::atan2;
-    using janus::cos;
-    using janus::sin;
+    using metis::asin;
+    using metis::atan2;
+    using metis::cos;
+    using metis::sin;
 
     // Julian centuries since J2000.0
     const Scalar T = time::jd_to_j2000_centuries(jd);
@@ -76,8 +76,8 @@ template <typename Scalar> Scalar sun_distance(const Scalar &jd) {
         (357.5291092 + 35999.05034 * T) * constants::angle::deg2rad;
 
     // Distance in AU
-    const Scalar r_au = 1.000140612 - 0.016708617 * janus::cos(M) -
-                        0.000139589 * janus::cos(2.0 * M);
+    const Scalar r_au = 1.000140612 - 0.016708617 * metis::cos(M) -
+                        0.000139589 * metis::cos(2.0 * M);
 
     return r_au * constants::sun::AU;
 }
@@ -93,12 +93,12 @@ template <typename Scalar> Vec3<Scalar> sun_position_eci(const Scalar &jd) {
     auto [ra, dec] = sun_ra_dec(jd);
     const Scalar r = sun_distance(jd);
 
-    const Scalar cos_dec = janus::cos(dec);
+    const Scalar cos_dec = metis::cos(dec);
 
     Vec3<Scalar> pos;
-    pos(0) = r * cos_dec * janus::cos(ra);
-    pos(1) = r * cos_dec * janus::sin(ra);
-    pos(2) = r * janus::sin(dec);
+    pos(0) = r * cos_dec * metis::cos(ra);
+    pos(1) = r * cos_dec * metis::sin(ra);
+    pos(2) = r * metis::sin(dec);
 
     return pos;
 }
@@ -112,12 +112,12 @@ template <typename Scalar> Vec3<Scalar> sun_position_eci(const Scalar &jd) {
  */
 template <typename Scalar> Vec3<Scalar> sun_unit_vector_eci(const Scalar &jd) {
     auto [ra, dec] = sun_ra_dec(jd);
-    const Scalar cos_dec = janus::cos(dec);
+    const Scalar cos_dec = metis::cos(dec);
 
     Vec3<Scalar> u;
-    u(0) = cos_dec * janus::cos(ra);
-    u(1) = cos_dec * janus::sin(ra);
-    u(2) = janus::sin(dec);
+    u(0) = cos_dec * metis::cos(ra);
+    u(1) = cos_dec * metis::sin(ra);
+    u(2) = metis::sin(dec);
 
     return u;
 }
@@ -172,24 +172,24 @@ template <typename Scalar> Vec3<Scalar> moon_position_eci(const Scalar &jd) {
     const Scalar F_rad = F * constants::angle::deg2rad;
 
     // Longitude perturbations (simplified - main terms only)
-    const Scalar dL = 6288774.0 * janus::sin(Mp_rad) +
-                      1274027.0 * janus::sin(2.0 * D_rad - Mp_rad) +
-                      658314.0 * janus::sin(2.0 * D_rad) +
-                      213618.0 * janus::sin(2.0 * Mp_rad) -
-                      185116.0 * janus::sin(M_rad) -
-                      114332.0 * janus::sin(2.0 * F_rad);
+    const Scalar dL = 6288774.0 * metis::sin(Mp_rad) +
+                      1274027.0 * metis::sin(2.0 * D_rad - Mp_rad) +
+                      658314.0 * metis::sin(2.0 * D_rad) +
+                      213618.0 * metis::sin(2.0 * Mp_rad) -
+                      185116.0 * metis::sin(M_rad) -
+                      114332.0 * metis::sin(2.0 * F_rad);
 
     // Latitude perturbations (simplified)
-    const Scalar dB = 5128122.0 * janus::sin(F_rad) +
-                      280602.0 * janus::sin(Mp_rad + F_rad) +
-                      277693.0 * janus::sin(Mp_rad - F_rad) +
-                      173237.0 * janus::sin(2.0 * D_rad - F_rad);
+    const Scalar dB = 5128122.0 * metis::sin(F_rad) +
+                      280602.0 * metis::sin(Mp_rad + F_rad) +
+                      277693.0 * metis::sin(Mp_rad - F_rad) +
+                      173237.0 * metis::sin(2.0 * D_rad - F_rad);
 
     // Distance perturbations (simplified)
-    const Scalar dR = -20905355.0 * janus::cos(Mp_rad) -
-                      3699111.0 * janus::cos(2.0 * D_rad - Mp_rad) -
-                      2955968.0 * janus::cos(2.0 * D_rad) -
-                      569925.0 * janus::cos(2.0 * Mp_rad);
+    const Scalar dR = -20905355.0 * metis::cos(Mp_rad) -
+                      3699111.0 * metis::cos(2.0 * D_rad - Mp_rad) -
+                      2955968.0 * metis::cos(2.0 * D_rad) -
+                      569925.0 * metis::cos(2.0 * Mp_rad);
 
     // Ecliptic longitude and latitude (degrees)
     const Scalar lambda = Lp + dL / 1000000.0;
@@ -208,12 +208,12 @@ template <typename Scalar> Vec3<Scalar> moon_position_eci(const Scalar &jd) {
         (23.439291 - 0.0130042 * T) * constants::angle::deg2rad;
 
     // Ecliptic to equatorial transformation
-    const Scalar cos_lambda = janus::cos(lambda_rad);
-    const Scalar sin_lambda = janus::sin(lambda_rad);
-    const Scalar cos_beta = janus::cos(beta_rad);
-    const Scalar sin_beta = janus::sin(beta_rad);
-    const Scalar cos_eps = janus::cos(epsilon);
-    const Scalar sin_eps = janus::sin(epsilon);
+    const Scalar cos_lambda = metis::cos(lambda_rad);
+    const Scalar sin_lambda = metis::sin(lambda_rad);
+    const Scalar cos_beta = metis::cos(beta_rad);
+    const Scalar sin_beta = metis::sin(beta_rad);
+    const Scalar cos_eps = metis::cos(epsilon);
+    const Scalar sin_eps = metis::sin(epsilon);
 
     Vec3<Scalar> r_moon;
     r_moon(0) = dist * cos_beta * cos_lambda;
@@ -232,7 +232,7 @@ template <typename Scalar> Vec3<Scalar> moon_position_eci(const Scalar &jd) {
  */
 template <typename Scalar> Scalar moon_distance(const Scalar &jd) {
     Vec3<Scalar> pos = moon_position_eci(jd);
-    return janus::norm(pos);
+    return metis::norm(pos);
 }
 
 // =============================================================================
@@ -256,8 +256,8 @@ template <typename Scalar> Vec3<Scalar> sun_position_ecef(const Scalar &jd) {
     const Scalar gmst_rad = gmst_deg * constants::angle::deg2rad;
 
     // Rotate ECI to ECEF
-    const Scalar cos_gmst = janus::cos(gmst_rad);
-    const Scalar sin_gmst = janus::sin(gmst_rad);
+    const Scalar cos_gmst = metis::cos(gmst_rad);
+    const Scalar sin_gmst = metis::sin(gmst_rad);
 
     Vec3<Scalar> r_ecef;
     r_ecef(0) = cos_gmst * r_eci(0) + sin_gmst * r_eci(1);
@@ -282,8 +282,8 @@ template <typename Scalar> Vec3<Scalar> moon_position_ecef(const Scalar &jd) {
                             0.000387933 * T * T - T * T * T / 38710000.0;
     const Scalar gmst_rad = gmst_deg * constants::angle::deg2rad;
 
-    const Scalar cos_gmst = janus::cos(gmst_rad);
-    const Scalar sin_gmst = janus::sin(gmst_rad);
+    const Scalar cos_gmst = metis::cos(gmst_rad);
+    const Scalar sin_gmst = metis::sin(gmst_rad);
 
     Vec3<Scalar> r_ecef;
     r_ecef(0) = cos_gmst * r_eci(0) + sin_gmst * r_eci(1);

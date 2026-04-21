@@ -118,12 +118,12 @@ TEST(TransferMechanics, CombinedManeuver_PurePlaneChange) {
 
 // Symbolic tests
 TEST(TransferMechanics, Symbolic_Hohmann) {
-    auto r1 = janus::sym("r1");
-    auto r2 = janus::sym("r2");
+    auto r1 = metis::sym("r1");
+    auto r2 = metis::sym("r2");
 
     auto [dv1, dv2] = hohmann_delta_v(r1, r2);
 
-    janus::Function f("hohmann", {r1, r2}, {dv1, dv2});
+    metis::Function f("hohmann", {r1, r2}, {dv1, dv2});
     auto result = f({7000.0e3, 14000.0e3});
 
     EXPECT_GT(result[0](0, 0), 0.0);

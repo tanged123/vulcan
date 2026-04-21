@@ -5,7 +5,7 @@
 #include <vulcan/coordinates/FramePrimitives.hpp>
 #include <vulcan/coordinates/Geodetic.hpp>
 
-#include <janus/math/Trig.hpp>
+#include <metis/math/Trig.hpp>
 
 namespace vulcan {
 
@@ -73,10 +73,10 @@ CoordinateFrame<Scalar> local_enu(Scalar lon, Scalar lat_gd) {
 /// @return Geocentric horizon frame expressed in ECEF
 template <typename Scalar>
 CoordinateFrame<Scalar> local_geocentric(Scalar lon, Scalar lat_gc) {
-    Scalar sin_lat = janus::sin(lat_gc);
-    Scalar cos_lat = janus::cos(lat_gc);
-    Scalar sin_lon = janus::sin(lon);
-    Scalar cos_lon = janus::cos(lon);
+    Scalar sin_lat = metis::sin(lat_gc);
+    Scalar cos_lat = metis::cos(lat_gc);
+    Scalar sin_lon = metis::sin(lon);
+    Scalar cos_lon = metis::cos(lon);
 
     // North: perpendicular to radial direction, in meridian plane, pointing
     // north
@@ -172,10 +172,10 @@ local_rail(const LLA<Scalar> &lla_origin, const Scalar &azimuth,
            const Scalar &elevation,
            [[maybe_unused]] const EarthModel &m = EarthModel::WGS84()) {
     // Start with NED axes at origin
-    const Scalar sin_lat = janus::sin(lla_origin.lat);
-    const Scalar cos_lat = janus::cos(lla_origin.lat);
-    const Scalar sin_lon = janus::sin(lla_origin.lon);
-    const Scalar cos_lon = janus::cos(lla_origin.lon);
+    const Scalar sin_lat = metis::sin(lla_origin.lat);
+    const Scalar cos_lat = metis::cos(lla_origin.lat);
+    const Scalar sin_lon = metis::sin(lla_origin.lon);
+    const Scalar cos_lon = metis::cos(lla_origin.lon);
 
     // NED basis vectors in ECEF
     Vec3<Scalar> north;
@@ -188,10 +188,10 @@ local_rail(const LLA<Scalar> &lla_origin, const Scalar &azimuth,
     down << -cos_lat * cos_lon, -cos_lat * sin_lon, -sin_lat;
 
     // Trig for azimuth and elevation
-    const Scalar sin_az = janus::sin(azimuth);
-    const Scalar cos_az = janus::cos(azimuth);
-    const Scalar sin_el = janus::sin(elevation);
-    const Scalar cos_el = janus::cos(elevation);
+    const Scalar sin_az = metis::sin(azimuth);
+    const Scalar cos_az = metis::cos(azimuth);
+    const Scalar sin_el = metis::sin(elevation);
+    const Scalar cos_el = metis::cos(elevation);
 
     // Step 1: Rotate by azimuth in horizontal plane
     // Horizontal forward direction = cos(az)*North + sin(az)*East
@@ -258,10 +258,10 @@ CoordinateFrame<Scalar>
 local_cda(const LLA<Scalar> &lla_origin, const Scalar &bearing,
           [[maybe_unused]] const EarthModel &m = EarthModel::WGS84()) {
     // Start with local ENU frame at origin
-    const Scalar sin_lat = janus::sin(lla_origin.lat);
-    const Scalar cos_lat = janus::cos(lla_origin.lat);
-    const Scalar sin_lon = janus::sin(lla_origin.lon);
-    const Scalar cos_lon = janus::cos(lla_origin.lon);
+    const Scalar sin_lat = metis::sin(lla_origin.lat);
+    const Scalar cos_lat = metis::cos(lla_origin.lat);
+    const Scalar sin_lon = metis::sin(lla_origin.lon);
+    const Scalar cos_lon = metis::cos(lla_origin.lon);
 
     // ENU basis vectors in ECEF
     Vec3<Scalar> east;
@@ -276,8 +276,8 @@ local_cda(const LLA<Scalar> &lla_origin, const Scalar &bearing,
     // Rotate about Up axis by bearing angle
     // Down-range = cos(bearing) * North + sin(bearing) * East
     // Cross-range = -sin(bearing) * North + cos(bearing) * East (right-hand)
-    const Scalar sin_b = janus::sin(bearing);
-    const Scalar cos_b = janus::cos(bearing);
+    const Scalar sin_b = metis::sin(bearing);
+    const Scalar cos_b = metis::cos(bearing);
 
     Vec3<Scalar> downrange = cos_b * north + sin_b * east;
     Vec3<Scalar> crossrange = -sin_b * north + cos_b * east;

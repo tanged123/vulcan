@@ -2,8 +2,8 @@
 // Common aerospace unit conversion utilities
 #pragma once
 
-#include <janus/math/Arithmetic.hpp>
-#include <janus/math/Logic.hpp>
+#include <metis/math/Arithmetic.hpp>
+#include <metis/math/Logic.hpp>
 #include <vulcan/core/Constants.hpp>
 
 namespace vulcan::units {
@@ -25,8 +25,8 @@ template <typename Scalar> constexpr Scalar rad_to_deg(const Scalar &rad) {
 /// Wrap angle to [0, 2π)
 template <typename Scalar> constexpr Scalar wrap_to_2pi(const Scalar &angle) {
     const double two_pi = 2.0 * constants::angle::pi;
-    Scalar wrapped = janus::fmod(angle, Scalar(two_pi));
-    return janus::where(wrapped < 0.0, wrapped + two_pi, wrapped);
+    Scalar wrapped = metis::fmod(angle, Scalar(two_pi));
+    return metis::where(wrapped < 0.0, wrapped + two_pi, wrapped);
 }
 
 /// Wrap angle to [-π, π)
@@ -34,7 +34,7 @@ template <typename Scalar> constexpr Scalar wrap_to_pi(const Scalar &angle) {
     // Wrap to [0, 2pi), then shift to [-pi, pi)?
     // Actually, simple fmod logic:
     // angle - 2pi * floor((angle + pi) / 2pi)
-    // janus doesn't guarantee floor?
+    // metis doesn't guarantee floor?
     // let's use the 2pi wrap shifting.
     return wrap_to_2pi(angle + constants::angle::pi) - constants::angle::pi;
 }
@@ -43,15 +43,15 @@ template <typename Scalar> constexpr Scalar wrap_to_pi(const Scalar &angle) {
 template <typename Scalar>
 constexpr Scalar wrap_to_180(const Scalar &angle_deg) {
     const double three_sixty = 360.0;
-    Scalar wrapped = janus::fmod(angle_deg, Scalar(three_sixty));
+    Scalar wrapped = metis::fmod(angle_deg, Scalar(three_sixty));
     wrapped =
-        janus::where(wrapped < 0.0, wrapped + three_sixty, wrapped); // [0, 360)
+        metis::where(wrapped < 0.0, wrapped + three_sixty, wrapped); // [0, 360)
     // shift to [-180, 180)
-    return janus::where(wrapped >= 180.0, wrapped - three_sixty, wrapped);
+    return metis::where(wrapped >= 180.0, wrapped - three_sixty, wrapped);
     // Wait, simpler: wrap_to_360(angle + 180) - 180
     // reuse logic
-    // Scalar w = janus::fmod(angle_deg + 180.0, 360.0);
-    // w = janus::where(w < 0.0, w + 360.0, w);
+    // Scalar w = metis::fmod(angle_deg + 180.0, 360.0);
+    // w = metis::where(w < 0.0, w + 360.0, w);
     // return w - 180.0;
 }
 

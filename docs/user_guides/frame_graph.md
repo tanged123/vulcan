@@ -42,7 +42,7 @@ Default tree (`FrameRegistry::default_aerospace()`):
 
 ```cpp
 auto sensor_q =
-    janus::Quaternion<double>::from_euler(0.0, 10.0 * constants::angle::deg2rad, 0.0);
+    metis::Quaternion<double>::from_euler(0.0, 10.0 * constants::angle::deg2rad, 0.0);
 auto sensor_id = ctx.add_frame(
     "Sensor",
     FRAME_BODY,

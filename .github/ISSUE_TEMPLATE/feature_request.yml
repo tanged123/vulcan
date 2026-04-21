@@ -44,10 +44,10 @@ body:
       required: true
   
   - type: checkboxes
-    id: janus-compatible
+    id: metis-compatible
     attributes:
-      label: Janus Compatibility
-      description: Confirm this feature should work with Janus
+      label: Metis Compatibility
+      description: Confirm this feature should work with Metis
       options:
         - label: This feature should support both numeric and symbolic modes
           required: true

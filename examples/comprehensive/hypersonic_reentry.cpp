@@ -22,7 +22,7 @@
 #include <cmath>
 #include <iomanip>
 #include <iostream>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vector>
 #include <vulcan/vulcan.hpp>
 
@@ -95,7 +95,7 @@ ReentryOutputs<Scalar> reentry_physics(const Scalar &altitude,
 
     // 4. Dynamics using Vulcan 5DOF utilities
     // dV/dt = -(D/m) - g*sin(gamma)
-    Scalar v_dot = -D / Scalar(vehicle.mass) - g * janus::sin(gamma);
+    Scalar v_dot = -D / Scalar(vehicle.mass) - g * metis::sin(gamma);
 
     // gamma_dot using Vulcan's gamma_dot function
     // Signature: gamma_dot(lift, weight, mass, velocity, gamma, phi)
@@ -119,16 +119,16 @@ ReentryOutputs<Scalar> reentry_physics(const Scalar &altitude,
         );
 
     // dh/dt = V*sin(gamma)
-    Scalar h_dot = velocity * janus::sin(gamma);
+    Scalar h_dot = velocity * metis::sin(gamma);
 
     // 5. Load factor (for structural constraint)
-    Scalar load_factor = janus::sqrt(L * L + D * D) / W;
+    Scalar load_factor = metis::sqrt(L * L + D * D) / W;
 
     // 6. Stagnation point heating rate (Sutton-Graves correlation)
     Scalar k_heating = Scalar(1.83e-4);
     Scalar heating_rate = k_heating *
-                          janus::sqrt(rho / Scalar(vehicle.nose_radius)) *
-                          janus::pow(velocity, Scalar(3.0));
+                          metis::sqrt(rho / Scalar(vehicle.nose_radius)) *
+                          metis::pow(velocity, Scalar(3.0));
 
     return {v_dot, gamma_dot_val, chi_dot_val, h_dot,
             q,     load_factor,   heating_rate};
@@ -191,31 +191,31 @@ CrossRangeResult<Scalar> estimate_cross_range(const Scalar &bank_angle,
         // Heating accumulation - banking extends flight path, increasing total
         // heating
         Scalar bank_heating_factor = Scalar(1.0) + Scalar(0.5) *
-                                                       janus::sin(bank_angle) *
-                                                       janus::sin(bank_angle);
+                                                       metis::sin(bank_angle) *
+                                                       metis::sin(bank_angle);
         total_heating =
             total_heating + outputs.heating_rate * dt * bank_heating_factor;
 
         // Load factor increases with bank angle (centripetal acceleration from
         // turn) Real physics: n = L/W = (1/cos(bank)) for level turn
         Scalar bank_load_contribution =
-            outputs.load_factor / janus::cos(bank_angle + Scalar(0.01));
-        max_load = janus::where(bank_load_contribution > max_load,
+            outputs.load_factor / metis::cos(bank_angle + Scalar(0.01));
+        max_load = metis::where(bank_load_contribution > max_load,
                                 bank_load_contribution, max_load);
 
         // Peak heating rate increases with bank angle
         // Higher bank → shallower descent → longer time at high velocity in
         // denser air
         Scalar heating_bank_factor =
-            Scalar(1.0) / janus::cos(bank_angle * Scalar(0.7) + Scalar(0.01));
+            Scalar(1.0) / metis::cos(bank_angle * Scalar(0.7) + Scalar(0.01));
         Scalar effective_heating = outputs.heating_rate * heating_bank_factor;
-        max_heat_rate = janus::where(effective_heating > max_heat_rate,
+        max_heat_rate = metis::where(effective_heating > max_heat_rate,
                                      effective_heating, max_heat_rate);
 
         // Update velocity for next segment
         velocity = velocity + outputs.v_dot * dt;
         velocity =
-            janus::where(velocity < Scalar(1000.0), Scalar(1000.0), velocity);
+            metis::where(velocity < Scalar(1000.0), Scalar(1000.0), velocity);
 
         // Update gamma
         gamma = gamma + outputs.gamma_dot * dt;
@@ -318,11 +318,11 @@ int main() {
               << best_range / 1000.0 << " km cross-range\n\n";
 
     // =========================================================================
-    // Part 3: Symbolic Optimization with janus::Opti
+    // Part 3: Symbolic Optimization with metis::Opti
     // =========================================================================
-    std::cout << "=== Part 3: Optimization with janus::Opti ===\n\n";
+    std::cout << "=== Part 3: Optimization with metis::Opti ===\n\n";
 
-    janus::Opti opti;
+    metis::Opti opti;
 
     // Decision variable: bank angle
     auto bank_var = opti.variable(best_bank * M_PI / 180.0);
@@ -379,33 +379,33 @@ int main() {
         << "=== Part 4: Exporting Interactive Computational Graphs ===\n\n";
 
     // Create symbolic variables
-    auto h_sym = janus::sym("altitude");
-    auto v_sym = janus::sym("velocity");
-    auto gamma_sym = janus::sym("gamma");
-    auto bank_sym = janus::sym("bank");
+    auto h_sym = metis::sym("altitude");
+    auto v_sym = metis::sym("velocity");
+    auto gamma_sym = metis::sym("gamma");
+    auto bank_sym = metis::sym("bank");
 
     // Build physics graph
     auto out_sym = reentry_physics(h_sym, v_sym, gamma_sym, bank_sym, vehicle);
 
     // Export heading rate (cross-range driver)
-    janus::export_graph_html(out_sym.chi_dot, "graph_reentry_heading_rate",
+    metis::export_graph_html(out_sym.chi_dot, "graph_reentry_heading_rate",
                              "Heading_Rate");
     std::cout
         << "✓ Exported: graph_reentry_heading_rate.html (cross-range rate)\n";
 
     // Export heating rate
-    janus::export_graph_html(out_sym.heating_rate, "graph_reentry_heating",
+    metis::export_graph_html(out_sym.heating_rate, "graph_reentry_heating",
                              "Stagnation_Heating");
     std::cout
         << "✓ Exported: graph_reentry_heating.html (Sutton-Graves heating)\n";
 
     // Export load factor
-    janus::export_graph_html(out_sym.load_factor, "graph_reentry_load",
+    metis::export_graph_html(out_sym.load_factor, "graph_reentry_load",
                              "Load_Factor");
     std::cout << "✓ Exported: graph_reentry_load.html (structural load)\n";
 
     // // Export cross-range objective (from optimization) >> graph is too large
-    // !!! janus::export_graph_html(result.cross_range,
+    // !!! metis::export_graph_html(result.cross_range,
     // "graph_reentry_crossrange",
     //                          "Cross_Range_Objective");
     // std::cout << "✓ Exported: graph_reentry_crossrange.html (optimization

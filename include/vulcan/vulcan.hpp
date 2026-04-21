@@ -2,8 +2,8 @@
 // Main include file
 #pragma once
 
-// Janus foundation - required for all Vulcan components
-#include <janus/janus.hpp>
+// Metis foundation - required for all Vulcan components
+#include <metis/metis.hpp>
 
 // Core types and concepts
 #include <vulcan/core/Constants.hpp>

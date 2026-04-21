@@ -164,11 +164,11 @@ double jd = 2451545.0;  // J2000 epoch
 
 // Sun position in ECI (J2000 equatorial)
 auto r_sun = ephemeris::analytical::sun_position_eci(jd);
-double dist_au = janus::norm(r_sun) / constants::sun::AU;  // ~1.0 AU
+double dist_au = metis::norm(r_sun) / constants::sun::AU;  // ~1.0 AU
 
 // Moon position in ECI
 auto r_moon = ephemeris::analytical::moon_position_eci(jd);
-double dist_km = janus::norm(r_moon) / 1000;  // ~384,000 km
+double dist_km = metis::norm(r_moon) / 1000;  // ~384,000 km
 
 // ECEF positions (for ground-based applications)
 auto r_sun_ecef = ephemeris::analytical::sun_position_ecef(jd);
@@ -208,34 +208,34 @@ vulcan::constants::moon::mean_distance  // 3.844e8 m
 
 ## Symbolic Computation
 
-All functions work with `janus::SymbolicScalar` for optimization:
+All functions work with `metis::SymbolicScalar` for optimization:
 
 ```cpp
-auto a = janus::sym("a");
-auto e = janus::sym("e");
+auto a = metis::sym("a");
+auto e = metis::sym("e");
 
 // Symbolic period
 auto T = quantities::period(a);
 
 // Symbolic Kepler solver (uses fixed iterations for autodiff)
-auto M = janus::sym("M");
+auto M = metis::sym("M");
 auto E = anomaly::mean_to_eccentric(M, e);
 
 // Create CasADi function
-janus::Function f("kepler", {M, e}, {E});
+metis::Function f("kepler", {M, e}, {E});
 auto result = f({1.0, 0.5});
 ```
 
 ### Symbolic State Conversions
 
 ```cpp
-OrbitalElements<janus::SymbolicScalar> oe;
-oe.a = janus::sym("a");
-oe.e = janus::sym("e");
-oe.i = janus::sym("i");
-oe.Omega = janus::sym("Omega");
-oe.omega = janus::sym("omega");
-oe.nu = janus::sym("nu");
+OrbitalElements<metis::SymbolicScalar> oe;
+oe.a = metis::sym("a");
+oe.e = metis::sym("e");
+oe.i = metis::sym("i");
+oe.Omega = metis::sym("Omega");
+oe.omega = metis::sym("omega");
+oe.nu = metis::sym("nu");
 
 auto [r, v] = elements::keplerian_to_cartesian(oe);
 // r and v are now symbolic expressions

@@ -84,7 +84,7 @@ double mdot = mass_flow_from_power(Power, Ve, efficiency);
 
 ## Symbolic Compatibility
 
-All functions are templated on `Scalar` and use `janus::` math functions, making them compatible with `casadi::MX` for optimization problems constructed via Janus.
+All functions are templated on `Scalar` and use `metis::` math functions, making them compatible with `casadi::MX` for optimization problems constructed via Metis.
 
 ```cpp
 casadi::MX m_sym = casadi::MX::sym("m");

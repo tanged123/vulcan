@@ -79,8 +79,8 @@ TEST(FrameContext, CustomFrameRegistrationAndTransform) {
     ctx.set_body_euler(yaw, pitch, roll);
 
     const auto q_body_to_ned =
-        janus::Quaternion<double>::from_euler(roll, pitch, yaw);
-    const auto q_sensor_to_body = janus::Quaternion<double>::from_euler(
+        metis::Quaternion<double>::from_euler(roll, pitch, yaw);
+    const auto q_sensor_to_body = metis::Quaternion<double>::from_euler(
         0.0, 10.0 * vulcan::constants::angle::deg2rad, 0.0);
 
     const auto sensor_id = ctx.add_frame(

@@ -1,6 +1,6 @@
 # Phase 12: Third-Body Gravity Implementation Plan
 
-> **Purpose**: This document provides a comprehensive implementation plan for third-body gravitational perturbations (Sun, Moon, planets) in Vulcan, following the established Janus-compatible patterns.
+> **Purpose**: This document provides a comprehensive implementation plan for third-body gravitational perturbations (Sun, Moon, planets) in Vulcan, following the established Metis-compatible patterns.
 
 > **Dependencies**: Phase 9 (Time Systems) must be complete - third-body effects require time-dependent ephemeris.
 
@@ -225,7 +225,7 @@ where:
 // include/vulcan/gravity/thirdbody/ThirdBodyAcceleration.hpp
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 #include <vulcan/gravity/thirdbody/ThirdBodyTypes.hpp>
 
@@ -256,8 +256,8 @@ Vec3<Scalar> acceleration(const Vec3<Scalar>& r_sat,
     const Vec3<Scalar> r_rel = r_body - r_sat;
 
     // Distances
-    const Scalar d_sat_body = janus::norm(r_rel);      // |r_body - r_sat|
-    const Scalar d_body = janus::norm(r_body);          // |r_body|
+    const Scalar d_sat_body = metis::norm(r_rel);      // |r_body - r_sat|
+    const Scalar d_body = metis::norm(r_body);          // |r_body|
 
     // Cubed distances
     const Scalar d_sat_body_cubed = d_sat_body * d_sat_body * d_sat_body;
@@ -293,9 +293,9 @@ Scalar perturbation_ratio(const Vec3<Scalar>& r_sat,
                           double mu_body,
                           double mu_central = vulcan::constants::earth::mu) {
     const Vec3<Scalar> a_3b = acceleration(r_sat, r_body, mu_body);
-    const Scalar a_3b_mag = janus::norm(a_3b);
+    const Scalar a_3b_mag = metis::norm(a_3b);
 
-    const Scalar r_sat_mag = janus::norm(r_sat);
+    const Scalar r_sat_mag = metis::norm(r_sat);
     const Scalar a_central_mag = mu_central / (r_sat_mag * r_sat_mag);
 
     return a_3b_mag / a_central_mag;
@@ -327,17 +327,17 @@ Vec3<Scalar> acceleration_battin(const Vec3<Scalar>& r_sat,
                                   const Vec3<Scalar>& r_body,
                                   double mu_body) {
     const Vec3<Scalar> r_rel = r_body - r_sat;
-    const Scalar d_rel = janus::norm(r_rel);
-    const Scalar d_body_sq = janus::dot(r_body, r_body);
+    const Scalar d_rel = metis::norm(r_rel);
+    const Scalar d_body_sq = metis::dot(r_body, r_body);
 
     // q parameter
-    const Scalar q = janus::dot(r_sat, r_sat - 2.0 * r_body) / d_body_sq;
+    const Scalar q = metis::dot(r_sat, r_sat - 2.0 * r_body) / d_body_sq;
 
     // F(q) function - numerically stable for small q
     const Scalar q2 = q * q;
     const Scalar q3 = q2 * q;
     const Scalar numerator = q * (3.0 + 3.0 * q + q2);
-    const Scalar denominator = 1.0 + janus::pow(1.0 + q, 1.5);
+    const Scalar denominator = 1.0 + metis::pow(1.0 + q, 1.5);
     const Scalar F_q = numerator / denominator;
 
     // Battin formulation
@@ -356,7 +356,7 @@ Low-to-medium fidelity ephemeris using Meeus algorithms. No external data requir
 // include/vulcan/gravity/thirdbody/AnalyticalEphemeris.hpp
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/time/JulianDate.hpp>
@@ -394,9 +394,9 @@ Vec3<Scalar> sun_position_eci(const Scalar& jd_tt) {
     const Scalar M_rad = M * constants::angle::deg2rad;
 
     // Equation of center (degrees)
-    const Scalar C = (1.914602 - 0.004817 * T - 0.000014 * T * T) * janus::sin(M_rad) +
-                     (0.019993 - 0.000101 * T) * janus::sin(2.0 * M_rad) +
-                     0.000289 * janus::sin(3.0 * M_rad);
+    const Scalar C = (1.914602 - 0.004817 * T - 0.000014 * T * T) * metis::sin(M_rad) +
+                     (0.019993 - 0.000101 * T) * metis::sin(2.0 * M_rad) +
+                     0.000289 * metis::sin(3.0 * M_rad);
 
     // True longitude (degrees)
     const Scalar sun_lon = L0 + C;
@@ -407,7 +407,7 @@ Vec3<Scalar> sun_position_eci(const Scalar& jd_tt) {
     const Scalar v_rad = v * constants::angle::deg2rad;
 
     // Distance in AU
-    const Scalar R_AU = 1.000001018 * (1.0 - e * e) / (1.0 + e * janus::cos(v_rad));
+    const Scalar R_AU = 1.000001018 * (1.0 - e * e) / (1.0 + e * metis::cos(v_rad));
 
     // Convert to meters
     const Scalar R = R_AU * thirdbody::constants::sun::AU;
@@ -417,10 +417,10 @@ Vec3<Scalar> sun_position_eci(const Scalar& jd_tt) {
     const Scalar epsilon_rad = epsilon * constants::angle::deg2rad;
 
     // Convert ecliptic to equatorial (ECI)
-    const Scalar cos_lon = janus::cos(sun_lon_rad);
-    const Scalar sin_lon = janus::sin(sun_lon_rad);
-    const Scalar cos_eps = janus::cos(epsilon_rad);
-    const Scalar sin_eps = janus::sin(epsilon_rad);
+    const Scalar cos_lon = metis::cos(sun_lon_rad);
+    const Scalar sin_lon = metis::sin(sun_lon_rad);
+    const Scalar cos_eps = metis::cos(epsilon_rad);
+    const Scalar sin_eps = metis::sin(epsilon_rad);
 
     Vec3<Scalar> r_sun;
     r_sun(0) = R * cos_lon;
@@ -479,24 +479,24 @@ Vec3<Scalar> moon_position_eci(const Scalar& jd_tt) {
     const Scalar Lp_rad = Lp * constants::angle::deg2rad;
 
     // Longitude perturbations (simplified - main terms only)
-    const Scalar dL = 6288774.0 * janus::sin(Mp_rad) +
-                      1274027.0 * janus::sin(2.0 * D_rad - Mp_rad) +
-                      658314.0 * janus::sin(2.0 * D_rad) +
-                      213618.0 * janus::sin(2.0 * Mp_rad) -
-                      185116.0 * janus::sin(M_rad) -
-                      114332.0 * janus::sin(2.0 * F_rad);
+    const Scalar dL = 6288774.0 * metis::sin(Mp_rad) +
+                      1274027.0 * metis::sin(2.0 * D_rad - Mp_rad) +
+                      658314.0 * metis::sin(2.0 * D_rad) +
+                      213618.0 * metis::sin(2.0 * Mp_rad) -
+                      185116.0 * metis::sin(M_rad) -
+                      114332.0 * metis::sin(2.0 * F_rad);
 
     // Latitude perturbations (simplified)
-    const Scalar dB = 5128122.0 * janus::sin(F_rad) +
-                      280602.0 * janus::sin(Mp_rad + F_rad) +
-                      277693.0 * janus::sin(Mp_rad - F_rad) +
-                      173237.0 * janus::sin(2.0 * D_rad - F_rad);
+    const Scalar dB = 5128122.0 * metis::sin(F_rad) +
+                      280602.0 * metis::sin(Mp_rad + F_rad) +
+                      277693.0 * metis::sin(Mp_rad - F_rad) +
+                      173237.0 * metis::sin(2.0 * D_rad - F_rad);
 
     // Distance perturbations (simplified)
-    const Scalar dR = -20905355.0 * janus::cos(Mp_rad) -
-                      3699111.0 * janus::cos(2.0 * D_rad - Mp_rad) -
-                      2955968.0 * janus::cos(2.0 * D_rad) -
-                      569925.0 * janus::cos(2.0 * Mp_rad);
+    const Scalar dR = -20905355.0 * metis::cos(Mp_rad) -
+                      3699111.0 * metis::cos(2.0 * D_rad - Mp_rad) -
+                      2955968.0 * metis::cos(2.0 * D_rad) -
+                      569925.0 * metis::cos(2.0 * Mp_rad);
 
     // Ecliptic longitude and latitude (degrees)
     const Scalar lambda = Lp + dL / 1000000.0;
@@ -515,12 +515,12 @@ Vec3<Scalar> moon_position_eci(const Scalar& jd_tt) {
     const Scalar epsilon_rad = epsilon * constants::angle::deg2rad;
 
     // Ecliptic to equatorial transformation
-    const Scalar cos_lambda = janus::cos(lambda_rad);
-    const Scalar sin_lambda = janus::sin(lambda_rad);
-    const Scalar cos_beta = janus::cos(beta_rad);
-    const Scalar sin_beta = janus::sin(beta_rad);
-    const Scalar cos_eps = janus::cos(epsilon_rad);
-    const Scalar sin_eps = janus::sin(epsilon_rad);
+    const Scalar cos_lambda = metis::cos(lambda_rad);
+    const Scalar sin_lambda = metis::sin(lambda_rad);
+    const Scalar cos_beta = metis::cos(beta_rad);
+    const Scalar sin_beta = metis::sin(beta_rad);
+    const Scalar cos_eps = metis::cos(epsilon_rad);
+    const Scalar sin_eps = metis::sin(epsilon_rad);
 
     Vec3<Scalar> r_moon;
     r_moon(0) = dist * cos_beta * cos_lambda;
@@ -552,8 +552,8 @@ Vec3<Scalar> sun_position_ecef(const Scalar& jd_tt) {
     const Scalar gmst_rad = gmst_deg * constants::angle::deg2rad;
 
     // Rotate from ECI to ECEF
-    const Scalar cos_gmst = janus::cos(gmst_rad);
-    const Scalar sin_gmst = janus::sin(gmst_rad);
+    const Scalar cos_gmst = metis::cos(gmst_rad);
+    const Scalar sin_gmst = metis::sin(gmst_rad);
 
     Vec3<Scalar> r_ecef;
     r_ecef(0) = cos_gmst * r_eci(0) + sin_gmst * r_eci(1);
@@ -575,8 +575,8 @@ Vec3<Scalar> moon_position_ecef(const Scalar& jd_tt) {
                             0.000387933 * T * T - T * T * T / 38710000.0;
     const Scalar gmst_rad = gmst_deg * constants::angle::deg2rad;
 
-    const Scalar cos_gmst = janus::cos(gmst_rad);
-    const Scalar sin_gmst = janus::sin(gmst_rad);
+    const Scalar cos_gmst = metis::cos(gmst_rad);
+    const Scalar sin_gmst = metis::sin(gmst_rad);
 
     Vec3<Scalar> r_ecef;
     r_ecef(0) = cos_gmst * r_eci(0) + sin_gmst * r_eci(1);
@@ -794,7 +794,7 @@ TEST(AnalyticalEphemeris, SunPosition_J2000) {
     double jd_j2000 = 2451545.0;
 
     Vec3<double> r_sun = sun_position_eci(jd_j2000);
-    double dist = janus::norm(r_sun);
+    double dist = metis::norm(r_sun);
 
     // Sun should be ~1 AU away
     double AU = vulcan::gravity::thirdbody::constants::sun::AU;
@@ -808,7 +808,7 @@ TEST(AnalyticalEphemeris, MoonPosition_Approximate) {
     double jd = 2451545.0;
 
     Vec3<double> r_moon = moon_position_eci(jd);
-    double dist = janus::norm(r_moon);
+    double dist = metis::norm(r_moon);
 
     // Moon should be ~384,000 km away
     double expected_dist = vulcan::gravity::thirdbody::constants::moon::mean_distance;
@@ -816,13 +816,13 @@ TEST(AnalyticalEphemeris, MoonPosition_Approximate) {
 }
 
 TEST(AnalyticalEphemeris, SymbolicEvaluation) {
-    auto jd = janus::sym("jd");
+    auto jd = metis::sym("jd");
 
     auto r_sun = sun_position_eci(jd);
 
     // Should be able to evaluate
     double jd_val = 2451545.0;
-    double x = janus::eval(r_sun(0), {{"jd", jd_val}});
+    double x = metis::eval(r_sun(0), {{"jd", jd_val}});
 
     EXPECT_NE(x, 0.0);  // Non-zero position
 }
@@ -847,7 +847,7 @@ TEST(ThirdBodyAcceleration, SunAtGEO) {
     r_sun << constants::sun::AU, 0.0, 0.0;
 
     Vec3<double> a = sun::acceleration(r_sat, r_sun);
-    double a_mag = janus::norm(a);
+    double a_mag = metis::norm(a);
 
     // Expected: ~5e-6 m/s² at GEO
     EXPECT_GT(a_mag, 1e-7);
@@ -863,7 +863,7 @@ TEST(ThirdBodyAcceleration, MoonAtGEO) {
     r_moon << constants::moon::mean_distance, 0.0, 0.0;
 
     Vec3<double> a = moon::acceleration(r_sat, r_moon);
-    double a_mag = janus::norm(a);
+    double a_mag = metis::norm(a);
 
     // Expected: ~1e-5 m/s² at GEO (Moon effect larger than Sun at GEO)
     EXPECT_GT(a_mag, 1e-7);
@@ -885,11 +885,11 @@ TEST(ThirdBodyAcceleration, NegligibleAtLEO) {
 }
 
 TEST(ThirdBodyAcceleration, SymbolicGradient) {
-    auto x = janus::sym("x");
-    auto y = janus::sym("y");
-    auto z = janus::sym("z");
+    auto x = metis::sym("x");
+    auto y = metis::sym("y");
+    auto z = metis::sym("z");
 
-    Vec3<janus::SymbolicScalar> r_sat;
+    Vec3<metis::SymbolicScalar> r_sat;
     r_sat << x, y, z;
 
     Vec3<double> r_sun;
@@ -898,11 +898,11 @@ TEST(ThirdBodyAcceleration, SymbolicGradient) {
     auto a = sun::acceleration(r_sat, r_sun);
 
     // Compute Jacobian
-    auto da_dx = janus::jacobian(a(0), x);
+    auto da_dx = metis::jacobian(a(0), x);
 
     // Evaluate at GEO
     double r_geo = 42164e3;
-    double grad = janus::eval(da_dx, {{"x", r_geo}, {"y", 0.0}, {"z", 0.0}});
+    double grad = metis::eval(da_dx, {{"x", r_geo}, {"y", 0.0}, {"z", 0.0}});
 
     // Should have non-zero gradient
     EXPECT_NE(grad, 0.0);
@@ -971,7 +971,7 @@ Test Case 4: Solar Eclipse Geometry
 ### Phase 12.4: Symbolic Compatibility (1-2 hours)
 - [ ] Verify all functions work with `casadi::MX`
 - [ ] Test gradient computation
-- [ ] Integration with `janus::Opti` for trajectory optimization
+- [ ] Integration with `metis::Opti` for trajectory optimization
 
 ### Phase 12.5: Documentation & Examples (2-3 hours)
 - [ ] Create `examples/gravity/thirdbody_perturbation.cpp`
@@ -1042,4 +1042,4 @@ For most trajectory optimization applications, analytical ephemeris is sufficien
 
 ---
 
-This implementation plan provides all context needed to implement third-body gravitational perturbations in Vulcan while maintaining Janus compatibility and clean separation from Earth gravity models.
+This implementation plan provides all context needed to implement third-body gravitational perturbations in Vulcan while maintaining Metis compatibility and clean separation from Earth gravity models.

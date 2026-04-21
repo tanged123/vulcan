@@ -203,7 +203,7 @@ inline constexpr double mean_distance = 3.844e8;
 // include/vulcan/orbital/StateConversions.hpp
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/orbital/OrbitalTypes.hpp>
 
 namespace vulcan::orbital::elements {
@@ -223,22 +223,22 @@ OrbitalElements<Scalar> cartesian_to_keplerian(const Vec3<Scalar>& r,
                                                 double mu) {
     OrbitalElements<Scalar> oe;
     
-    const Scalar r_mag = janus::norm(r);
-    const Scalar v_mag = janus::norm(v);
+    const Scalar r_mag = metis::norm(r);
+    const Scalar v_mag = metis::norm(v);
     
     // Specific angular momentum
-    const Vec3<Scalar> h = janus::cross(r, v);
-    const Scalar h_mag = janus::norm(h);
+    const Vec3<Scalar> h = metis::cross(r, v);
+    const Scalar h_mag = metis::norm(h);
     
     // Node vector
     Vec3<Scalar> n;
     n << -h(1), h(0), Scalar(0.0);
-    const Scalar n_mag = janus::norm(n);
+    const Scalar n_mag = metis::norm(n);
     
     // Eccentricity vector
-    const Scalar r_dot_v = janus::dot(r, v);
+    const Scalar r_dot_v = metis::dot(r, v);
     const Vec3<Scalar> e_vec = ((v_mag * v_mag - mu / r_mag) * r - r_dot_v * v) / mu;
-    oe.e = janus::norm(e_vec);
+    oe.e = metis::norm(e_vec);
     
     // Specific mechanical energy
     const Scalar energy = v_mag * v_mag / 2.0 - mu / r_mag;
@@ -247,19 +247,19 @@ OrbitalElements<Scalar> cartesian_to_keplerian(const Vec3<Scalar>& r,
     oe.a = -mu / (2.0 * energy);
     
     // Inclination
-    oe.i = janus::acos(h(2) / h_mag);
+    oe.i = metis::acos(h(2) / h_mag);
     
     // RAAN
-    oe.Omega = janus::acos(n(0) / n_mag);
-    oe.Omega = janus::where(n(1) < 0.0, 2.0 * M_PI - oe.Omega, oe.Omega);
+    oe.Omega = metis::acos(n(0) / n_mag);
+    oe.Omega = metis::where(n(1) < 0.0, 2.0 * M_PI - oe.Omega, oe.Omega);
     
     // Argument of periapsis
-    oe.omega = janus::acos(janus::dot(n, e_vec) / (n_mag * oe.e));
-    oe.omega = janus::where(e_vec(2) < 0.0, 2.0 * M_PI - oe.omega, oe.omega);
+    oe.omega = metis::acos(metis::dot(n, e_vec) / (n_mag * oe.e));
+    oe.omega = metis::where(e_vec(2) < 0.0, 2.0 * M_PI - oe.omega, oe.omega);
     
     // True anomaly
-    oe.nu = janus::acos(janus::dot(e_vec, r) / (oe.e * r_mag));
-    oe.nu = janus::where(r_dot_v < 0.0, 2.0 * M_PI - oe.nu, oe.nu);
+    oe.nu = metis::acos(metis::dot(e_vec, r) / (oe.e * r_mag));
+    oe.nu = metis::where(r_dot_v < 0.0, 2.0 * M_PI - oe.nu, oe.nu);
     
     return oe;
 }
@@ -280,26 +280,26 @@ std::pair<Vec3<Scalar>, Vec3<Scalar>> keplerian_to_cartesian(
     const Scalar p = oe.a * (1.0 - oe.e * oe.e);
     
     // Position in perifocal frame
-    const Scalar r_mag = p / (1.0 + oe.e * janus::cos(oe.nu));
+    const Scalar r_mag = p / (1.0 + oe.e * metis::cos(oe.nu));
     
-    const Scalar cos_nu = janus::cos(oe.nu);
-    const Scalar sin_nu = janus::sin(oe.nu);
+    const Scalar cos_nu = metis::cos(oe.nu);
+    const Scalar sin_nu = metis::sin(oe.nu);
     
     Vec3<Scalar> r_pqw;
     r_pqw << r_mag * cos_nu, r_mag * sin_nu, Scalar(0.0);
     
     // Velocity in perifocal frame
-    const Scalar sqrt_mu_p = janus::sqrt(mu / p);
+    const Scalar sqrt_mu_p = metis::sqrt(mu / p);
     Vec3<Scalar> v_pqw;
     v_pqw << -sqrt_mu_p * sin_nu, sqrt_mu_p * (oe.e + cos_nu), Scalar(0.0);
     
     // Rotation matrix from perifocal to ECI
-    const Scalar cos_O = janus::cos(oe.Omega);
-    const Scalar sin_O = janus::sin(oe.Omega);
-    const Scalar cos_i = janus::cos(oe.i);
-    const Scalar sin_i = janus::sin(oe.i);
-    const Scalar cos_w = janus::cos(oe.omega);
-    const Scalar sin_w = janus::sin(oe.omega);
+    const Scalar cos_O = metis::cos(oe.Omega);
+    const Scalar sin_O = metis::sin(oe.Omega);
+    const Scalar cos_i = metis::cos(oe.i);
+    const Scalar sin_i = metis::sin(oe.i);
+    const Scalar cos_w = metis::cos(oe.omega);
+    const Scalar sin_w = metis::sin(oe.omega);
     
     Mat3<Scalar> R;
     R(0, 0) = cos_O * cos_w - sin_O * sin_w * cos_i;
@@ -327,7 +327,7 @@ std::pair<Vec3<Scalar>, Vec3<Scalar>> keplerian_to_cartesian(
 // include/vulcan/orbital/AnomalyConversions.hpp
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 
 namespace vulcan::orbital::anomaly {
@@ -364,8 +364,8 @@ Scalar mean_to_eccentric(const Scalar& M, const Scalar& e,
         // Fixed Newton steps for symbolic (enables autodiff)
         // 10 iterations sufficient for most cases
         for (int i = 0; i < 10; ++i) {
-            Scalar f = E - e * janus::sin(E) - M;
-            Scalar f_prime = 1.0 - e * janus::cos(E);
+            Scalar f = E - e * metis::sin(E) - M;
+            Scalar f_prime = 1.0 - e * metis::cos(E);
             E = E - f / f_prime;
         }
     }
@@ -383,9 +383,9 @@ Scalar mean_to_eccentric(const Scalar& M, const Scalar& e,
  */
 template <typename Scalar>
 Scalar eccentric_to_true(const Scalar& E, const Scalar& e) {
-    const Scalar beta = e / (1.0 + janus::sqrt(1.0 - e * e));
-    return E + 2.0 * janus::atan2(beta * janus::sin(E),
-                                   1.0 - beta * janus::cos(E));
+    const Scalar beta = e / (1.0 + metis::sqrt(1.0 - e * e));
+    return E + 2.0 * metis::atan2(beta * metis::sin(E),
+                                   1.0 - beta * metis::cos(E));
 }
 
 /**
@@ -398,8 +398,8 @@ Scalar eccentric_to_true(const Scalar& E, const Scalar& e) {
  */
 template <typename Scalar>
 Scalar true_to_eccentric(const Scalar& nu, const Scalar& e) {
-    return janus::atan2(janus::sqrt(1.0 - e * e) * janus::sin(nu),
-                        e + janus::cos(nu));
+    return metis::atan2(metis::sqrt(1.0 - e * e) * metis::sin(nu),
+                        e + metis::cos(nu));
 }
 
 } // namespace vulcan::orbital::anomaly
@@ -411,7 +411,7 @@ Scalar true_to_eccentric(const Scalar& nu, const Scalar& e) {
 // include/vulcan/orbital/OrbitalQuantities.hpp
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 
 namespace vulcan::orbital::quantities {
@@ -426,7 +426,7 @@ namespace vulcan::orbital::quantities {
  */
 template <typename Scalar>
 Scalar period(const Scalar& a, double mu) {
-    return 2.0 * M_PI * janus::sqrt(a * a * a / mu);
+    return 2.0 * M_PI * metis::sqrt(a * a * a / mu);
 }
 
 /**
@@ -440,7 +440,7 @@ Scalar period(const Scalar& a, double mu) {
  */
 template <typename Scalar>
 Scalar velocity(const Scalar& r, const Scalar& a, double mu) {
-    return janus::sqrt(mu * (2.0 / r - 1.0 / a));
+    return metis::sqrt(mu * (2.0 / r - 1.0 / a));
 }
 
 /**
@@ -466,7 +466,7 @@ Scalar energy(const Scalar& a, double mu) {
  */
 template <typename Scalar>
 Scalar escape_velocity(const Scalar& r, double mu) {
-    return janus::sqrt(2.0 * mu / r);
+    return metis::sqrt(2.0 * mu / r);
 }
 
 /**
@@ -479,7 +479,7 @@ Scalar escape_velocity(const Scalar& r, double mu) {
  */
 template <typename Scalar>
 Scalar circular_velocity(const Scalar& r, double mu) {
-    return janus::sqrt(mu / r);
+    return metis::sqrt(mu / r);
 }
 
 } // namespace vulcan::orbital::quantities
@@ -491,7 +491,7 @@ Scalar circular_velocity(const Scalar& r, double mu) {
 // include/vulcan/orbital/TransferMechanics.hpp
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 #include <vulcan/orbital/OrbitalQuantities.hpp>
 
@@ -570,7 +570,7 @@ std::tuple<Scalar, Scalar, Scalar> bielliptic_delta_v(const Scalar& r1,
  */
 template <typename Scalar>
 Scalar plane_change_delta_v(const Scalar& v, const Scalar& delta_i) {
-    return 2.0 * v * janus::sin(delta_i / 2.0);
+    return 2.0 * v * metis::sin(delta_i / 2.0);
 }
 
 } // namespace vulcan::orbital::transfer
@@ -584,7 +584,7 @@ Based on Meeus, "Astronomical Algorithms" (1998). Accuracy: ~0.01° for Sun, ~0.
 // include/vulcan/orbital/AnalyticalEphemeris.hpp
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/orbital/OrbitalTypes.hpp>
@@ -622,9 +622,9 @@ Vec3<Scalar> sun_position_eci(const Scalar& jd_tt) {
     const Scalar M_rad = M * vulcan::constants::angle::deg2rad;
 
     // Equation of center (degrees)
-    const Scalar C = (1.914602 - 0.004817 * T - 0.000014 * T * T) * janus::sin(M_rad) +
-                     (0.019993 - 0.000101 * T) * janus::sin(2.0 * M_rad) +
-                     0.000289 * janus::sin(3.0 * M_rad);
+    const Scalar C = (1.914602 - 0.004817 * T - 0.000014 * T * T) * metis::sin(M_rad) +
+                     (0.019993 - 0.000101 * T) * metis::sin(2.0 * M_rad) +
+                     0.000289 * metis::sin(3.0 * M_rad);
 
     // True longitude (degrees)
     const Scalar sun_lon = L0 + C;
@@ -635,7 +635,7 @@ Vec3<Scalar> sun_position_eci(const Scalar& jd_tt) {
     const Scalar v_rad = v * vulcan::constants::angle::deg2rad;
 
     // Distance in AU
-    const Scalar R_AU = 1.000001018 * (1.0 - e * e) / (1.0 + e * janus::cos(v_rad));
+    const Scalar R_AU = 1.000001018 * (1.0 - e * e) / (1.0 + e * metis::cos(v_rad));
 
     // Convert to meters
     const Scalar R = R_AU * constants::sun::AU;
@@ -645,10 +645,10 @@ Vec3<Scalar> sun_position_eci(const Scalar& jd_tt) {
     const Scalar epsilon_rad = epsilon * vulcan::constants::angle::deg2rad;
 
     // Convert ecliptic to equatorial (ECI)
-    const Scalar cos_lon = janus::cos(sun_lon_rad);
-    const Scalar sin_lon = janus::sin(sun_lon_rad);
-    const Scalar cos_eps = janus::cos(epsilon_rad);
-    const Scalar sin_eps = janus::sin(epsilon_rad);
+    const Scalar cos_lon = metis::cos(sun_lon_rad);
+    const Scalar sin_lon = metis::sin(sun_lon_rad);
+    const Scalar cos_eps = metis::cos(epsilon_rad);
+    const Scalar sin_eps = metis::sin(epsilon_rad);
 
     Vec3<Scalar> r_sun;
     r_sun(0) = R * cos_lon;
@@ -706,24 +706,24 @@ Vec3<Scalar> moon_position_eci(const Scalar& jd_tt) {
     const Scalar Lp_rad = Lp * vulcan::constants::angle::deg2rad;
 
     // Longitude perturbations (simplified - main terms only)
-    const Scalar dL = 6288774.0 * janus::sin(Mp_rad) +
-                      1274027.0 * janus::sin(2.0 * D_rad - Mp_rad) +
-                      658314.0 * janus::sin(2.0 * D_rad) +
-                      213618.0 * janus::sin(2.0 * Mp_rad) -
-                      185116.0 * janus::sin(M_rad) -
-                      114332.0 * janus::sin(2.0 * F_rad);
+    const Scalar dL = 6288774.0 * metis::sin(Mp_rad) +
+                      1274027.0 * metis::sin(2.0 * D_rad - Mp_rad) +
+                      658314.0 * metis::sin(2.0 * D_rad) +
+                      213618.0 * metis::sin(2.0 * Mp_rad) -
+                      185116.0 * metis::sin(M_rad) -
+                      114332.0 * metis::sin(2.0 * F_rad);
 
     // Latitude perturbations (simplified)
-    const Scalar dB = 5128122.0 * janus::sin(F_rad) +
-                      280602.0 * janus::sin(Mp_rad + F_rad) +
-                      277693.0 * janus::sin(Mp_rad - F_rad) +
-                      173237.0 * janus::sin(2.0 * D_rad - F_rad);
+    const Scalar dB = 5128122.0 * metis::sin(F_rad) +
+                      280602.0 * metis::sin(Mp_rad + F_rad) +
+                      277693.0 * metis::sin(Mp_rad - F_rad) +
+                      173237.0 * metis::sin(2.0 * D_rad - F_rad);
 
     // Distance perturbations (simplified)
-    const Scalar dR = -20905355.0 * janus::cos(Mp_rad) -
-                      3699111.0 * janus::cos(2.0 * D_rad - Mp_rad) -
-                      2955968.0 * janus::cos(2.0 * D_rad) -
-                      569925.0 * janus::cos(2.0 * Mp_rad);
+    const Scalar dR = -20905355.0 * metis::cos(Mp_rad) -
+                      3699111.0 * metis::cos(2.0 * D_rad - Mp_rad) -
+                      2955968.0 * metis::cos(2.0 * D_rad) -
+                      569925.0 * metis::cos(2.0 * Mp_rad);
 
     // Ecliptic longitude and latitude (degrees)
     const Scalar lambda = Lp + dL / 1000000.0;
@@ -742,12 +742,12 @@ Vec3<Scalar> moon_position_eci(const Scalar& jd_tt) {
     const Scalar epsilon_rad = epsilon * vulcan::constants::angle::deg2rad;
 
     // Ecliptic to equatorial transformation
-    const Scalar cos_lambda = janus::cos(lambda_rad);
-    const Scalar sin_lambda = janus::sin(lambda_rad);
-    const Scalar cos_beta = janus::cos(beta_rad);
-    const Scalar sin_beta = janus::sin(beta_rad);
-    const Scalar cos_eps = janus::cos(epsilon_rad);
-    const Scalar sin_eps = janus::sin(epsilon_rad);
+    const Scalar cos_lambda = metis::cos(lambda_rad);
+    const Scalar sin_lambda = metis::sin(lambda_rad);
+    const Scalar cos_beta = metis::cos(beta_rad);
+    const Scalar sin_beta = metis::sin(beta_rad);
+    const Scalar cos_eps = metis::cos(epsilon_rad);
+    const Scalar sin_eps = metis::sin(epsilon_rad);
 
     Vec3<Scalar> r_moon;
     r_moon(0) = dist * cos_beta * cos_lambda;
@@ -775,8 +775,8 @@ Vec3<Scalar> sun_position_ecef(const Scalar& jd_tt) {
     const Scalar gmst_rad = gmst_deg * vulcan::constants::angle::deg2rad;
 
     // Rotate from ECI to ECEF
-    const Scalar cos_gmst = janus::cos(gmst_rad);
-    const Scalar sin_gmst = janus::sin(gmst_rad);
+    const Scalar cos_gmst = metis::cos(gmst_rad);
+    const Scalar sin_gmst = metis::sin(gmst_rad);
 
     Vec3<Scalar> r_ecef;
     r_ecef(0) = cos_gmst * r_eci(0) + sin_gmst * r_eci(1);
@@ -802,8 +802,8 @@ Vec3<Scalar> moon_position_ecef(const Scalar& jd_tt) {
                             0.000387933 * T * T - T * T * T / 38710000.0;
     const Scalar gmst_rad = gmst_deg * vulcan::constants::angle::deg2rad;
 
-    const Scalar cos_gmst = janus::cos(gmst_rad);
-    const Scalar sin_gmst = janus::sin(gmst_rad);
+    const Scalar cos_gmst = metis::cos(gmst_rad);
+    const Scalar sin_gmst = metis::sin(gmst_rad);
 
     Vec3<Scalar> r_ecef;
     r_ecef(0) = cos_gmst * r_eci(0) + sin_gmst * r_eci(1);
@@ -879,7 +879,7 @@ TEST(AnalyticalEphemeris, SunPosition_J2000) {
     double jd_j2000 = 2451545.0;
     
     Vec3<double> r_sun = ephemeris::analytical::sun_position_eci(jd_j2000);
-    double dist = janus::norm(r_sun);
+    double dist = metis::norm(r_sun);
     
     // Sun should be ~1 AU away
     double AU = vulcan::orbital::constants::sun::AU;
@@ -890,7 +890,7 @@ TEST(AnalyticalEphemeris, MoonPosition_Approximate) {
     double jd = 2451545.0;
     
     Vec3<double> r_moon = ephemeris::analytical::moon_position_eci(jd);
-    double dist = janus::norm(r_moon);
+    double dist = metis::norm(r_moon);
     
     // Moon ~384,000 km away
     double expected = vulcan::orbital::constants::moon::mean_distance;
@@ -898,11 +898,11 @@ TEST(AnalyticalEphemeris, MoonPosition_Approximate) {
 }
 
 TEST(AnalyticalEphemeris, SymbolicEvaluation) {
-    auto jd = janus::sym("jd");
+    auto jd = metis::sym("jd");
     auto r_sun = ephemeris::analytical::sun_position_eci(jd);
     
     double jd_val = 2451545.0;
-    double x = janus::eval(r_sun(0), {{"jd", jd_val}});
+    double x = metis::eval(r_sun(0), {{"jd", jd_val}});
     
     EXPECT_NE(x, 0.0);
 }

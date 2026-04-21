@@ -2,7 +2,7 @@
 // Tests PSD functions, filter coefficients, filter stepping, and statistical
 // properties
 #include <gtest/gtest.h>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/wind/DrydenTurbulence.hpp>
 
 #include <cmath>
@@ -59,10 +59,10 @@ TEST(DrydenPSD, LateralPeakBehavior) {
 }
 
 TEST(DrydenPSD, SymbolicEvaluation) {
-    auto omega = janus::sym("omega");
+    auto omega = metis::sym("omega");
     auto psd = vulcan::dryden::psd_longitudinal(omega, 2.0, 100.0);
 
-    janus::Function f("psd_u", {omega}, {psd});
+    metis::Function f("psd_u", {omega}, {psd});
 
     // Evaluate at Ω = 0
     auto result = f({0.0});
@@ -243,17 +243,17 @@ TEST(DrydenFilter, NonZeroVariance) {
 
 TEST(DrydenFilter, SymbolicStep) {
     // Create symbolic noise inputs
-    auto nu = janus::sym("noise_u");
-    auto nv = janus::sym("noise_v");
-    auto nw = janus::sym("noise_w");
+    auto nu = metis::sym("noise_u");
+    auto nv = metis::sym("noise_v");
+    auto nw = metis::sym("noise_w");
 
     // Create symbolic state
-    auto state = vulcan::dryden::init_state<janus::SymbolicScalar>();
-    state.x_u = janus::sym("x_u");
-    state.x_v1 = janus::sym("x_v1");
-    state.x_v2 = janus::sym("x_v2");
-    state.x_w1 = janus::sym("x_w1");
-    state.x_w2 = janus::sym("x_w2");
+    auto state = vulcan::dryden::init_state<metis::SymbolicScalar>();
+    state.x_u = metis::sym("x_u");
+    state.x_v1 = metis::sym("x_v1");
+    state.x_v2 = metis::sym("x_v2");
+    state.x_w1 = metis::sym("x_w1");
+    state.x_w2 = metis::sym("x_w2");
 
     auto coeffs = vulcan::dryden::mil_spec_coeffs(
         200.0, vulcan::wind::TurbulenceSeverity::Light, 50.0, 0.01);
@@ -267,19 +267,19 @@ TEST(DrydenFilter, SymbolicStep) {
 }
 
 TEST(DrydenFilter, SymbolicGradient) {
-    auto nu = janus::sym("noise_u");
-    auto state = vulcan::dryden::init_state<janus::SymbolicScalar>();
+    auto nu = metis::sym("noise_u");
+    auto state = vulcan::dryden::init_state<metis::SymbolicScalar>();
 
     auto coeffs = vulcan::dryden::mil_spec_coeffs(
         200.0, vulcan::wind::TurbulenceSeverity::Light, 50.0, 0.01);
 
-    janus::SymbolicScalar zero(0);
+    metis::SymbolicScalar zero(0);
     auto gust = vulcan::dryden::step(state, coeffs, nu, zero, zero);
 
     // du_g/d(noise_u) should be non-zero
-    auto du_dn = janus::jacobian(gust.u_g, nu);
+    auto du_dn = metis::jacobian(gust.u_g, nu);
 
-    janus::Function f("du_dn", {nu}, {du_dn});
+    metis::Function f("du_dn", {nu}, {du_dn});
     auto result = f({1.0});
 
     // Gradient should be positive (more noise = more output)
@@ -287,12 +287,12 @@ TEST(DrydenFilter, SymbolicGradient) {
 }
 
 TEST(DrydenPSD, SymbolicGradient) {
-    auto omega = janus::sym("omega");
+    auto omega = metis::sym("omega");
     auto psd = vulcan::dryden::psd_longitudinal(omega, 2.0, 100.0);
 
-    auto dpsd_domega = janus::jacobian(psd, omega);
+    auto dpsd_domega = metis::jacobian(psd, omega);
 
-    janus::Function f("dpsd_domega", {omega}, {dpsd_domega});
+    metis::Function f("dpsd_domega", {omega}, {dpsd_domega});
 
     // At Ω > 0, gradient should be negative (PSD decreases)
     auto result = f({0.01});

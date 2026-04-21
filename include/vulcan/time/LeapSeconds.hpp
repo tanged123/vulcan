@@ -1,7 +1,7 @@
 #pragma once
 
 #include <array>
-#include <janus/math/Interpolate.hpp>
+#include <metis/math/Interpolate.hpp>
 #include <vulcan/time/JulianDate.hpp>
 #include <vulcan/time/TimeConstants.hpp>
 
@@ -166,7 +166,7 @@ inline constexpr std::array<LeapSecondEntry, 28> LEAP_SECOND_TABLE = {{
 }
 
 // =============================================================================
-// Symbolic Leap Second Lookup (via janus::Interpolator)
+// Symbolic Leap Second Lookup (via metis::Interpolator)
 // =============================================================================
 
 /**
@@ -180,11 +180,11 @@ inline constexpr std::array<LeapSecondEntry, 28> LEAP_SECOND_TABLE = {{
  *       transitions. For gradient-based optimization spanning months,
  *       this smooth approximation provides well-defined gradients.
  */
-[[nodiscard]] inline const janus::Interpolator &leap_second_interpolator() {
-    static const janus::Interpolator interp = []() {
-        janus::NumericVector jd_points(
+[[nodiscard]] inline const metis::Interpolator &leap_second_interpolator() {
+    static const metis::Interpolator interp = []() {
+        metis::NumericVector jd_points(
             static_cast<int>(LEAP_SECOND_TABLE.size()));
-        janus::NumericVector delta_at(
+        metis::NumericVector delta_at(
             static_cast<int>(LEAP_SECOND_TABLE.size()));
         for (size_t i = 0; i < LEAP_SECOND_TABLE.size(); ++i) {
             const auto &entry = LEAP_SECOND_TABLE[i];
@@ -192,8 +192,8 @@ inline constexpr std::array<LeapSecondEntry, 28> LEAP_SECOND_TABLE = {{
                 calendar_to_jd(entry.year, entry.month, entry.day);
             delta_at(static_cast<int>(i)) = static_cast<double>(entry.delta_at);
         }
-        return janus::Interpolator(jd_points, delta_at,
-                                   janus::InterpolationMethod::Linear);
+        return metis::Interpolator(jd_points, delta_at,
+                                   metis::InterpolationMethod::Linear);
     }();
     return interp;
 }
@@ -201,7 +201,7 @@ inline constexpr std::array<LeapSecondEntry, 28> LEAP_SECOND_TABLE = {{
 /**
  * @brief Symbolic leap second lookup (smooth approximation)
  *
- * Uses janus::Interpolator for symbolic-compatible table lookup.
+ * Uses metis::Interpolator for symbolic-compatible table lookup.
  * Linear interpolation provides smooth transitions at leap second boundaries.
  *
  * @tparam Scalar Numeric or symbolic type

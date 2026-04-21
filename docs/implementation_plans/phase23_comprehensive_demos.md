@@ -16,7 +16,7 @@ Vulcan's current examples demonstrate individual modules but lack comprehensive 
 // 1. Define templated physics model
 template <typename Scalar>
 Scalar physics_model(const Scalar& x, ...) {
-    // Use vulcan:: and janus:: throughout
+    // Use vulcan:: and metis:: throughout
 }
 
 // 2. Numeric evaluation survey
@@ -25,7 +25,7 @@ for (auto x : range) {
 }
 
 // 3. Symbolic optimization
-janus::Opti opti;
+metis::Opti opti;
 auto x = opti.variable(initial_guess);
 auto cost = physics_model<casadi::MX>(x, ...);
 opti.minimize(cost);
@@ -33,7 +33,7 @@ opti.subject_to(...);
 auto sol = opti.solve();
 
 // 4. Graph export
-janus::export_graph_html(cost, "graph_name", "Title");
+metis::export_graph_html(cost, "graph_name", "Title");
 ```
 
 ---
@@ -149,9 +149,9 @@ ReentryDerivatives<Scalar> reentry_dynamics(
         L, D, state.mass, g, state.altitude);
     
     // 5. Position kinematics (spherical Earth)
-    Scalar lat_dot = state.velocity * janus::cos(state.gamma) * janus::cos(state.chi) / (R + state.altitude);
-    Scalar lon_dot = state.velocity * janus::cos(state.gamma) * janus::sin(state.chi) / 
-                     ((R + state.altitude) * janus::cos(state.latitude));
+    Scalar lat_dot = state.velocity * metis::cos(state.gamma) * metis::cos(state.chi) / (R + state.altitude);
+    Scalar lon_dot = state.velocity * metis::cos(state.gamma) * metis::sin(state.chi) / 
+                     ((R + state.altitude) * metis::cos(state.latitude));
     
     return {v_dot, gamma_dot, chi_dot, lat_dot, lon_dot, bank_dot};
 }
@@ -204,7 +204,7 @@ SeparationDerivatives<Scalar> separation_dynamics(
     
     // 2. Separation spring force
     Vec3<Scalar> rel_pos = state.body2.position - state.body1.position;
-    Scalar dist = janus::norm(rel_pos);
+    Scalar dist = metis::norm(rel_pos);
     Vec3<Scalar> F_spring = controls.spring_force * rel_pos / dist;
     
     // 3. Retro rockets on first stage
@@ -277,14 +277,14 @@ TransferCost<Scalar> compute_lunar_transfer_cost(
         params.r_leo_vec, r_moon, tof);
     
     // 4. Delta-V at departure
-    Scalar dv1 = janus::norm(v1 - params.v_leo_vec);
+    Scalar dv1 = metis::norm(v1 - params.v_leo_vec);
     
     // 5. Moon-relative arrival velocity
     auto v_moon = vulcan::ephemeris::analytical::moon_velocity_eci(arrival_jd);
     auto v_rel = v2 - v_moon;
     
     // 6. LOI burn (circularize at Moon)
-    Scalar v_inf = janus::norm(v_rel);
+    Scalar v_inf = metis::norm(v_rel);
     Scalar dv2 = vulcan::orbital::hyperbolic_to_circular(
         v_inf, params.r_lunar_orbit, vulcan::constants::moon::mu);
     
@@ -390,7 +390,7 @@ examples/
 - [ ] Templated `ascent_dynamics()` function
 - [ ] Numeric forward integration with RK4
 - [ ] Parameter sweep for gravity turn angle
-- [ ] `janus::Opti` for gravity turn timing optimization
+- [ ] `metis::Opti` for gravity turn timing optimization
 - [ ] Graph export for drag, thrust, and acceleration chains
 
 ### Demo 2: Hypersonic Reentry (`hypersonic_reentry.cpp`)

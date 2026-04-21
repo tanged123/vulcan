@@ -1,6 +1,6 @@
 // Tests for Exponential Atmosphere Model
 #include <gtest/gtest.h>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/atmosphere/ExponentialAtmosphere.hpp>
 
 #include <cmath>
@@ -154,12 +154,12 @@ TEST(ExponentialAtmosphere, AltitudeFromPressureRoundTrip) {
 // ============================================
 
 TEST(ExponentialAtmosphere, SymbolicDensity) {
-    auto alt = janus::sym("altitude");
+    auto alt = metis::sym("altitude");
     auto rho = vulcan::exponential_atmosphere::density(alt);
 
     EXPECT_FALSE(rho.is_constant());
 
-    janus::Function f("rho_exp", {alt}, {rho});
+    metis::Function f("rho_exp", {alt}, {rho});
     auto result = f({10000.0});
 
     double expected =
@@ -170,12 +170,12 @@ TEST(ExponentialAtmosphere, SymbolicDensity) {
 }
 
 TEST(ExponentialAtmosphere, SymbolicPressure) {
-    auto alt = janus::sym("altitude");
+    auto alt = metis::sym("altitude");
     auto P = vulcan::exponential_atmosphere::pressure(alt);
 
     EXPECT_FALSE(P.is_constant());
 
-    janus::Function f("P_exp", {alt}, {P});
+    metis::Function f("P_exp", {alt}, {P});
     auto result = f({5000.0});
 
     double expected =
@@ -186,12 +186,12 @@ TEST(ExponentialAtmosphere, SymbolicPressure) {
 }
 
 TEST(ExponentialAtmosphere, SymbolicGradient) {
-    auto alt = janus::sym("altitude");
+    auto alt = metis::sym("altitude");
     auto rho = vulcan::exponential_atmosphere::density(alt);
 
-    auto drho_dalt = janus::jacobian(rho, alt);
+    auto drho_dalt = metis::jacobian(rho, alt);
 
-    janus::Function f("drho_dalt_exp", {alt}, {drho_dalt});
+    metis::Function f("drho_dalt_exp", {alt}, {drho_dalt});
     auto result = f({5000.0});
 
     // Analytical gradient: dρ/dh = -ρ/H
@@ -206,7 +206,7 @@ TEST(ExponentialAtmosphere, SymbolicGradient) {
 }
 
 TEST(ExponentialAtmosphere, SymbolicState) {
-    auto alt = janus::sym("altitude");
+    auto alt = metis::sym("altitude");
     auto state = vulcan::exponential_atmosphere::state(alt);
 
     // Verify all fields are symbolic expressions (not constants after altitude
@@ -215,7 +215,7 @@ TEST(ExponentialAtmosphere, SymbolicState) {
     EXPECT_FALSE(state.density.is_constant());
 
     // Create function with all outputs
-    janus::Function f("state_exp", {alt},
+    metis::Function f("state_exp", {alt},
                       {state.temperature, state.pressure, state.density,
                        state.speed_of_sound});
 
@@ -227,12 +227,12 @@ TEST(ExponentialAtmosphere, SymbolicState) {
 }
 
 TEST(ExponentialAtmosphere, SymbolicAltitudeFromDensity) {
-    auto rho = janus::sym("density");
+    auto rho = metis::sym("density");
     auto alt = vulcan::exponential_atmosphere::altitude_from_density(rho);
 
     EXPECT_FALSE(alt.is_constant());
 
-    janus::Function f("alt_from_rho", {rho}, {alt});
+    metis::Function f("alt_from_rho", {rho}, {alt});
 
     // At sea level density, altitude should be 0
     auto result = f({vulcan::exponential_atmosphere::RHO_0});

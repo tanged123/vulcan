@@ -39,7 +39,7 @@ Scalar psd_longitudinal(const Scalar &omega, double sigma_u, double L_u) {
     Scalar denom = Scalar(1) + L_omega * L_omega;
     // (1 + x)^(5/6) = (1 + x)^(5/6)
     return sigma_u * sigma_u * (2.0 * L_u / M_PI) /
-           janus::pow(denom, 5.0 / 6.0);
+           metis::pow(denom, 5.0 / 6.0);
 }
 
 /**
@@ -60,7 +60,7 @@ Scalar psd_lateral(const Scalar &omega, double sigma, double L) {
     Scalar L_omega_sq = L_omega * L_omega;
     Scalar numer = Scalar(1) + Scalar(8.0 / 3.0) * L_omega_sq;
     Scalar denom = Scalar(1) + L_omega_sq;
-    return sigma * sigma * (L / M_PI) * numer / janus::pow(denom, 11.0 / 6.0);
+    return sigma * sigma * (L / M_PI) * numer / metis::pow(denom, 11.0 / 6.0);
 }
 
 // ============================================================================

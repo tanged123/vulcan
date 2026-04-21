@@ -217,12 +217,12 @@ TEST_F(YamlNodeTest, ToVector) {
 }
 
 // =============================================================================
-// Janus Type Tests
+// Metis Type Tests
 // =============================================================================
 
 TEST_F(YamlNodeTest, Vec3Extraction) {
     auto node = YamlNode::Parse("pos: [1.0, 2.0, 3.0]");
-    auto vec = node.Require<janus::Vec3<double>>("pos");
+    auto vec = node.Require<metis::Vec3<double>>("pos");
 
     EXPECT_DOUBLE_EQ(vec.x(), 1.0);
     EXPECT_DOUBLE_EQ(vec.y(), 2.0);
@@ -231,7 +231,7 @@ TEST_F(YamlNodeTest, Vec3Extraction) {
 
 TEST_F(YamlNodeTest, QuaternionExtraction) {
     auto node = YamlNode::Parse("quat: [1.0, 0.0, 0.0, 0.0]");
-    auto q = node.Require<janus::Quaternion<double>>("quat");
+    auto q = node.Require<metis::Quaternion<double>>("quat");
 
     EXPECT_DOUBLE_EQ(q.w, 1.0);
     EXPECT_DOUBLE_EQ(q.x, 0.0);
@@ -246,7 +246,7 @@ matrix:
   - [0, 1, 0]
   - [0, 0, 1]
 )");
-    auto m = node.Require<janus::Mat3<double>>("matrix");
+    auto m = node.Require<metis::Mat3<double>>("matrix");
 
     // Should be identity matrix
     EXPECT_DOUBLE_EQ(m(0, 0), 1.0);
@@ -257,7 +257,7 @@ matrix:
 
 TEST_F(YamlNodeTest, Mat3FlatFormat) {
     auto node = YamlNode::Parse("matrix: [1, 2, 3, 4, 5, 6, 7, 8, 9]");
-    auto m = node.Require<janus::Mat3<double>>("matrix");
+    auto m = node.Require<metis::Mat3<double>>("matrix");
 
     EXPECT_DOUBLE_EQ(m(0, 0), 1.0);
     EXPECT_DOUBLE_EQ(m(0, 2), 3.0);
@@ -266,7 +266,7 @@ TEST_F(YamlNodeTest, Mat3FlatFormat) {
 
 TEST_F(YamlNodeTest, Vec3WrongSizeThrows) {
     auto node = YamlNode::Parse("bad: [1.0, 2.0]");
-    EXPECT_THROW(node.Require<janus::Vec3<double>>("bad"), YamlError);
+    EXPECT_THROW(node.Require<metis::Vec3<double>>("bad"), YamlError);
 }
 
 // =============================================================================

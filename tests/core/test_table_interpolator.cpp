@@ -2,23 +2,23 @@
 #include <gtest/gtest.h>
 #include <vulcan/core/TableInterpolator.hpp>
 
-#include <janus/core/Function.hpp>
-#include <janus/core/JanusTypes.hpp>
-#include <janus/math/AutoDiff.hpp>
+#include <metis/core/Function.hpp>
+#include <metis/core/MetisTypes.hpp>
+#include <metis/math/AutoDiff.hpp>
 
 // ============================================================================
 // Table1D Numeric Tests
 // ============================================================================
 
 TEST(Table1DTest, LinearInterpolation) {
-    janus::NumericVector x(5), y(5);
+    metis::NumericVector x(5), y(5);
     x << 0.0, 1.0, 2.0, 3.0, 4.0;
     y << 0.0, 1.0, 4.0, 9.0, 16.0; // y = x^2
 
     vulcan::Table1D table(x, y);
 
     EXPECT_TRUE(table.valid());
-    EXPECT_EQ(table.method(), janus::InterpolationMethod::Linear);
+    EXPECT_EQ(table.method(), metis::InterpolationMethod::Linear);
 
     // Exact grid points
     EXPECT_DOUBLE_EQ(table(0.0), 0.0);
@@ -31,7 +31,7 @@ TEST(Table1DTest, LinearInterpolation) {
 }
 
 TEST(Table1DTest, BoundsClamping) {
-    janus::NumericVector x(3), y(3);
+    metis::NumericVector x(3), y(3);
     x << 0.0, 1.0, 2.0;
     y << 10.0, 20.0, 30.0;
 
@@ -43,13 +43,13 @@ TEST(Table1DTest, BoundsClamping) {
 }
 
 TEST(Table1DTest, BatchQuery) {
-    janus::NumericVector x(3), y(3);
+    metis::NumericVector x(3), y(3);
     x << 0.0, 1.0, 2.0;
     y << 0.0, 10.0, 20.0;
 
     vulcan::Table1D table(x, y);
 
-    janus::NumericVector queries(4);
+    metis::NumericVector queries(4);
     queries << 0.0, 0.5, 1.0, 1.5;
 
     auto results = table(queries);
@@ -62,14 +62,14 @@ TEST(Table1DTest, BatchQuery) {
 }
 
 TEST(Table1DTest, BSplineInterpolation) {
-    janus::NumericVector x(5), y(5);
+    metis::NumericVector x(5), y(5);
     x << 0.0, 1.0, 2.0, 3.0, 4.0;
     y << 0.0, 1.0, 4.0, 9.0, 16.0;
 
-    vulcan::Table1D table(x, y, janus::InterpolationMethod::BSpline);
+    vulcan::Table1D table(x, y, metis::InterpolationMethod::BSpline);
 
     EXPECT_TRUE(table.valid());
-    EXPECT_EQ(table.method(), janus::InterpolationMethod::BSpline);
+    EXPECT_EQ(table.method(), metis::InterpolationMethod::BSpline);
 
     // BSpline is smoother but may not pass exactly through points
     EXPECT_NEAR(table(2.0), 4.0, 0.5); // Allow some deviation
@@ -80,43 +80,43 @@ TEST(Table1DTest, BSplineInterpolation) {
 // ============================================================================
 
 TEST(Table1DTest, SymbolicEvaluation) {
-    janus::NumericVector x(3), y(3);
+    metis::NumericVector x(3), y(3);
     x << 0.0, 5.0, 10.0;
     y << 288.0, 256.0, 223.0; // Temperature lookup
 
     vulcan::Table1D table(x, y);
 
     // Create symbolic variable
-    janus::SymbolicScalar alt = janus::SymbolicScalar::sym("alt");
+    metis::SymbolicScalar alt = metis::SymbolicScalar::sym("alt");
 
     // Evaluate symbolically
-    janus::SymbolicScalar temp = table(alt);
+    metis::SymbolicScalar temp = table(alt);
 
     // Create function for numeric evaluation
-    janus::Function f("temp_lookup", {alt}, {temp});
+    metis::Function f("temp_lookup", {alt}, {temp});
 
     // Test at grid points - f.eval() returns first output as matrix
-    janus::NumericMatrix result = f.eval(2.5);
+    metis::NumericMatrix result = f.eval(2.5);
     EXPECT_NEAR(result(0, 0), 272.0, 1e-6); // Midpoint between 288 and 256
 }
 
 TEST(Table1DTest, SymbolicDerivative) {
-    janus::NumericVector x(3), y(3);
+    metis::NumericVector x(3), y(3);
     x << 0.0, 1.0, 2.0;
     y << 0.0, 10.0, 20.0; // Linear: dy/dx = 10
 
     vulcan::Table1D table(x, y);
 
-    janus::SymbolicScalar query = janus::SymbolicScalar::sym("x");
-    janus::SymbolicScalar result = table(query);
+    metis::SymbolicScalar query = metis::SymbolicScalar::sym("x");
+    metis::SymbolicScalar result = table(query);
 
     // Compute Jacobian using scalar API
-    janus::SymbolicScalar jac = janus::jacobian(result, query);
+    metis::SymbolicScalar jac = metis::jacobian(result, query);
 
-    janus::Function deriv("derivative", {query}, {jac});
+    metis::Function deriv("derivative", {query}, {jac});
 
     // Derivative should be constant = 10 for linear interp
-    janus::NumericMatrix grad = deriv.eval(0.5);
+    metis::NumericMatrix grad = deriv.eval(0.5);
     EXPECT_NEAR(grad(0, 0), 10.0, 1e-6);
 }
 
@@ -126,12 +126,12 @@ TEST(Table1DTest, SymbolicDerivative) {
 
 TEST(TableNDTest, TwoDimensional) {
     // 2D grid: x = [0, 1], y = [0, 1]
-    janus::NumericVector x_pts(2), y_pts(2);
+    metis::NumericVector x_pts(2), y_pts(2);
     x_pts << 0.0, 1.0;
     y_pts << 0.0, 1.0;
 
     // z = x + y (Fortran order: z00, z10, z01, z11)
-    janus::NumericVector values(4);
+    metis::NumericVector values(4);
     values << 0.0, 1.0, 1.0, 2.0; // z(0,0), z(1,0), z(0,1), z(1,1)
 
     vulcan::TableND table({x_pts, y_pts}, values);
@@ -140,7 +140,7 @@ TEST(TableNDTest, TwoDimensional) {
     EXPECT_EQ(table.dims(), 2);
 
     // Query at corners
-    janus::NumericVector q1(2), q2(2), q3(2);
+    metis::NumericVector q1(2), q2(2), q3(2);
     q1 << 0.0, 0.0;
     q2 << 1.0, 1.0;
     q3 << 0.5, 0.5;
@@ -152,13 +152,13 @@ TEST(TableNDTest, TwoDimensional) {
 
 TEST(TableNDTest, ThreeDimensional) {
     // 3D grid: 2x2x2
-    janus::NumericVector x(2), y(2), z(2);
+    metis::NumericVector x(2), y(2), z(2);
     x << 0.0, 1.0;
     y << 0.0, 1.0;
     z << 0.0, 1.0;
 
     // v = x + y + z (8 values in Fortran order)
-    janus::NumericVector values(8);
+    metis::NumericVector values(8);
     values << 0.0, 1.0, 1.0, 2.0, 1.0, 2.0, 2.0, 3.0;
 
     vulcan::TableND table({x, y, z}, values);
@@ -166,7 +166,7 @@ TEST(TableNDTest, ThreeDimensional) {
     EXPECT_TRUE(table.valid());
     EXPECT_EQ(table.dims(), 3);
 
-    janus::NumericVector query(3);
+    metis::NumericVector query(3);
     query << 1.0, 1.0, 1.0;
     EXPECT_NEAR(table(query), 3.0, 1e-10);
 
@@ -175,28 +175,28 @@ TEST(TableNDTest, ThreeDimensional) {
 }
 
 TEST(TableNDTest, SymbolicEvaluationND) {
-    janus::NumericVector x_pts(2), y_pts(2);
+    metis::NumericVector x_pts(2), y_pts(2);
     x_pts << 0.0, 10.0;
     y_pts << 0.0, 10.0;
 
-    janus::NumericVector values(4);
+    metis::NumericVector values(4);
     values << 0.0, 10.0, 10.0, 20.0; // z = x + y
 
     vulcan::TableND table({x_pts, y_pts}, values);
 
     // Symbolic query
-    janus::SymbolicScalar sx = janus::SymbolicScalar::sym("x");
-    janus::SymbolicScalar sy = janus::SymbolicScalar::sym("y");
-    janus::SymbolicVector query(2);
+    metis::SymbolicScalar sx = metis::SymbolicScalar::sym("x");
+    metis::SymbolicScalar sy = metis::SymbolicScalar::sym("y");
+    metis::SymbolicVector query(2);
     query << sx, sy;
 
-    janus::SymbolicScalar result = table(query);
+    metis::SymbolicScalar result = table(query);
 
     // Create function
-    janus::Function f("interp2d", {sx, sy}, {result});
+    metis::Function f("interp2d", {sx, sy}, {result});
 
     // Evaluate at (5.0, 5.0)
-    janus::NumericMatrix output = f.eval(5.0, 5.0);
+    metis::NumericMatrix output = f.eval(5.0, 5.0);
 
     EXPECT_NEAR(output(0, 0), 10.0, 1e-6);
 }
@@ -207,8 +207,8 @@ TEST(TableNDTest, SymbolicEvaluationND) {
 
 TEST(ScatteredTable1DTest, BasicInterpolation) {
     // Scattered data from y = x^2
-    janus::NumericVector x(10);
-    janus::NumericVector y(10);
+    metis::NumericVector x(10);
+    metis::NumericVector y(10);
 
     // Non-uniform spacing
     x << 0.0, 0.3, 0.7, 1.2, 1.8, 2.5, 3.1, 3.6, 4.2, 5.0;
@@ -228,7 +228,7 @@ TEST(ScatteredTable1DTest, BasicInterpolation) {
 
 TEST(ScatteredTable1DTest, LinearData) {
     // Perfect linear data - should interpolate well
-    janus::NumericVector x(5), y(5);
+    metis::NumericVector x(5), y(5);
     x << 0.0, 1.0, 2.0, 3.0, 4.0;
     y << 0.0, 2.0, 4.0, 6.0, 8.0; // y = 2x
 
@@ -239,7 +239,7 @@ TEST(ScatteredTable1DTest, LinearData) {
 }
 
 TEST(ScatteredTable1DTest, ReconstructionError) {
-    janus::NumericVector x(20), y(20);
+    metis::NumericVector x(20), y(20);
 
     for (int i = 0; i < 20; ++i) {
         x(i) = static_cast<double>(i) * 0.5;
@@ -253,7 +253,7 @@ TEST(ScatteredTable1DTest, ReconstructionError) {
 }
 
 TEST(ScatteredTable1DTest, DifferentKernels) {
-    janus::NumericVector x(10), y(10);
+    metis::NumericVector x(10), y(10);
     for (int i = 0; i < 10; ++i) {
         x(i) = static_cast<double>(i);
         y(i) = std::sin(x(i));
@@ -278,7 +278,7 @@ TEST(ScatteredTable1DTest, DifferentKernels) {
 // ============================================================================
 
 TEST(ScatteredTable1DTest, SymbolicEvaluation) {
-    janus::NumericVector x(10), y(10);
+    metis::NumericVector x(10), y(10);
     for (int i = 0; i < 10; ++i) {
         x(i) = static_cast<double>(i);
         y(i) = x(i) * x(i);
@@ -287,18 +287,18 @@ TEST(ScatteredTable1DTest, SymbolicEvaluation) {
     vulcan::ScatteredTable1D table(x, y, 50);
 
     // Symbolic query
-    janus::SymbolicScalar sym_x = janus::SymbolicScalar::sym("x");
-    janus::SymbolicScalar result = table(sym_x);
+    metis::SymbolicScalar sym_x = metis::SymbolicScalar::sym("x");
+    metis::SymbolicScalar result = table(sym_x);
 
-    janus::Function f("test", {sym_x}, {result});
+    metis::Function f("test", {sym_x}, {result});
 
     // Evaluate at x=3
-    janus::NumericMatrix output = f.eval(3.0);
+    metis::NumericMatrix output = f.eval(3.0);
     EXPECT_NEAR(output(0, 0), 9.0, 0.5); // Should be close to 3² = 9
 }
 
 TEST(ScatteredTable1DTest, SymbolicGradient) {
-    janus::NumericVector x(10), y(10);
+    metis::NumericVector x(10), y(10);
     for (int i = 0; i < 10; ++i) {
         x(i) = static_cast<double>(i);
         y(i) = x(i) * x(i); // y = x²
@@ -306,15 +306,15 @@ TEST(ScatteredTable1DTest, SymbolicGradient) {
 
     vulcan::ScatteredTable1D table(x, y, 100);
 
-    janus::SymbolicScalar sym_x = janus::SymbolicScalar::sym("x");
-    janus::SymbolicScalar result = table(sym_x);
+    metis::SymbolicScalar sym_x = metis::SymbolicScalar::sym("x");
+    metis::SymbolicScalar result = table(sym_x);
 
     // Jacobian scalar API
-    janus::SymbolicScalar jac = janus::jacobian(result, sym_x);
-    janus::Function df("derivative", {sym_x}, {jac});
+    metis::SymbolicScalar jac = metis::jacobian(result, sym_x);
+    metis::Function df("derivative", {sym_x}, {jac});
 
     // For y=x², dy/dx = 2x, so at x=3, gradient ≈ 6
-    janus::NumericMatrix grad = df.eval(3.0);
+    metis::NumericMatrix grad = df.eval(3.0);
     EXPECT_NEAR(grad(0, 0), 6.0, 1.0);
 }
 
@@ -325,8 +325,8 @@ TEST(ScatteredTable1DTest, SymbolicGradient) {
 TEST(ScatteredTableNDTest, Basic2D) {
     // 2D scattered data: z = x + y
     int n = 25;
-    janus::NumericMatrix points(n, 2);
-    janus::NumericVector values(n);
+    metis::NumericMatrix points(n, 2);
+    metis::NumericVector values(n);
 
     int idx = 0;
     for (int i = 0; i < 5; ++i) {
@@ -346,15 +346,15 @@ TEST(ScatteredTableNDTest, Basic2D) {
     EXPECT_EQ(table.dims(), 2);
 
     // Test at midpoint
-    janus::NumericVector query(2);
+    metis::NumericVector query(2);
     query << 2.5, 2.5;
     EXPECT_NEAR(table(query), 5.0, 1.0); // Some RBF approximation error
 }
 
 TEST(ScatteredTableNDTest, ReconstructionError) {
     int n = 16;
-    janus::NumericMatrix points(n, 2);
-    janus::NumericVector values(n);
+    metis::NumericMatrix points(n, 2);
+    metis::NumericVector values(n);
 
     for (int i = 0; i < 4; ++i) {
         for (int j = 0; j < 4; ++j) {
@@ -377,8 +377,8 @@ TEST(ScatteredTableNDTest, ReconstructionError) {
 
 TEST(ScatteredTableNDTest, SymbolicEvaluation2D) {
     int n = 25;
-    janus::NumericMatrix points(n, 2);
-    janus::NumericVector values(n);
+    metis::NumericMatrix points(n, 2);
+    metis::NumericVector values(n);
 
     int idx = 0;
     for (int i = 0; i < 5; ++i) {
@@ -393,15 +393,15 @@ TEST(ScatteredTableNDTest, SymbolicEvaluation2D) {
     vulcan::ScatteredTableND table(points, values, 30);
 
     // Symbolic 2D query
-    janus::SymbolicScalar sx = janus::SymbolicScalar::sym("x");
-    janus::SymbolicScalar sy = janus::SymbolicScalar::sym("y");
-    janus::SymbolicVector query(2);
+    metis::SymbolicScalar sx = metis::SymbolicScalar::sym("x");
+    metis::SymbolicScalar sy = metis::SymbolicScalar::sym("y");
+    metis::SymbolicVector query(2);
     query << sx, sy;
 
-    janus::SymbolicScalar result = table(query);
-    janus::Function f("interp2d", {sx, sy}, {result});
+    metis::SymbolicScalar result = table(query);
+    metis::Function f("interp2d", {sx, sy}, {result});
 
     // Evaluate at (2, 3)
-    janus::NumericMatrix output = f.eval(2.0, 3.0);
+    metis::NumericMatrix output = f.eval(2.0, 3.0);
     EXPECT_NEAR(output(0, 0), 5.0, 1.0); // 2 + 3 = 5 (RBF tolerance)
 }

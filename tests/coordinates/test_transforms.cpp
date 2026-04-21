@@ -7,7 +7,7 @@
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/core/Units.hpp>
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 // ============================================
 // Body Frame Tests
@@ -429,13 +429,13 @@ TEST(LocalFrames, NED_At_Position) {
 // Symbolic Tests
 // ============================================
 TEST(BodyFrames, Symbolic_Euler) {
-    using Scalar = janus::SymbolicScalar;
+    using Scalar = metis::SymbolicScalar;
 
-    Scalar lon = janus::sym("lon");
-    Scalar lat = janus::sym("lat");
-    Scalar yaw = janus::sym("yaw");
-    Scalar pitch = janus::sym("pitch");
-    Scalar roll = janus::sym("roll");
+    Scalar lon = metis::sym("lon");
+    Scalar lat = metis::sym("lat");
+    Scalar yaw = metis::sym("yaw");
+    Scalar pitch = metis::sym("pitch");
+    Scalar roll = metis::sym("roll");
 
     auto ned = vulcan::CoordinateFrame<Scalar>::ned(lon, lat);
     auto body = vulcan::body_from_euler(ned, yaw, pitch, roll);
@@ -444,7 +444,7 @@ TEST(BodyFrames, Symbolic_Euler) {
     EXPECT_FALSE(body.x_axis(0).is_constant());
 
     // Create function and evaluate
-    janus::Function f("body_euler", {lon, lat, yaw, pitch, roll},
+    metis::Function f("body_euler", {lon, lat, yaw, pitch, roll},
                       {body.x_axis(0), body.x_axis(1), body.x_axis(2)});
 
     // Test values
@@ -467,11 +467,11 @@ TEST(BodyFrames, Symbolic_Euler) {
 }
 
 TEST(Transforms, Symbolic_Coriolis) {
-    using Scalar = janus::SymbolicScalar;
+    using Scalar = metis::SymbolicScalar;
 
-    Scalar vx = janus::sym("vx");
-    Scalar vy = janus::sym("vy");
-    Scalar vz = janus::sym("vz");
+    Scalar vx = metis::sym("vx");
+    Scalar vy = metis::sym("vy");
+    Scalar vz = metis::sym("vz");
 
     vulcan::Vec3<Scalar> v_ecef;
     v_ecef << vx, vy, vz;
@@ -482,7 +482,7 @@ TEST(Transforms, Symbolic_Coriolis) {
     EXPECT_FALSE(a_coriolis(0).is_constant());
 
     // Create function
-    janus::Function f("coriolis", {vx, vy, vz},
+    metis::Function f("coriolis", {vx, vy, vz},
                       {a_coriolis(0), a_coriolis(1), a_coriolis(2)});
 
     // Test
@@ -498,11 +498,11 @@ TEST(Transforms, Symbolic_Coriolis) {
 }
 
 TEST(FlightPathAngles, Symbolic) {
-    using Scalar = janus::SymbolicScalar;
+    using Scalar = metis::SymbolicScalar;
 
-    Scalar vn = janus::sym("vn");
-    Scalar ve = janus::sym("ve");
-    Scalar vd = janus::sym("vd");
+    Scalar vn = metis::sym("vn");
+    Scalar ve = metis::sym("ve");
+    Scalar vd = metis::sym("vd");
 
     vulcan::Vec3<Scalar> v_ned;
     v_ned << vn, ve, vd;
@@ -510,7 +510,7 @@ TEST(FlightPathAngles, Symbolic) {
     auto angles = vulcan::flight_path_angles(v_ned);
 
     // Create function
-    janus::Function f("fpa", {vn, ve, vd}, {angles(0), angles(1)});
+    metis::Function f("fpa", {vn, ve, vd}, {angles(0), angles(1)});
 
     // Test
     double test_vn = 100.0;
@@ -590,7 +590,7 @@ TEST(Quaternion, BodyQuaternionRoundtrip) {
 
     // 45 deg yaw rotation as quaternion
     double yaw = 0.785398; // pi/4
-    auto q_in = janus::Quaternion<double>::from_euler(0.0, 0.0, yaw);
+    auto q_in = metis::Quaternion<double>::from_euler(0.0, 0.0, yaw);
 
     auto body = vulcan::body_from_quaternion(ned, q_in);
     auto q_out = vulcan::quaternion_from_body(body, ned);
@@ -613,7 +613,7 @@ TEST(Quaternion, QuaternionEulerConsistency) {
     auto body_euler = vulcan::body_from_euler(ned, yaw, pitch, roll);
 
     // Using quaternion interface
-    auto q = janus::Quaternion<double>::from_euler(roll, pitch, yaw);
+    auto q = metis::Quaternion<double>::from_euler(roll, pitch, yaw);
     auto body_quat = vulcan::body_from_quaternion(ned, q);
 
     // Both should give same frame
@@ -629,8 +629,8 @@ TEST(Quaternion, QuaternionEulerConsistency) {
 TEST(Quaternion, ComposeRotations) {
     // Two 90-degree rotations about Z should give 180-degree rotation
     double angle = vulcan::constants::angle::pi / 2.0;
-    auto q1 = janus::Quaternion<double>::from_euler(0.0, 0.0, angle);
-    auto q2 = janus::Quaternion<double>::from_euler(0.0, 0.0, angle);
+    auto q1 = metis::Quaternion<double>::from_euler(0.0, 0.0, angle);
+    auto q2 = metis::Quaternion<double>::from_euler(0.0, 0.0, angle);
 
     auto q_composed = vulcan::compose_rotations(q1, q2);
     auto euler = q_composed.to_euler();
@@ -640,9 +640,9 @@ TEST(Quaternion, ComposeRotations) {
 
 TEST(Quaternion, RelativeRotation) {
     // Relative rotation from identity to 90 deg yaw
-    auto q_identity = janus::Quaternion<double>();
+    auto q_identity = metis::Quaternion<double>();
     double yaw = vulcan::constants::angle::pi / 2.0;
-    auto q_rotated = janus::Quaternion<double>::from_euler(0.0, 0.0, yaw);
+    auto q_rotated = metis::Quaternion<double>::from_euler(0.0, 0.0, yaw);
 
     auto q_rel = vulcan::relative_rotation(q_identity, q_rotated);
 
@@ -654,9 +654,9 @@ TEST(Quaternion, RelativeRotation) {
 
 TEST(Quaternion, Slerp) {
     // Interpolate between identity and 90 deg yaw
-    auto q0 = janus::Quaternion<double>();
+    auto q0 = metis::Quaternion<double>();
     double yaw = vulcan::constants::angle::pi / 2.0;
-    auto q1 = janus::Quaternion<double>::from_euler(0.0, 0.0, yaw);
+    auto q1 = metis::Quaternion<double>::from_euler(0.0, 0.0, yaw);
 
     auto q_half = vulcan::slerp(q0, q1, 0.5);
     auto euler = q_half.to_euler();
@@ -665,17 +665,17 @@ TEST(Quaternion, Slerp) {
 }
 
 TEST(Quaternion, SymbolicQuaternionBody) {
-    using Scalar = janus::SymbolicScalar;
+    using Scalar = metis::SymbolicScalar;
 
-    Scalar lon = janus::sym("lon");
-    Scalar lat = janus::sym("lat");
-    Scalar qw = janus::sym("qw");
-    Scalar qx = janus::sym("qx");
-    Scalar qy = janus::sym("qy");
-    Scalar qz = janus::sym("qz");
+    Scalar lon = metis::sym("lon");
+    Scalar lat = metis::sym("lat");
+    Scalar qw = metis::sym("qw");
+    Scalar qx = metis::sym("qx");
+    Scalar qy = metis::sym("qy");
+    Scalar qz = metis::sym("qz");
 
     auto ned = vulcan::CoordinateFrame<Scalar>::ned(lon, lat);
-    janus::Quaternion<Scalar> q(qw, qx, qy, qz);
+    metis::Quaternion<Scalar> q(qw, qx, qy, qz);
 
     auto body = vulcan::body_from_quaternion(ned, q);
 
@@ -683,7 +683,7 @@ TEST(Quaternion, SymbolicQuaternionBody) {
     EXPECT_FALSE(body.x_axis(0).is_constant());
 
     // Create function and evaluate
-    janus::Function f("body_quat", {lon, lat, qw, qx, qy, qz},
+    metis::Function f("body_quat", {lon, lat, qw, qx, qy, qz},
                       {body.x_axis(0), body.x_axis(1), body.x_axis(2)});
 
     // Test with identity quaternion (1, 0, 0, 0)
