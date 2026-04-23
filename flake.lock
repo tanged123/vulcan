@@ -43,11 +43,11 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1776747012,
-        "narHash": "sha256-SBPExNU8yNygwGStlZDS7OleYiktSGWC4somqLAzZ5w=",
+        "lastModified": 1776915535,
+        "narHash": "sha256-HlUiYXjPpHsvGcxu7B1c4R/oQIp78k/ofgWqq5L5zfk=",
         "owner": "tanged123",
         "repo": "metis",
-        "rev": "2d7e124a42c63143e8c1a9fa956297cb81d39fd1",
+        "rev": "a47c47c3231817b73dc356002c9b841c05d12fee",
         "type": "github"
       },
       "original": {
