@@ -157,15 +157,15 @@ All operations work with `casadi::MX` for trajectory optimization:
 ```cpp
 using MX = casadi::MX;
 
-auto m1 = janus::sym("m1");
-auto x1 = janus::sym("x1");
+auto m1 = metis::sym("m1");
+auto x1 = metis::sym("x1");
 
 auto mp1 = MassProperties<MX>::point_mass(m1, Vec3<MX>{x1, MX(0), MX(0)});
 auto mp2 = MassProperties<MX>::point_mass(m2, Vec3<MX>{x2, MX(0), MX(0)});
 
 auto combined = mp1 + mp2;  // Symbolic aggregation
 
-janus::Function f("aggregate", {m1, m2, x1, x2}, {combined.mass, combined.cg(0)});
+metis::Function f("aggregate", {m1, m2, x1, x2}, {combined.mass, combined.cg(0)});
 ```
 
 ## Validation (Numeric Only)

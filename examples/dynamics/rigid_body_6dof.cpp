@@ -28,7 +28,7 @@ void free_fall_rotation_demo() {
     RigidBodyState<double> state{
         .position = Vec3<double>{0.0, 0.0, 1000.0},    // 1000m up
         .velocity_body = Vec3<double>{50.0, 0.0, 0.0}, // 50 m/s forward
-        .attitude = janus::Quaternion<double>(),       // Identity
+        .attitude = metis::Quaternion<double>(),       // Identity
         .omega_body = Vec3<double>{0.0, 0.0, 1.0}      // 1 rad/s spin
     };
 
@@ -59,7 +59,7 @@ void free_fall_rotation_demo() {
         // Euler step
         state.position += derivs.position_dot * dt;
         state.velocity_body += derivs.velocity_dot * dt;
-        state.attitude = janus::Quaternion<double>(
+        state.attitude = metis::Quaternion<double>(
             state.attitude.w + derivs.attitude_dot.w * dt,
             state.attitude.x + derivs.attitude_dot.x * dt,
             state.attitude.y + derivs.attitude_dot.y * dt,

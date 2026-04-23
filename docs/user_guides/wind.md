@@ -189,19 +189,19 @@ auto gust = von_karman::step(state, coeffs, noise_u, noise_v, noise_w);
 
 ## Symbolic Computation
 
-All wind functions work with `janus::SymbolicScalar` for gradient-based optimization:
+All wind functions work with `metis::SymbolicScalar` for gradient-based optimization:
 
 ```cpp
-using Scalar = janus::SymbolicScalar;
+using Scalar = metis::SymbolicScalar;
 
-Scalar alt = janus::sym("altitude");
+Scalar alt = metis::sym("altitude");
 Scalar wind = wind_shear::power_law(alt, 10.0, 10.0);
 
 // Compute gradient dV/dh symbolically
-auto dv_dh = janus::jacobian(wind, alt);
+auto dv_dh = metis::jacobian(wind, alt);
 
 // Create CasADi function for optimization
-janus::Function f("wind_profile", {alt}, {wind, dv_dh});
+metis::Function f("wind_profile", {alt}, {wind, dv_dh});
 ```
 
 ### Optimization Example
@@ -209,7 +209,7 @@ janus::Function f("wind_profile", {alt}, {wind, dv_dh});
 Optimize aircraft climb profile considering wind shear:
 
 ```cpp
-janus::Opti opti;
+metis::Opti opti;
 
 auto alt1 = opti.variable(500.0);  // First waypoint
 auto alt2 = opti.variable(1000.0); // Second waypoint
@@ -230,10 +230,10 @@ auto solution = opti.solve();
 Export computational graphs as interactive HTML:
 
 ```cpp
-auto alt = janus::sym("altitude");
+auto alt = metis::sym("altitude");
 auto wind = wind_shear::power_law(alt, 10.0, 10.0, wind_shear::exponent::NEUTRAL);
 
-janus::export_graph_html(wind, "graph_wind_profile", "Wind_Profile");
+metis::export_graph_html(wind, "graph_wind_profile", "Wind_Profile");
 ```
 
 > [!TIP]
@@ -293,7 +293,7 @@ janus::export_graph_html(wind, "graph_wind_profile", "Wind_Profile");
 
 See `examples/wind/wind_optimization.cpp` for a complete demonstration including:
 - Wind shear profile survey
-- Fuel cost optimization with `janus::Opti`
+- Fuel cost optimization with `metis::Opti`
 - MIL-spec turbulence parameters
 - Interactive graph export
 

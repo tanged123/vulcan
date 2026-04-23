@@ -9,7 +9,7 @@ TEST(AnalyticalEphemeris, SunPosition_J2000) {
     double jd_j2000 = 2451545.0;
 
     vulcan::Vec3<double> r_sun = sun_position_eci(jd_j2000);
-    double dist = janus::norm(r_sun);
+    double dist = metis::norm(r_sun);
 
     // Sun should be ~1 AU away
     double AU = vulcan::constants::sun::AU;
@@ -35,7 +35,7 @@ TEST(AnalyticalEphemeris, MoonPosition_Distance) {
     double jd = 2451545.0;
 
     vulcan::Vec3<double> r_moon = moon_position_eci(jd);
-    double dist = janus::norm(r_moon);
+    double dist = metis::norm(r_moon);
 
     // Moon should be ~384,000 km away
     double expected = vulcan::constants::moon::mean_distance;
@@ -68,7 +68,7 @@ TEST(AnalyticalEphemeris, SunECEF_Magnitude) {
     vulcan::Vec3<double> r_ecef = sun_position_ecef(jd);
 
     // Distance should be preserved
-    EXPECT_NEAR(janus::norm(r_eci), janus::norm(r_ecef), 1.0);
+    EXPECT_NEAR(metis::norm(r_eci), metis::norm(r_ecef), 1.0);
 }
 
 TEST(AnalyticalEphemeris, MoonECEF_Magnitude) {
@@ -77,7 +77,7 @@ TEST(AnalyticalEphemeris, MoonECEF_Magnitude) {
     vulcan::Vec3<double> r_eci = moon_position_eci(jd);
     vulcan::Vec3<double> r_ecef = moon_position_ecef(jd);
 
-    EXPECT_NEAR(janus::norm(r_eci), janus::norm(r_ecef), 1.0);
+    EXPECT_NEAR(metis::norm(r_eci), metis::norm(r_ecef), 1.0);
 }
 
 // Test right ascension and declination
@@ -94,22 +94,22 @@ TEST(AnalyticalEphemeris, SunRaDec_Range) {
 
 // Test symbolic compatibility
 TEST(AnalyticalEphemeris, Symbolic_SunPosition) {
-    auto jd = janus::sym("jd");
+    auto jd = metis::sym("jd");
 
     auto r_sun = sun_position_eci(jd);
 
-    janus::Function f("sun_pos", {jd}, {r_sun(0), r_sun(1), r_sun(2)});
+    metis::Function f("sun_pos", {jd}, {r_sun(0), r_sun(1), r_sun(2)});
     auto result = f({2451545.0});
 
     EXPECT_NE(result[0](0, 0), 0.0);
 }
 
 TEST(AnalyticalEphemeris, Symbolic_MoonPosition) {
-    auto jd = janus::sym("jd");
+    auto jd = metis::sym("jd");
 
     auto r_moon = moon_position_eci(jd);
 
-    janus::Function f("moon_pos", {jd}, {r_moon(0), r_moon(1), r_moon(2)});
+    metis::Function f("moon_pos", {jd}, {r_moon(0), r_moon(1), r_moon(2)});
     auto result = f({2451545.0});
 
     EXPECT_NE(result[0](0, 0), 0.0);
@@ -120,7 +120,7 @@ TEST(AnalyticalEphemeris, SunUnitVector_Normalized) {
     double jd = 2451545.0;
 
     vulcan::Vec3<double> u = sun_unit_vector_eci(jd);
-    double mag = janus::norm(u);
+    double mag = metis::norm(u);
 
     EXPECT_NEAR(mag, 1.0, 1e-10);
 }
@@ -132,7 +132,7 @@ TEST(AnalyticalEphemeris, SunUnitVectorConsistency) {
     vulcan::Vec3<double> r = sun_position_eci(jd);
     vulcan::Vec3<double> u = sun_unit_vector_eci(jd);
 
-    vulcan::Vec3<double> u_from_r = r / janus::norm(r);
+    vulcan::Vec3<double> u_from_r = r / metis::norm(r);
 
     EXPECT_NEAR((u - u_from_r).norm(), 0.0, 1e-10);
 }

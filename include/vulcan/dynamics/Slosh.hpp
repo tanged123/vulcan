@@ -4,7 +4,7 @@
 
 #include <vulcan/core/VulcanTypes.hpp>
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 namespace vulcan::dynamics {
 
@@ -36,9 +36,9 @@ Scalar pendulum_slosh_acceleration(const Scalar &theta, const Scalar &theta_dot,
                                    const Scalar &length, const Scalar &zeta,
                                    const Scalar &accel_transverse,
                                    const Scalar &gravity) {
-    Scalar omega_n = janus::sqrt(gravity / length);
-    Scalar sin_theta = janus::sin(theta);
-    Scalar cos_theta = janus::cos(theta);
+    Scalar omega_n = metis::sqrt(gravity / length);
+    Scalar sin_theta = metis::sin(theta);
+    Scalar cos_theta = metis::cos(theta);
 
     // θ̈ = -(g/L)*sin(θ) - 2ζω_n*θ̇ + (a_t/L)*cos(θ)
     return -omega_n * omega_n * sin_theta -
@@ -54,8 +54,8 @@ Scalar pendulum_slosh_acceleration(const Scalar &theta, const Scalar &theta_dot,
 template <typename Scalar>
 Scalar slosh_transverse_accel(const Vec3<Scalar> &accel_body,
                               const Scalar &theta) {
-    Scalar cos_theta = janus::cos(theta);
-    Scalar sin_theta = janus::sin(theta);
+    Scalar cos_theta = metis::cos(theta);
+    Scalar sin_theta = metis::sin(theta);
     // a_t = a_x * cos(θ) - a_z * sin(θ) for pendulum in X-Z plane
     return accel_body(0) * cos_theta - accel_body(2) * sin_theta;
 }
@@ -68,8 +68,8 @@ Scalar slosh_transverse_accel(const Vec3<Scalar> &accel_body,
 template <typename Scalar>
 Vec3<Scalar> pendulum_slosh_position(const Scalar &theta,
                                      const Scalar &length) {
-    return Vec3<Scalar>{length * janus::sin(theta), Scalar(0),
-                        length * janus::cos(theta)};
+    return Vec3<Scalar>{length * metis::sin(theta), Scalar(0),
+                        length * metis::cos(theta)};
 }
 
 /// Compute pendulum slosh reaction force on vehicle
@@ -84,8 +84,8 @@ template <typename Scalar>
 Vec3<Scalar> pendulum_slosh_force(const Scalar &theta, const Scalar &theta_dot,
                                   const Scalar &theta_ddot,
                                   const Scalar &length, const Scalar &m_slosh) {
-    Scalar sin_theta = janus::sin(theta);
-    Scalar cos_theta = janus::cos(theta);
+    Scalar sin_theta = metis::sin(theta);
+    Scalar cos_theta = metis::cos(theta);
     Scalar theta_dot_sq = theta_dot * theta_dot;
 
     // Slosh mass acceleration (relative to vehicle)
@@ -185,10 +185,10 @@ Scalar slosh_frequency_cylindrical(const Scalar &tank_radius,
     // ω_s² ≈ 1.84 * g / R for deep fill (h/R > 1)
     Scalar depth_ratio = fill_level * Scalar(2);
     Scalar freq_factor =
-        janus::where(depth_ratio > Scalar(1), Scalar(1.84),
-                     Scalar(1.84) * janus::tanh(Scalar(1.84) * depth_ratio));
+        metis::where(depth_ratio > Scalar(1), Scalar(1.84),
+                     Scalar(1.84) * metis::tanh(Scalar(1.84) * depth_ratio));
 
-    return janus::sqrt(freq_factor * gravity / tank_radius);
+    return metis::sqrt(freq_factor * gravity / tank_radius);
 }
 
 /// Estimate slosh frequency for spherical tank
@@ -204,7 +204,7 @@ Scalar slosh_frequency_spherical(const Scalar &tank_radius,
     // ω_s² ≈ 1.56 * g / R at 50% fill
     Scalar fill_factor = Scalar(4) * fill_level * (Scalar(1) - fill_level);
     Scalar omega_sq = Scalar(1.56) * gravity / tank_radius * fill_factor;
-    return janus::sqrt(omega_sq + Scalar(1e-6)); // Avoid zero at empty/full
+    return metis::sqrt(omega_sq + Scalar(1e-6)); // Avoid zero at empty/full
 }
 
 /// Compute equivalent pendulum length from slosh frequency
@@ -224,7 +224,7 @@ Scalar slosh_pendulum_length(const Scalar &omega_slosh, const Scalar &gravity) {
 template <typename Scalar>
 Scalar slosh_mass_fraction_cylindrical(const Scalar &fill_level) {
     Scalar depth_ratio = fill_level * Scalar(2);
-    return janus::where(depth_ratio > Scalar(1), Scalar(0.70),
+    return metis::where(depth_ratio > Scalar(1), Scalar(0.70),
                         Scalar(0.35) + Scalar(0.35) * depth_ratio);
 }
 

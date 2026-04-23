@@ -1,6 +1,6 @@
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 namespace vulcan::propulsion::rocket {
 
@@ -64,7 +64,7 @@ Scalar specific_impulse(const Scalar &thrust, const Scalar &mdot,
  */
 template <typename Scalar>
 Scalar delta_v(const Scalar &Ve, const Scalar &m0, const Scalar &mf) {
-    return Ve * janus::log(m0 / mf);
+    return Ve * metis::log(m0 / mf);
 }
 
 /**
@@ -81,7 +81,7 @@ Scalar delta_v(const Scalar &Ve, const Scalar &m0, const Scalar &mf) {
 template <typename Scalar>
 Scalar propellant_mass(const Scalar &delta_v, const Scalar &m0,
                        const Scalar &Ve) {
-    return m0 * (1.0 - janus::exp(-delta_v / Ve));
+    return m0 * (1.0 - metis::exp(-delta_v / Ve));
 }
 
 /**

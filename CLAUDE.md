@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Vulcan is an aerospace engineering utilities library built on the Janus framework. It provides model-agnostic simulation utilities (coordinate systems, atmospheric models, rotations, time systems) that work in both **numeric** (`double`) and **symbolic** (`casadi::MX`) computational modes.
+Vulcan is an aerospace engineering utilities library built on the Metis framework. It provides model-agnostic simulation utilities (coordinate systems, atmospheric models, rotations, time systems) that work in both **numeric** (`double`) and **symbolic** (`casadi::MX`) computational modes.
 
 ## Build Commands
 
@@ -34,7 +34,7 @@ nix develop                 # Enter dev environment manually
 ctest --test-dir build -R "TestName"
 ```
 
-## Critical Janus Compatibility Rules
+## Critical Metis Compatibility Rules
 
 **These rules are INVIOLABLE. Breaking them will cause symbolic mode to fail.**
 
@@ -49,28 +49,28 @@ Scalar my_function(const Scalar& x);
 double my_function(double x);
 ```
 
-### 2. Math Dispatch - Use `janus::` Namespace
-ALWAYS use `janus::` math functions instead of `std::`:
+### 2. Math Dispatch - Use `metis::` Namespace
+ALWAYS use `metis::` math functions instead of `std::`:
 ```cpp
 // CORRECT
-janus::sin(x), janus::pow(x, 2), janus::sqrt(x), janus::exp(x)
+metis::sin(x), metis::pow(x, 2), metis::sqrt(x), metis::exp(x)
 
 // WRONG - breaks symbolic tracing
 std::sin(x), std::pow(x, 2)
 ```
 
-### 3. Branching - Use `janus::where()`, NEVER `if/else`
+### 3. Branching - Use `metis::where()`, NEVER `if/else`
 ```cpp
 // CORRECT
-Scalar result = janus::where(x > 0, x, -x);
+Scalar result = metis::where(x > 0, x, -x);
 
 // WRONG - MX cannot evaluate to bool
 if (x > 0) { result = x; } else { result = -x; }
 ```
 
-For multi-way branching, use `janus::select()`:
+For multi-way branching, use `metis::select()`:
 ```cpp
-Scalar cd = janus::select(
+Scalar cd = metis::select(
     {mach < 0.3, mach < 0.8, mach < 1.2},
     {Scalar(0.02), Scalar(0.025), Scalar(0.05)},
     Scalar(0.03));  // default
@@ -88,12 +88,12 @@ while (error > tolerance) { ... }
 
 ## Type Aliases
 
-Use Janus native types from `<janus/core/JanusTypes.hpp>`:
+Use Metis native types from `<metis/core/MetisTypes.hpp>`:
 ```cpp
-janus::Vec3<Scalar>   // 3D vector
-janus::Mat3<Scalar>   // 3x3 matrix
-janus::VecX<Scalar>   // Dynamic vector
-janus::MatX<Scalar>   // Dynamic matrix
+metis::Vec3<Scalar>   // 3D vector
+metis::Mat3<Scalar>   // 3x3 matrix
+metis::VecX<Scalar>   // Dynamic vector
+metis::MatX<Scalar>   // Dynamic matrix
 ```
 
 ## Architecture
@@ -118,28 +118,28 @@ TEST(MyModule, NumericTest) {
 }
 
 TEST(MyModule, SymbolicTest) {
-    auto x = janus::sym("x");
+    auto x = metis::sym("x");
     auto result = my_function(x);
     // Verify symbolic expression works
-    double evaluated = janus::eval(result, {{"x", 1.0}});
+    double evaluated = metis::eval(result, {{"x", 1.0}});
     EXPECT_NEAR(evaluated, expected, tolerance);
 }
 ```
 
 ## Documentation
 
-- **`docs/patterns/janus_usage_guide.md`**: Comprehensive Janus API reference
+- **`docs/patterns/metis_usage_guide.md`**: Comprehensive Metis API reference
 - **`docs/implementation_plans/vulcan_bootstrap_guide.md`**: Vulcan Bootstrap Guide
 - **`docs/user_guides/`**: Walkthroughs for each module
 - **`docs/implementation_plans/`**: Phase-based implementation plans
 - **`docs/saved_work/`**: Context preservation for agent handover
 
-## Key Janus APIs Available (Do Not Reimplement)
+## Key Metis APIs Available (Do Not Reimplement)
 
 - Math: `sin`, `cos`, `pow`, `exp`, `log`, `sqrt`, `abs`, `atan2`
 - Linear algebra: `dot`, `cross`, `norm`, `normalize`, `inv`, `det`, `trace`
-- Quaternions: `janus::Quaternion<Scalar>` with full algebra
+- Quaternions: `metis::Quaternion<Scalar>` with full algebra
 - Branching: `where`, `select`, `clamp`, `min`, `max`
 - Calculus: `jacobian`, `gradient`, `hessian`
 - Interpolation: `interp1`, `interp_nd`
-- Optimization: `janus::Opti` for NLP problems
+- Optimization: `metis::Opti` for NLP problems

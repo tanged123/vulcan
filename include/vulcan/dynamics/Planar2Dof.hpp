@@ -4,7 +4,7 @@
 
 #include <vulcan/core/VulcanTypes.hpp>
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 namespace vulcan::dynamics {
 
@@ -80,9 +80,9 @@ Scalar
 spherical_pendulum_theta_ddot(const Scalar &theta, const Scalar &theta_dot,
                               const Scalar &phi_dot, const Scalar &length,
                               const Scalar &gravity, const Scalar &zeta) {
-    Scalar sin_theta = janus::sin(theta);
-    Scalar cos_theta = janus::cos(theta);
-    Scalar omega_n = janus::sqrt(gravity / length);
+    Scalar sin_theta = metis::sin(theta);
+    Scalar cos_theta = metis::cos(theta);
+    Scalar omega_n = metis::sqrt(gravity / length);
 
     // θ̈ = sin(θ)cos(θ)φ̇² - (g/L)sin(θ) - 2ζω_n θ̇
     return sin_theta * cos_theta * phi_dot * phi_dot -
@@ -107,9 +107,9 @@ template <typename Scalar>
 Scalar spherical_pendulum_phi_ddot(const Scalar &theta, const Scalar &theta_dot,
                                    const Scalar &phi_dot, const Scalar &length,
                                    const Scalar &gravity, const Scalar &zeta) {
-    Scalar sin_theta = janus::sin(theta);
-    Scalar cos_theta = janus::cos(theta);
-    Scalar omega_n = janus::sqrt(gravity / length);
+    Scalar sin_theta = metis::sin(theta);
+    Scalar cos_theta = metis::cos(theta);
+    Scalar omega_n = metis::sqrt(gravity / length);
 
     // Regularized cot(θ) to avoid division by zero
     Scalar cot_theta = cos_theta / (sin_theta + Scalar(1e-10));
@@ -128,10 +128,10 @@ Scalar spherical_pendulum_phi_ddot(const Scalar &theta, const Scalar &theta_dot,
 template <typename Scalar>
 Vec3<Scalar> spherical_pendulum_position(const Scalar &theta, const Scalar &phi,
                                          const Scalar &length) {
-    Scalar sin_theta = janus::sin(theta);
-    Scalar cos_theta = janus::cos(theta);
-    Scalar sin_phi = janus::sin(phi);
-    Scalar cos_phi = janus::cos(phi);
+    Scalar sin_theta = metis::sin(theta);
+    Scalar cos_theta = metis::cos(theta);
+    Scalar sin_phi = metis::sin(phi);
+    Scalar cos_phi = metis::cos(phi);
 
     return Vec3<Scalar>{
         length * sin_theta * cos_phi, // x
@@ -153,8 +153,8 @@ template <typename Scalar>
 Scalar spherical_pendulum_energy(const Scalar &theta, const Scalar &theta_dot,
                                  const Scalar &phi_dot, const Scalar &length,
                                  const Scalar &mass, const Scalar &gravity) {
-    Scalar sin_theta = janus::sin(theta);
-    Scalar cos_theta = janus::cos(theta);
+    Scalar sin_theta = metis::sin(theta);
+    Scalar cos_theta = metis::cos(theta);
 
     // Kinetic energy: T = 0.5 * m * L² * (θ̇² + sin²(θ)φ̇²)
     Scalar KE =
@@ -186,8 +186,8 @@ Scalar simple_pendulum_acceleration(const Scalar &theta,
                                     const Scalar &theta_dot,
                                     const Scalar &length, const Scalar &gravity,
                                     const Scalar &zeta) {
-    Scalar omega_n = janus::sqrt(gravity / length);
-    return -(gravity / length) * janus::sin(theta) -
+    Scalar omega_n = metis::sqrt(gravity / length);
+    return -(gravity / length) * metis::sin(theta) -
            Scalar(2) * zeta * omega_n * theta_dot;
 }
 
@@ -196,7 +196,7 @@ Scalar simple_pendulum_acceleration(const Scalar &theta,
 /// $$T = 2\pi\sqrt{L/g}$$
 template <typename Scalar>
 Scalar simple_pendulum_period(const Scalar &length, const Scalar &gravity) {
-    return Scalar(2) * Scalar(M_PI) * janus::sqrt(length / gravity);
+    return Scalar(2) * Scalar(M_PI) * metis::sqrt(length / gravity);
 }
 
 /// Simple pendulum natural frequency
@@ -204,7 +204,7 @@ Scalar simple_pendulum_period(const Scalar &length, const Scalar &gravity) {
 /// $$\omega_n = \sqrt{g/L}$$
 template <typename Scalar>
 Scalar simple_pendulum_omega(const Scalar &length, const Scalar &gravity) {
-    return janus::sqrt(gravity / length);
+    return metis::sqrt(gravity / length);
 }
 
 } // namespace vulcan::dynamics

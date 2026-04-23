@@ -3,7 +3,7 @@
 
 #include <cmath>
 #include <gtest/gtest.h>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/environment/MagneticField.hpp>
 
@@ -189,17 +189,17 @@ TEST(MagneticField, InclinationAt45Degrees) {
 // =============================================================================
 
 TEST(MagneticField, SymbolicEvaluation) {
-    auto x = janus::sym("x");
-    auto y = janus::sym("y");
-    auto z = janus::sym("z");
+    auto x = metis::sym("x");
+    auto y = metis::sym("y");
+    auto z = metis::sym("z");
 
-    Vec3<janus::SymbolicScalar> r;
+    Vec3<metis::SymbolicScalar> r;
     r << x, y, z;
 
     auto B = magnetic::dipole_field_ecef(r);
 
     // Create function for evaluation
-    janus::Function f("mag_field", {x, y, z}, {B(0), B(1), B(2)});
+    metis::Function f("mag_field", {x, y, z}, {B(0), B(1), B(2)});
 
     // Evaluate at equator
     double R = constants::earth::R_eq;
@@ -211,18 +211,18 @@ TEST(MagneticField, SymbolicEvaluation) {
 }
 
 TEST(MagneticField, SymbolicGradient) {
-    auto x = janus::sym("x");
+    auto x = metis::sym("x");
 
-    Vec3<janus::SymbolicScalar> r;
-    r << x, janus::SymbolicScalar(0.0), janus::SymbolicScalar(0.0);
+    Vec3<metis::SymbolicScalar> r;
+    r << x, metis::SymbolicScalar(0.0), metis::SymbolicScalar(0.0);
 
     auto B_mag = magnetic::field_magnitude(r);
 
     // Compute derivative w.r.t. x (radial direction at equator)
-    auto dB_dx = janus::jacobian(B_mag, x);
+    auto dB_dx = metis::jacobian(B_mag, x);
 
     // Create function for evaluation
-    janus::Function f("mag_grad", {x}, {dB_dx});
+    metis::Function f("mag_grad", {x}, {dB_dx});
 
     // Evaluate at surface
     double R = constants::earth::R_eq;

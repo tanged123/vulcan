@@ -1,6 +1,6 @@
 # Unified Error Service for Aerospace Tooling Stack
 
-**Goal**: Standardize error handling across Janus, Vulcan, Icarus, and Hermes.  
+**Goal**: Standardize error handling across Metis, Vulcan, Icarus, and Hermes.  
 **Status**: 📋 Proposal  
 **Created**: 2025-12-21  
 
@@ -14,7 +14,7 @@ This plan evaluates whether to standardize error handling across your four engin
 
 | Tool | Purpose | Error Context |
 |------|---------|---------------|
-| **Janus** | Symbolic/numeric math framework | Math errors (interpolation, integration, AD) |
+| **Metis** | Symbolic/numeric math framework | Math errors (interpolation, integration, AD) |
 | **Vulcan** | Aerospace utilities library | Domain errors (atmosphere, coordinates, gravity) |
 | **Icarus** | Simulation framework (planned) | Runtime errors (component init, signal routing) |
 | **Hermes** | Real-time telemetry (planned) | I/O errors (serialization, transport) |
@@ -23,11 +23,11 @@ This plan evaluates whether to standardize error handling across your four engin
 
 | Factor | Verdict | Rationale |
 |--------|---------|-----------|
-| **Shared dependency chain** | ✅ Yes | Vulcan→Janus, Icarus→Vulcan, Hermes→Vulcan |
-| **Cross-layer error propagation** | ✅ Yes | Simulation errors may originate in Janus math |
+| **Shared dependency chain** | ✅ Yes | Vulcan→Metis, Icarus→Vulcan, Hermes→Vulcan |
+| **Cross-layer error propagation** | ✅ Yes | Simulation errors may originate in Metis math |
 | **Consistent debugging** | ✅ Yes | Unified error format simplifies root cause analysis |
 | **Independent versioning** | ⚠️ Caution | Tight coupling could complicate releases |
-| **Differing contexts** | ⚠️ Caution | Real-time (Hermes) vs batch (Janus) needs differ |
+| **Differing contexts** | ⚠️ Caution | Real-time (Hermes) vs batch (Metis) needs differ |
 
 **Bottom line**: Standardize the error **hierarchy and format**, but keep tool-specific exception types for clarity.
 
@@ -35,17 +35,17 @@ This plan evaluates whether to standardize error handling across your four engin
 
 ## Current State Analysis
 
-### Janus (✅ Already Standardized)
+### Metis (✅ Already Standardized)
 
-Janus has a completed error handling enhancement with a clean hierarchy:
+Metis has a completed error handling enhancement with a clean hierarchy:
 
 ```
 std::runtime_error
- └── janus::JanusError          "[janus] ..."
-      ├── janus::InvalidArgument    (input validation)
-      ├── janus::RuntimeError       (eval failures)
-      ├── janus::InterpolationError (grid/data issues)
-      └── janus::IntegrationError   (ODE solver issues)
+ └── metis::MetisError          "[metis] ..."
+      ├── metis::InvalidArgument    (input validation)
+      ├── metis::RuntimeError       (eval failures)
+      ├── metis::InterpolationError (grid/data issues)
+      └── metis::IntegrationError   (ODE solver issues)
 ```
 
 **Status**: Done. This is the reference implementation.
@@ -60,7 +60,7 @@ Vulcan currently uses raw `std::runtime_error` throughout:
 | `Frame.hpp` | `throw std::runtime_error("Type mismatch: ...")` | Inconsistent format |
 | `CSVExport.hpp` | `throw std::runtime_error("Failed to open: ...")` | Generic message |
 | `FrameSerializer.hpp` | `throw std::runtime_error("Invalid frame data")` | Missing context |
-| `TableInterpolator.hpp` | Uses `janus::InterpolationError` | ✅ Correct |
+| `TableInterpolator.hpp` | Uses `metis::InterpolationError` | ✅ Correct |
 
 **Problem**: Mixed error types, no unified hierarchy.
 
@@ -85,10 +85,10 @@ Will need errors for:
 > [!IMPORTANT]
 > **Key Design Decision: Where Should the Error Hierarchy Live?**
 >
-> **Option A**: Keep in Janus, export to dependents *(recommended)*
-> - Janus is the foundation; all tools depend on it
+> **Option A**: Keep in Metis, export to dependents *(recommended)*
+> - Metis is the foundation; all tools depend on it
 > - Avoids duplication, single source of truth
-> - Tools add domain-specific errors that derive from `janus::JanusError`
+> - Tools add domain-specific errors that derive from `metis::MetisError`
 >
 > **Option B**: Create independent `olympus-error` package
 > - True independence between tools
@@ -101,7 +101,7 @@ Will need errors for:
 > [!WARNING]
 > **Breaking Change Risk**
 >
-> Vulcan currently throws `std::runtime_error`. Changing to `vulcan::VulcanError` (deriving from `janus::JanusError`) will break code that catches specific exception types.
+> Vulcan currently throws `std::runtime_error`. Changing to `vulcan::VulcanError` (deriving from `metis::MetisError`) will break code that catches specific exception types.
 >
 > **Mitigation**: All new errors derive from `std::runtime_error`, so `catch(std::runtime_error&)` still works.
 
@@ -114,13 +114,13 @@ Will need errors for:
 ```
 std::runtime_error
  │
- └── janus::JanusError                     "[janus] ..."
+ └── metis::MetisError                     "[metis] ..."
       │
-      ├── [Janus domain errors - existing]
-      │    ├── janus::InvalidArgument
-      │    ├── janus::RuntimeError
-      │    ├── janus::InterpolationError
-      │    └── janus::IntegrationError
+      ├── [Metis domain errors - existing]
+      │    ├── metis::InvalidArgument
+      │    ├── metis::RuntimeError
+      │    ├── metis::InterpolationError
+      │    └── metis::IntegrationError
       │
       ├── vulcan::VulcanError               "[vulcan] ..."
       │    ├── vulcan::IOError               (file/stream errors)
@@ -142,7 +142,7 @@ std::runtime_error
 
 ### Error Message Format
 
-Standardize on the Janus format with optional context:
+Standardize on the Metis format with optional context:
 
 ```
 [namespace] Context: Message
@@ -170,11 +170,11 @@ Examples:
  * @file VulcanError.hpp
  * @brief Exception hierarchy for Vulcan aerospace library
  *
- * Derives from janus::JanusError for unified error handling across
- * the Janus/Vulcan/Icarus/Hermes toolchain.
+ * Derives from metis::MetisError for unified error handling across
+ * the Metis/Vulcan/Icarus/Hermes toolchain.
  */
 
-#include <janus/core/JanusError.hpp>
+#include <metis/core/MetisError.hpp>
 #include <string>
 
 namespace vulcan {
@@ -182,10 +182,10 @@ namespace vulcan {
 /**
  * @brief Base exception for all Vulcan errors
  */
-class VulcanError : public janus::JanusError {
+class VulcanError : public metis::MetisError {
   public:
     explicit VulcanError(const std::string &what)
-        : janus::JanusError("[vulcan] " + what) {}
+        : metis::MetisError("[vulcan] " + what) {}
 };
 
 /**
@@ -278,14 +278,14 @@ Replace `std::runtime_error` with `vulcan::SignalError` for data format errors.
 
 ```cpp
 #pragma once
-#include <janus/core/JanusError.hpp>
+#include <metis/core/MetisError.hpp>
 
 namespace icarus {
 
-class IcarusError : public janus::JanusError {
+class IcarusError : public metis::MetisError {
   public:
     explicit IcarusError(const std::string &what)
-        : janus::JanusError("[icarus] " + what) {}
+        : metis::MetisError("[icarus] " + what) {}
 };
 
 class ComponentError : public IcarusError {
@@ -317,14 +317,14 @@ class SimulationError : public IcarusError {
 
 ```cpp
 #pragma once
-#include <janus/core/JanusError.hpp>
+#include <metis/core/MetisError.hpp>
 
 namespace hermes {
 
-class HermesError : public janus::JanusError {
+class HermesError : public metis::MetisError {
   public:
     explicit HermesError(const std::string &what)
-        : janus::JanusError("[hermes] " + what) {}
+        : metis::MetisError("[hermes] " + what) {}
 };
 
 class TransportError : public HermesError {
@@ -371,13 +371,13 @@ ctest --output-on-failure -R "error|Error"
 #include <vulcan/core/VulcanError.hpp>
 
 TEST(VulcanErrorTests, BaseErrorCatchable) {
-    EXPECT_THROW(throw vulcan::VulcanError("test"), janus::JanusError);
+    EXPECT_THROW(throw vulcan::VulcanError("test"), metis::MetisError);
     EXPECT_THROW(throw vulcan::VulcanError("test"), std::runtime_error);
 }
 
 TEST(VulcanErrorTests, SignalErrorCatchable) {
     EXPECT_THROW(throw vulcan::SignalError("test"), vulcan::VulcanError);
-    EXPECT_THROW(throw vulcan::SignalError("test"), janus::JanusError);
+    EXPECT_THROW(throw vulcan::SignalError("test"), metis::MetisError);
 }
 
 TEST(VulcanErrorTests, MessageFormat) {
@@ -432,7 +432,7 @@ TEST(VulcanErrorTests, MessageFormat) {
 
 **Cons**:
 - Inconsistent error messages
-- Difficult to trace errors across layers (e.g., Icarus → Vulcan → Janus)
+- Difficult to trace errors across layers (e.g., Icarus → Vulcan → Metis)
 - Code duplication in error handling patterns
 
 **Verdict**: Given the shared dependency chain and the goal of building an integrated simulation stack, standardization provides more value than flexibility.
@@ -449,9 +449,9 @@ TEST(VulcanErrorTests, MessageFormat) {
 
 ### When NOT to Throw
 
-1. **Expected edge cases**: Use `std::optional` or `janus::where()` for symbolic compat
+1. **Expected edge cases**: Use `std::optional` or `metis::where()` for symbolic compat
 2. **Performance-critical paths**: Use error codes or return values
-3. **CasADi symbolic mode**: Cannot throw on symbolic values; use `janus::where()`
+3. **CasADi symbolic mode**: Cannot throw on symbolic values; use `metis::where()`
 
 ### Error Context Checklist
 

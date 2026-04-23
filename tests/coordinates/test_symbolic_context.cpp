@@ -2,7 +2,7 @@
 
 #include <vulcan/coordinates/FrameContext.hpp>
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 namespace {
 
@@ -11,17 +11,17 @@ using vulcan::FRAME_ECI;
 using vulcan::Vec3;
 
 TEST(SymbolicFrameContext, BuildsAndEvaluatesBodyToECIChain) {
-    using Scalar = janus::SymbolicScalar;
+    using Scalar = metis::SymbolicScalar;
 
-    Scalar gmst = janus::sym("gmst");
-    Scalar lon = janus::sym("lon");
-    Scalar lat = janus::sym("lat");
-    Scalar yaw = janus::sym("yaw");
-    Scalar pitch = janus::sym("pitch");
-    Scalar roll = janus::sym("roll");
-    Scalar vx = janus::sym("vx");
-    Scalar vy = janus::sym("vy");
-    Scalar vz = janus::sym("vz");
+    Scalar gmst = metis::sym("gmst");
+    Scalar lon = metis::sym("lon");
+    Scalar lat = metis::sym("lat");
+    Scalar yaw = metis::sym("yaw");
+    Scalar pitch = metis::sym("pitch");
+    Scalar roll = metis::sym("roll");
+    Scalar vx = metis::sym("vx");
+    Scalar vy = metis::sym("vy");
+    Scalar vz = metis::sym("vz");
 
     vulcan::FrameContext<Scalar> sym_ctx;
     sym_ctx.set_ecef(gmst);
@@ -34,7 +34,7 @@ TEST(SymbolicFrameContext, BuildsAndEvaluatesBodyToECIChain) {
     const auto v_eci = sym_ctx.transform(v_body, FRAME_BODY, FRAME_ECI);
     EXPECT_FALSE(v_eci(0).is_constant());
 
-    janus::Function f("frame_ctx_body_to_eci",
+    metis::Function f("frame_ctx_body_to_eci",
                       {gmst, lon, lat, yaw, pitch, roll, vx, vy, vz},
                       {v_eci(0), v_eci(1), v_eci(2)});
 

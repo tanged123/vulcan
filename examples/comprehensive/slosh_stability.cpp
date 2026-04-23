@@ -20,7 +20,7 @@
 #include <cmath>
 #include <iomanip>
 #include <iostream>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vector>
 #include <vulcan/vulcan.hpp>
 
@@ -101,13 +101,13 @@ coupled_dynamics(const RollSloshState<Scalar> &state, const Scalar &gimbal_cmd,
     // 1. Control moment from gimbal
     // Saturation
     Scalar gimbal_angle =
-        janus::where(gimbal_cmd > rocket.max_gimbal, Scalar(rocket.max_gimbal),
-                     janus::where(gimbal_cmd < -rocket.max_gimbal,
+        metis::where(gimbal_cmd > rocket.max_gimbal, Scalar(rocket.max_gimbal),
+                     metis::where(gimbal_cmd < -rocket.max_gimbal,
                                   Scalar(-rocket.max_gimbal), gimbal_cmd));
 
     // M_control = F * d * sin(delta)
     Scalar M_control =
-        rocket.thrust * rocket.gimbal_arm * janus::sin(gimbal_angle);
+        rocket.thrust * rocket.gimbal_arm * metis::sin(gimbal_angle);
 
     // 2. Slosh parameters
     Scalar m = slosh.m_fluid;
@@ -117,7 +117,7 @@ coupled_dynamics(const RollSloshState<Scalar> &state, const Scalar &gimbal_cmd,
     Scalar I_body = rocket.I_roll;
 
     // Natural frequency of independent slosh
-    Scalar omega_n = janus::sqrt(g / L);
+    Scalar omega_n = metis::sqrt(g / L);
 
     // 3. RHS terms
     // RHS1 = M_control - m*g*r*phi (ignoring gravity torque on phi)
@@ -205,7 +205,7 @@ simulate_step_response(const Scalar &Kp, const Scalar &Kd,
     // If freq is effectively 0 (sweep), use high cutoff (pass-through). Else
     // use freq.
     Scalar omega_c =
-        janus::where(notch_freq > Scalar(0.001), notch_freq, Scalar(1.0e6));
+        metis::where(notch_freq > Scalar(0.001), notch_freq, Scalar(1.0e6));
     Scalar alpha = (dt * omega_c) / (Scalar(1.0) + dt * omega_c);
 
     for (int i = 0; i < n_steps; ++i) {
@@ -234,27 +234,27 @@ simulate_step_response(const Scalar &Kp, const Scalar &Kd,
             u_pd; // Immediate gimbal response assumption vs lagged
 
         // Metrics
-        control_effort = control_effort + janus::abs(state.gimbal_angle) * dt;
-        max_slosh = janus::where(janus::abs(state.theta_slosh) > max_slosh,
-                                 janus::abs(state.theta_slosh), max_slosh);
+        control_effort = control_effort + metis::abs(state.gimbal_angle) * dt;
+        max_slosh = metis::where(metis::abs(state.theta_slosh) > max_slosh,
+                                 metis::abs(state.theta_slosh), max_slosh);
 
         Scalar overshoot = (state.phi - target) / target * Scalar(100.0);
         max_overshoot =
-            janus::where(overshoot > max_overshoot, overshoot, max_overshoot);
+            metis::where(overshoot > max_overshoot, overshoot, max_overshoot);
 
         // Settling time check (symbolic compatible approximation for reporting)
         // Note: For symbolic optimization, this deeply nested lookup can be
         // expensive. We rely on ISE for optimization, this is just for
         // reporting.
         Scalar is_settled =
-            janus::where(janus::abs(state.phi - target) < Scalar(0.02) * target,
+            metis::where(metis::abs(state.phi - target) < Scalar(0.02) * target,
                          Scalar(1.0), Scalar(0.0));
         settling_time =
-            janus::where(is_settled < Scalar(0.5), t, settling_time);
+            metis::where(is_settled < Scalar(0.5), t, settling_time);
     }
 
     // Penalties for symbolic optimization
-    Scalar steady_err = janus::abs(state.phi - target);
+    Scalar steady_err = metis::abs(state.phi - target);
 
     return {settling_time, max_overshoot,  max_slosh,
             steady_err,    control_effort, integral_error};
@@ -340,9 +340,9 @@ int main() {
     // =========================================================================
     // Part 3: Symbolic Optimization
     // =========================================================================
-    std::cout << "=== Part 3: Optimization with janus::Opti ===\n\n";
+    std::cout << "=== Part 3: Optimization with metis::Opti ===\n\n";
 
-    janus::Opti opti;
+    metis::Opti opti;
     auto Kp_var = opti.variable(best_Kp);
     auto Kd_var = opti.variable(best_Kd);
     // Use Low-Pass filter at slosh frequency?

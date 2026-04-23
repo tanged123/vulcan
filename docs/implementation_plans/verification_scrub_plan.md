@@ -6,7 +6,7 @@ This plan documents a comprehensive quality review of the Vulcan library prior t
 
 1. **Implementation Quality**: Ensure clean, maintainable code following project patterns
 2. **API Usability**: Verify consistent, ergonomic APIs across all modules
-3. **Symbolic Scalar Compatibility**: Validate `janus::` math dispatch and `janus::where` branching patterns
+3. **Symbolic Scalar Compatibility**: Validate `metis::` math dispatch and `metis::where` branching patterns
 4. **Test Coverage**: Identify modules with missing or incomplete tests
 
 ---
@@ -20,7 +20,7 @@ The Vulcan repository contains **15 modules** with **70 header files**, **47 tes
 | Category | Status | Notes |
 |----------|--------|-------|
 | Symbolic Math Dispatch | ⚠️ Mixed | Wind models use `std::` functions in filter coefficient computation |
-| Branching Patterns | ✅ Good | 88+ instances of `janus::where` for symbolic branching |
+| Branching Patterns | ✅ Good | 88+ instances of `metis::where` for symbolic branching |
 | Test Coverage | ✅ Good | All modules have tests, but symbolic backend coverage varies |
 | Documentation | ✅ Complete | All 15 modules have user guides |
 | API Consistency | ⚠️ Review | Some modules use different parameter ordering conventions |
@@ -34,7 +34,7 @@ The Vulcan repository contains **15 modules** with **70 header files**, **47 tes
 | File | Symbolic Compatible | Notes |
 |------|---------------------|-------|
 | `Constants.hpp` | ✅ | Compile-time constants, no issues |
-| `Units.hpp` | ✅ | Uses `janus::where` correctly |
+| `Units.hpp` | ✅ | Uses `metis::where` correctly |
 | `VulcanTypes.hpp` | ✅ | Type aliases only |
 | `VulcanError.hpp` | ✅ | Runtime exceptions, N/A for symbolic |
 | `Validation.hpp` | ✅ | Uses `if constexpr` to skip symbolic assertions |
@@ -48,13 +48,13 @@ The Vulcan repository contains **15 modules** with **70 header files**, **47 tes
 
 | File | Symbolic Compatible | Notes |
 |------|---------------------|-------|
-| `Geodetic.hpp` | ✅ | Uses `janus::where` for pole handling |
-| `Transforms.hpp` | ✅ | Uses `janus::where` for edge cases |
-| `BodyFrames.hpp` | ✅ | Uses `janus::where` extensively |
+| `Geodetic.hpp` | ✅ | Uses `metis::where` for pole handling |
+| `Transforms.hpp` | ✅ | Uses `metis::where` for edge cases |
+| `BodyFrames.hpp` | ✅ | Uses `metis::where` extensively |
 | `CoordinateFrame.hpp` | ⚠️ | Uses `std::abs` in validation only (acceptable) |
 | `EarthModel.hpp` | ✅ | Compile-time constants |
-| `LocalFrames.hpp` | ✅ | Uses `janus::` math |
-| `QuaternionUtils.hpp` | ✅ | Uses `janus::` math |
+| `LocalFrames.hpp` | ✅ | Uses `metis::` math |
+| `QuaternionUtils.hpp` | ✅ | Uses `metis::` math |
 
 **Tests**: 4 test files ✅
 
@@ -64,7 +64,7 @@ The Vulcan repository contains **15 modules** with **70 header files**, **47 tes
 
 | File | Symbolic Compatible | Notes |
 |------|---------------------|-------|
-| `USSA1976.hpp` | ✅ | Templated on Scalar, uses `janus::where` |
+| `USSA1976.hpp` | ✅ | Templated on Scalar, uses `metis::where` |
 | `ExponentialAtmosphere.hpp` | ✅ | Templated on Scalar |
 
 **Tests**: 2 test files ✅
@@ -75,9 +75,9 @@ The Vulcan repository contains **15 modules** with **70 header files**, **47 tes
 
 | File | Symbolic Compatible | Notes |
 |------|---------------------|-------|
-| `PointMass.hpp` | ✅ | Simple, uses `janus::` math |
-| `J2.hpp` | ✅ | Uses `janus::` math |
-| `J2J4.hpp` | ✅ | Uses `janus::` math |
+| `PointMass.hpp` | ✅ | Simple, uses `metis::` math |
+| `J2.hpp` | ✅ | Uses `metis::` math |
+| `J2J4.hpp` | ✅ | Uses `metis::` math |
 | `SphericalHarmonics.hpp` | ⚠️ | Uses `if (m > n)` on integers (acceptable - structural) |
 | `Gravity.hpp` | ✅ | Aggregate header |
 | `GravityTypes.hpp` | ✅ | Type definitions |
@@ -85,7 +85,7 @@ The Vulcan repository contains **15 modules** with **70 header files**, **47 tes
 **Tests**: 4 test files ✅
 
 > [!NOTE]
-> `SphericalHarmonics.hpp` uses `if` statements on degree/order indices (integers), not on `Scalar` values. This is explicitly allowed per Janus rules as these are structural loop bounds.
+> `SphericalHarmonics.hpp` uses `if` statements on degree/order indices (integers), not on `Scalar` values. This is explicitly allowed per Metis rules as these are structural loop bounds.
 
 ---
 
@@ -110,11 +110,11 @@ The Vulcan repository contains **15 modules** with **70 header files**, **47 tes
 
 | File | Symbolic Compatible | Notes |
 |------|---------------------|-------|
-| `EulerSequences.hpp` | ✅ | Uses `janus::` math |
-| `DCMUtils.hpp` | ✅ | Uses `janus::` math |
-| `AxisAngle.hpp` | ✅ | Uses `janus::` math |
-| `Interpolation.hpp` | ✅ | Uses `janus::where` extensively |
-| `RotationKinematics.hpp` | ✅ | Uses `janus::` math |
+| `EulerSequences.hpp` | ✅ | Uses `metis::` math |
+| `DCMUtils.hpp` | ✅ | Uses `metis::` math |
+| `AxisAngle.hpp` | ✅ | Uses `metis::` math |
+| `Interpolation.hpp` | ✅ | Uses `metis::where` extensively |
+| `RotationKinematics.hpp` | ✅ | Uses `metis::` math |
 | `Rotations.hpp` | ✅ | Aggregate header |
 
 **Tests**: 3 test files ✅
@@ -125,7 +125,7 @@ The Vulcan repository contains **15 modules** with **70 header files**, **47 tes
 
 | File | Symbolic Compatible | Notes |
 |------|---------------------|-------|
-| `Aerodynamics.hpp` | ✅ | Uses `janus::` math throughout |
+| `Aerodynamics.hpp` | ✅ | Uses `metis::` math throughout |
 
 **Tests**: 1 test file ✅
 
@@ -148,7 +148,7 @@ The Vulcan repository contains **15 modules** with **70 header files**, **47 tes
 
 | File | Symbolic Compatible | Notes |
 |------|---------------------|-------|
-| All 7 files | ✅ | Uses `janus::` math throughout |
+| All 7 files | ✅ | Uses `metis::` math throughout |
 
 **Tests**: 1 test file ✅
 
@@ -158,11 +158,11 @@ The Vulcan repository contains **15 modules** with **70 header files**, **47 tes
 
 | File | Symbolic Compatible | Notes |
 |------|---------------------|-------|
-| `OrbitalQuantities.hpp` | ✅ | Uses `janus::` math |
+| `OrbitalQuantities.hpp` | ✅ | Uses `metis::` math |
 | `AnomalyConversions.hpp` | ✅ | Uses `if constexpr` for type dispatch |
-| `StateConversions.hpp` | ✅ | Uses `janus::where` extensively |
-| `AnalyticalEphemeris.hpp` | ✅ | Uses `janus::` math |
-| `TransferMechanics.hpp` | ✅ | Uses `janus::` math |
+| `StateConversions.hpp` | ✅ | Uses `metis::where` extensively |
+| `AnalyticalEphemeris.hpp` | ✅ | Uses `metis::` math |
+| `TransferMechanics.hpp` | ✅ | Uses `metis::` math |
 | `Orbital.hpp` | ✅ | Aggregate header |
 | `OrbitalTypes.hpp` | ✅ | Type definitions |
 
@@ -174,9 +174,9 @@ The Vulcan repository contains **15 modules** with **70 header files**, **47 tes
 
 | File | Symbolic Compatible | Notes |
 |------|---------------------|-------|
-| `SolarPosition.hpp` | ✅ | Uses `janus::` math |
-| `Eclipse.hpp` | ✅ | Uses `janus::where` extensively |
-| `MagneticField.hpp` | ✅ | Uses `janus::` math |
+| `SolarPosition.hpp` | ✅ | Uses `metis::` math |
+| `Eclipse.hpp` | ✅ | Uses `metis::where` extensively |
+| `MagneticField.hpp` | ✅ | Uses `metis::` math |
 | `Environment.hpp` | ✅ | Aggregate header |
 
 **Tests**: 3 test files ✅
@@ -187,7 +187,7 @@ The Vulcan repository contains **15 modules** with **70 header files**, **47 tes
 
 | File | Symbolic Compatible | Notes |
 |------|---------------------|-------|
-| `Geometry.hpp` | ✅ | Uses `janus::where` extensively |
+| `Geometry.hpp` | ✅ | Uses `metis::where` extensively |
 
 **Tests**: 1 test file ✅ (includes `casadi::MX` tests)
 
@@ -197,7 +197,7 @@ The Vulcan repository contains **15 modules** with **70 header files**, **47 tes
 
 | File | Symbolic Compatible | Notes |
 |------|---------------------|-------|
-| `GeodesicUtils.hpp` | ✅ | Uses `janus::` math |
+| `GeodesicUtils.hpp` | ✅ | Uses `metis::` math |
 
 **Tests**: 1 test file ✅ (includes `casadi::MX` tests)
 
@@ -252,7 +252,7 @@ cd build && ctest -R symbolic -V
 
 ### Phase 3: Optimization Example Verification
 
-Run all optimization examples that use `janus::Opti`:
+Run all optimization examples that use `metis::Opti`:
 
 ```bash
 ./scripts/dev.sh

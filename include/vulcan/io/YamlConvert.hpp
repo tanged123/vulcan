@@ -1,29 +1,29 @@
 /**
  * @file YamlConvert.hpp
- * @brief yaml-cpp conversion traits for Janus/Vulcan types
+ * @brief yaml-cpp conversion traits for Metis/Vulcan types
  *
  * Provides YAML::convert<> specializations for:
- * - janus::Vec3<T> stored as [x, y, z]
- * - janus::Quaternion<T> stored as [w, x, y, z] (scalar-first)
- * - janus::Mat3<T> stored as nested or flat array
+ * - metis::Vec3<T> stored as [x, y, z]
+ * - metis::Quaternion<T> stored as [w, x, y, z] (scalar-first)
+ * - metis::Mat3<T> stored as nested or flat array
  */
 
 #pragma once
 
-#include <janus/core/JanusTypes.hpp>
-#include <janus/math/Quaternion.hpp>
+#include <metis/core/MetisTypes.hpp>
+#include <metis/math/Quaternion.hpp>
 #include <yaml-cpp/yaml.h>
 
 namespace YAML {
 
 // =============================================================================
-// janus::Vec3<T> - stored as [x, y, z]
+// metis::Vec3<T> - stored as [x, y, z]
 // =============================================================================
 
-/// @brief Conversion trait for janus::Vec3<T>
-template <typename T> struct convert<janus::Vec3<T>> {
+/// @brief Conversion trait for metis::Vec3<T>
+template <typename T> struct convert<metis::Vec3<T>> {
     /// @brief Encode Vec3 to YAML sequence [x, y, z]
-    static Node encode(const janus::Vec3<T> &v) {
+    static Node encode(const metis::Vec3<T> &v) {
         Node node;
         node.push_back(v.x());
         node.push_back(v.y());
@@ -32,12 +32,12 @@ template <typename T> struct convert<janus::Vec3<T>> {
     }
 
     /// @brief Decode YAML sequence to Vec3
-    static bool decode(const Node &node, janus::Vec3<T> &v) {
+    static bool decode(const Node &node, metis::Vec3<T> &v) {
         if (!node.IsSequence() || node.size() != 3) {
             return false;
         }
         try {
-            v = janus::Vec3<T>{node[0].as<T>(), node[1].as<T>(),
+            v = metis::Vec3<T>{node[0].as<T>(), node[1].as<T>(),
                                node[2].as<T>()};
             return true;
         } catch (const YAML::Exception &) {
@@ -47,13 +47,13 @@ template <typename T> struct convert<janus::Vec3<T>> {
 };
 
 // =============================================================================
-// janus::Quaternion<T> - stored as [w, x, y, z] (scalar-first)
+// metis::Quaternion<T> - stored as [w, x, y, z] (scalar-first)
 // =============================================================================
 
-/// @brief Conversion trait for janus::Quaternion<T>
-template <typename T> struct convert<janus::Quaternion<T>> {
+/// @brief Conversion trait for metis::Quaternion<T>
+template <typename T> struct convert<metis::Quaternion<T>> {
     /// @brief Encode Quaternion to YAML sequence [w, x, y, z]
-    static Node encode(const janus::Quaternion<T> &q) {
+    static Node encode(const metis::Quaternion<T> &q) {
         Node node;
         node.push_back(q.w);
         node.push_back(q.x);
@@ -63,12 +63,12 @@ template <typename T> struct convert<janus::Quaternion<T>> {
     }
 
     /// @brief Decode YAML sequence to Quaternion
-    static bool decode(const Node &node, janus::Quaternion<T> &q) {
+    static bool decode(const Node &node, metis::Quaternion<T> &q) {
         if (!node.IsSequence() || node.size() != 4) {
             return false;
         }
         try {
-            q = janus::Quaternion<T>{node[0].as<T>(),  // w
+            q = metis::Quaternion<T>{node[0].as<T>(),  // w
                                      node[1].as<T>(),  // x
                                      node[2].as<T>(),  // y
                                      node[3].as<T>()}; // z
@@ -80,13 +80,13 @@ template <typename T> struct convert<janus::Quaternion<T>> {
 };
 
 // =============================================================================
-// janus::Mat3<T> - stored as [[row0], [row1], [row2]] or flat [9 elements]
+// metis::Mat3<T> - stored as [[row0], [row1], [row2]] or flat [9 elements]
 // =============================================================================
 
-/// @brief Conversion trait for janus::Mat3<T>
-template <typename T> struct convert<janus::Mat3<T>> {
+/// @brief Conversion trait for metis::Mat3<T>
+template <typename T> struct convert<metis::Mat3<T>> {
     /// @brief Encode Mat3 to nested YAML sequence
-    static Node encode(const janus::Mat3<T> &m) {
+    static Node encode(const metis::Mat3<T> &m) {
         Node node;
         for (int i = 0; i < 3; ++i) {
             Node row;
@@ -99,7 +99,7 @@ template <typename T> struct convert<janus::Mat3<T>> {
     }
 
     /// @brief Decode YAML sequence to Mat3 (nested or flat)
-    static bool decode(const Node &node, janus::Mat3<T> &m) {
+    static bool decode(const Node &node, metis::Mat3<T> &m) {
         if (!node.IsSequence()) {
             return false;
         }
@@ -138,12 +138,12 @@ template <typename T> struct convert<janus::Mat3<T>> {
 };
 
 // =============================================================================
-// Emitter operators for Janus types (required for YAML::Emitter << type)
+// Emitter operators for Metis types (required for YAML::Emitter << type)
 // =============================================================================
 
 /// @brief Emit Vec3 to YAML stream
 template <typename T>
-inline Emitter &operator<<(Emitter &emitter, const janus::Vec3<T> &v) {
+inline Emitter &operator<<(Emitter &emitter, const metis::Vec3<T> &v) {
     emitter << YAML::Flow << YAML::BeginSeq;
     emitter << v.x() << v.y() << v.z();
     emitter << YAML::EndSeq;
@@ -152,7 +152,7 @@ inline Emitter &operator<<(Emitter &emitter, const janus::Vec3<T> &v) {
 
 /// @brief Emit Quaternion to YAML stream
 template <typename T>
-inline Emitter &operator<<(Emitter &emitter, const janus::Quaternion<T> &q) {
+inline Emitter &operator<<(Emitter &emitter, const metis::Quaternion<T> &q) {
     emitter << YAML::Flow << YAML::BeginSeq;
     emitter << q.w << q.x << q.y << q.z;
     emitter << YAML::EndSeq;
@@ -161,7 +161,7 @@ inline Emitter &operator<<(Emitter &emitter, const janus::Quaternion<T> &q) {
 
 /// @brief Emit Mat3 to YAML stream
 template <typename T>
-inline Emitter &operator<<(Emitter &emitter, const janus::Mat3<T> &m) {
+inline Emitter &operator<<(Emitter &emitter, const metis::Mat3<T> &m) {
     emitter << YAML::BeginSeq;
     for (int i = 0; i < 3; ++i) {
         emitter << YAML::Flow << YAML::BeginSeq;

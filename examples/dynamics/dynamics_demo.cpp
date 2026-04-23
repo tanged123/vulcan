@@ -2,7 +2,7 @@
 // Showcases usage of 3-DOF, Pseudo-5DOF, and 6-DOF dynamics models
 // Includes both numeric execution and symbolic graph generation
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 #include <vulcan/dynamics/Dynamics.hpp> // Aggregate header
@@ -86,8 +86,8 @@ void run_5dof_symbolic() {
     // 3. Heading rate
     auto c_dot = chi_dot_btt(lift, mass, velocity, gamma, phi);
 
-    // Create Janus Function
-    janus::Function f_dyn("guided_5dof",
+    // Create Metis Function
+    metis::Function f_dyn("guided_5dof",
                           {thrust, drag, lift, mass, velocity, gamma, chi, phi},
                           {v_dot, g_dot, c_dot});
 
@@ -128,7 +128,7 @@ void run_6dof_numeric() {
     RigidBodyState<double> state;
     state.position = Vec3<double>{0, 0, -1000};    // 1km altitude
     state.velocity_body = Vec3<double>{100, 0, 0}; // 100 m/s forward
-    state.attitude = janus::Quaternion<double>();
+    state.attitude = metis::Quaternion<double>();
     state.omega_body = Vec3<double>{1.0, 0, 0}; // Spinning 1 rad/s roll
 
     // Forces/Moments
@@ -167,7 +167,7 @@ void run_5dof_optimization() {
     double k = 0.05;
 
     // Initialize Optimizer
-    janus::Opti opti;
+    metis::Opti opti;
 
     // Decision Variables
     auto lift = opti.variable(10000.0);  // Lift Force [N] (Guess approx Weight)
@@ -193,7 +193,7 @@ void run_5dof_optimization() {
     // 1. Altitude constraint: gamma_dot = 0 (Sustained altitude)
     // gamma_dot = (L*cos(phi) - W) / (mV)
     // Constraint: L*cos(phi) == W  (Vertical equilibrium)
-    opti.subject_to(lift * janus::cos(bank) == weight);
+    opti.subject_to(lift * metis::cos(bank) == weight);
 
     // 2. Speed constraint: v_dot = 0 (Sustained speed)
     // Along velocity vector: T - D - W*sin(gamma) = m*v_dot

@@ -21,7 +21,7 @@ graph LR
 
 #### [NEW] [Aerodynamics.hpp](file:///home/tanged/sources/temp/vulcan/include/vulcan/aerodynamics/Aerodynamics.hpp)
 
-Core aerodynamic calculations, templated for Janus compatibility:
+Core aerodynamic calculations, templated for Metis compatibility:
 
 ```cpp
 namespace vulcan::aero {

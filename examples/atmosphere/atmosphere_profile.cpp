@@ -1,7 +1,7 @@
 // Atmosphere Profile Example
-// Demonstrates US Standard Atmosphere 1976 with Janus optimization
+// Demonstrates US Standard Atmosphere 1976 with Metis optimization
 #include <iostream>
-#include <janus/optimization/Opti.hpp>
+#include <metis/optimization/Opti.hpp>
 #include <vulcan/vulcan.hpp>
 
 // Templated model function - works in both modes
@@ -41,7 +41,7 @@ int main() {
     // ========================================
     std::cout << "\n=== Symbolic Mode: Density Optimization ===" << std::endl;
 
-    janus::Opti opti;
+    metis::Opti opti;
     auto h = opti.variable(5000.0); // Altitude as decision variable
 
     auto rho_sym = air_density(h);

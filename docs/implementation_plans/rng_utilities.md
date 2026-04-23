@@ -12,7 +12,7 @@ std::normal_distribution<double> dist(0.0, 1.0);
 vulcan::random_walk::step(state, coeffs, dist(rng));  // User provides sample
 ```
 
-This is intentional for Janus symbolic compatibility, but boilerplate-heavy for common use cases. A Vulcan RNG library can simplify this while maintaining flexibility.
+This is intentional for Metis symbolic compatibility, but boilerplate-heavy for common use cases. A Vulcan RNG library can simplify this while maintaining flexibility.
 
 ---
 

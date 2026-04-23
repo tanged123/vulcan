@@ -49,7 +49,7 @@ int main() {
     std::cout << "Body -> ECI: [" << v_eci(0) << ", " << v_eci(1) << ", "
               << v_eci(2) << "]\n";
 
-    const auto sensor_q = janus::Quaternion<double>::from_euler(
+    const auto sensor_q = metis::Quaternion<double>::from_euler(
         0.0, 10.0 * constants::angle::deg2rad, 0.0);
     const auto sensor_id =
         ctx.add_frame("Sensor", FRAME_BODY,
@@ -62,7 +62,7 @@ int main() {
     std::cout << "Sensor -> NED: [" << v_sensor_ned(0) << ", "
               << v_sensor_ned(1) << ", " << v_sensor_ned(2) << "]\n";
 
-    // Symbolic graph usage (Janus archetype).
+    // Symbolic graph usage (Metis archetype).
     FrameContext<SymbolicScalar> sym_ctx;
     SymbolicScalar sym_gmst = sym("gmst");
     SymbolicScalar sym_lon = sym("lon");
@@ -83,7 +83,7 @@ int main() {
 
     const auto sym_v_eci = sym_ctx.transform(sym_v_body, FRAME_BODY, FRAME_ECI);
 
-    janus::Function f_sym_body_to_eci(
+    metis::Function f_sym_body_to_eci(
         "sym_body_to_eci",
         {sym_gmst, sym_lon, sym_lat, sym_yaw, sym_pitch, sym_roll, sym_vx,
          sym_vy, sym_vz},

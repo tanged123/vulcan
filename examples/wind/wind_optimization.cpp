@@ -3,7 +3,7 @@
  * @brief Demonstrates wind-aware trajectory optimization using Vulcan wind
  * models
  *
- * This example shows how to use symbolic wind shear profiles with janus::Opti
+ * This example shows how to use symbolic wind shear profiles with metis::Opti
  * for gradient-based optimization. We optimize an aircraft's climb profile to
  * minimize effective headwind by choosing optimal altitude waypoints.
  *
@@ -13,13 +13,13 @@
  *   - Goal: minimize integrated headwind exposure
  *
  * Key insight: Vulcan's wind models (shear profiles, turbulence PSDs) are
- * fully symbolic-compatible with Janus, enabling gradient-based optimization.
+ * fully symbolic-compatible with Metis, enabling gradient-based optimization.
  */
 
 #include <cmath>
 #include <iomanip>
 #include <iostream>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/vulcan.hpp>
 
 using namespace vulcan::wind;
@@ -99,7 +99,7 @@ int main() {
     std::cout
         << "╔════════════════════════════════════════════════════════════╗\n";
     std::cout
-        << "║     Vulcan Wind Models - janus::Opti Optimization          ║\n";
+        << "║     Vulcan Wind Models - metis::Opti Optimization          ║\n";
     std::cout
         << "╚════════════════════════════════════════════════════════════╝\n\n";
 
@@ -141,11 +141,11 @@ int main() {
               << "\n";
 
     // =========================================================================
-    // Part 3: Optimization with janus::Opti
+    // Part 3: Optimization with metis::Opti
     // =========================================================================
-    std::cout << "\n=== Part 3: Optimization with janus::Opti ===\n\n";
+    std::cout << "\n=== Part 3: Optimization with metis::Opti ===\n\n";
 
-    janus::Opti opti;
+    metis::Opti opti;
 
     // Decision variables: intermediate waypoint altitudes
     auto alt1 = opti.variable(uniform_alt1); // Initialize at baseline
@@ -188,7 +188,8 @@ int main() {
     double improvement = (baseline_cost - opt_cost) / baseline_cost * 100.0;
     std::cout << "Improvement over baseline: " << std::setprecision(2)
               << improvement << "%\n";
-    std::cout << "Solver iterations: " << solution.num_iterations() << "\n";
+    std::cout << "Solver iterations: " << solution.num_iterations().value_or(-1)
+              << "\n";
 
     // =========================================================================
     // Part 5: MIL-Spec Turbulence Parameters
@@ -217,26 +218,26 @@ int main() {
         << "\n=== Part 6: Exporting Interactive Computational Graphs ===\n\n";
 
     // Create symbolic altitude for graph visualization
-    auto alt_sym = janus::sym("altitude");
+    auto alt_sym = metis::sym("altitude");
 
     // Export wind shear profile
     auto wind_profile = power_law(alt_sym, ref_wind, 10.0, exponent::NEUTRAL);
-    janus::export_graph_html(wind_profile, "graph_wind_profile",
+    metis::export_graph_html(wind_profile, "graph_wind_profile",
                              "Wind_Profile");
     std::cout << "✓ Exported: graph_wind_profile.html (power-law wind shear)\n";
 
     // Export fuel rate as function of altitude
     auto hw_sym = headwind_at_altitude(alt_sym, ref_wind);
     auto fr_sym = fuel_rate(hw_sym);
-    janus::export_graph_html(fr_sym, "graph_fuel_rate",
+    metis::export_graph_html(fr_sym, "graph_fuel_rate",
                              "Fuel_Rate_vs_Altitude");
     std::cout << "✓ Exported: graph_fuel_rate.html (fuel consumption model)\n";
 
     // Export mission cost objective
-    auto alt1_sym = janus::sym("alt1");
-    auto alt2_sym = janus::sym("alt2");
+    auto alt1_sym = metis::sym("alt1");
+    auto alt2_sym = metis::sym("alt2");
     auto cost_sym = mission_cost(alt1_sym, alt2_sym, ref_wind);
-    janus::export_graph_html(cost_sym, "graph_mission_cost", "Mission_Cost");
+    metis::export_graph_html(cost_sym, "graph_mission_cost", "Mission_Cost");
     std::cout << "✓ Exported: graph_mission_cost.html (full optimization "
                  "objective)\n";
 
@@ -244,7 +245,7 @@ int main() {
     double u_star =
         friction_velocity_from_ref(ref_wind, 10.0, roughness::OPEN_TERRAIN);
     auto log_profile = logarithmic(alt_sym, u_star, roughness::OPEN_TERRAIN);
-    janus::export_graph_html(log_profile, "graph_log_profile",
+    metis::export_graph_html(log_profile, "graph_log_profile",
                              "Log_Wind_Profile");
     std::cout
         << "✓ Exported: graph_log_profile.html (logarithmic wind profile)\n";
@@ -252,7 +253,7 @@ int main() {
     std::cout << "\nOpen these HTML files in a browser to explore the "
                  "computational graphs!\n";
 
-    std::cout << "\n✓ Optimization complete using janus::Opti + Vulcan wind "
+    std::cout << "\n✓ Optimization complete using metis::Opti + Vulcan wind "
                  "infrastructure!\n";
 
     return 0;

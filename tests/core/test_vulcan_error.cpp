@@ -3,8 +3,8 @@
 #include <vulcan/core/VulcanError.hpp>
 #include <vulcan/io/Signal.hpp>
 
-// Assuming janus::JanusError is available and derives from std::exception or
-// similar We will test that we can catch VulcanError as JanusError and
+// Assuming metis::MetisError is available and derives from std::exception or
+// similar We will test that we can catch VulcanError as MetisError and
 // std::runtime_error if applicable
 
 TEST(VulcanErrorTests, InheritanceHierarchy) {

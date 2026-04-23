@@ -149,7 +149,7 @@ TEST(RotationalDynamicsTest, WithAppliedTorque) {
 
 TEST(FrameTransformTest, IdentityQuaternion) {
     Vec3<double> v_body{1.0, 2.0, 3.0};
-    janus::Quaternion<double> q; // Default constructor is identity
+    metis::Quaternion<double> q; // Default constructor is identity
 
     auto v_ref = velocity_to_reference_frame(v_body, q);
     auto v_back = velocity_to_body_frame(v_ref, q);
@@ -167,7 +167,7 @@ TEST(FrameTransformTest, Rotation90DegreesZ) {
     // Body X becomes Reference Y
     Vec3<double> v_body{1.0, 0.0, 0.0};
     double angle = M_PI / 2.0;
-    auto q = janus::Quaternion<double>(std::cos(angle / 2), 0.0, 0.0,
+    auto q = metis::Quaternion<double>(std::cos(angle / 2), 0.0, 0.0,
                                        std::sin(angle / 2));
 
     auto v_ref = velocity_to_reference_frame(v_body, q);
@@ -181,7 +181,7 @@ TEST(FrameTransformTest, RoundTrip) {
     // Random rotation and velocity
     Vec3<double> v_body{1.0, 2.0, 3.0};
     auto q =
-        janus::Quaternion<double>(0.5, 0.5, 0.5, 0.5); // 120 deg about (1,1,1)
+        metis::Quaternion<double>(0.5, 0.5, 0.5, 0.5); // 120 deg about (1,1,1)
 
     auto v_ref = velocity_to_reference_frame(v_body, q);
     auto v_back = velocity_to_body_frame(v_ref, q);
@@ -202,7 +202,7 @@ TEST(SixDofDerivativesTest, QuaternionKinematicsConsistency) {
     RigidBodyState<double> state{.position = Vec3<double>::Zero(),
                                  .velocity_body = Vec3<double>::Zero(),
                                  .attitude =
-                                     janus::Quaternion<double>(), // identity
+                                     metis::Quaternion<double>(), // identity
                                  .omega_body = Vec3<double>{0.1, 0.0, 0.0}};
 
     Vec3<double> force{0.0, 0.0, 0.0};
@@ -222,7 +222,7 @@ TEST(SixDofDerivativesTest, PositionDotFromVelocity) {
     RigidBodyState<double> state{.position = Vec3<double>::Zero(),
                                  .velocity_body = Vec3<double>{100.0, 0.0, 0.0},
                                  .attitude =
-                                     janus::Quaternion<double>(), // identity
+                                     metis::Quaternion<double>(), // identity
                                  .omega_body = Vec3<double>::Zero()};
 
     Vec3<double> force{0.0, 0.0, 0.0};
@@ -275,22 +275,22 @@ TEST(EcefDynamicsTest, CoriolisAndCentrifugal) {
 }
 
 // =============================================================================
-// Symbolic Tests with janus::Function Evaluation
+// Symbolic Tests with metis::Function Evaluation
 // =============================================================================
 
 TEST(RigidBodySymbolicTest, TranslationalDynamicsFunction) {
     using MX = casadi::MX;
 
-    auto vx = janus::sym("vx");
-    auto vy = janus::sym("vy");
-    auto vz = janus::sym("vz");
-    auto wx = janus::sym("wx");
-    auto wy = janus::sym("wy");
-    auto wz = janus::sym("wz");
-    auto Fx = janus::sym("Fx");
-    auto Fy = janus::sym("Fy");
-    auto Fz = janus::sym("Fz");
-    auto m = janus::sym("m");
+    auto vx = metis::sym("vx");
+    auto vy = metis::sym("vy");
+    auto vz = metis::sym("vz");
+    auto wx = metis::sym("wx");
+    auto wy = metis::sym("wy");
+    auto wz = metis::sym("wz");
+    auto Fx = metis::sym("Fx");
+    auto Fy = metis::sym("Fy");
+    auto Fz = metis::sym("Fz");
+    auto m = metis::sym("m");
 
     Vec3<MX> v{vx, vy, vz};
     Vec3<MX> omega{wx, wy, wz};
@@ -298,7 +298,7 @@ TEST(RigidBodySymbolicTest, TranslationalDynamicsFunction) {
 
     auto v_dot = translational_dynamics(v, omega, force, m);
 
-    janus::Function f("trans_dyn", {vx, vy, vz, wx, wy, wz, Fx, Fy, Fz, m},
+    metis::Function f("trans_dyn", {vx, vy, vz, wx, wy, wz, Fx, Fy, Fz, m},
                       {v_dot(0), v_dot(1), v_dot(2)});
 
     // Test case: v=(10,0,0), ω=(0,0,0.1), F=(0,0,0), m=1
@@ -318,15 +318,15 @@ TEST(RigidBodySymbolicTest, TranslationalDynamicsFunction) {
 TEST(RigidBodySymbolicTest, RotationalDynamicsFunction) {
     using MX = casadi::MX;
 
-    auto wx = janus::sym("wx");
-    auto wy = janus::sym("wy");
-    auto wz = janus::sym("wz");
-    auto Mx = janus::sym("Mx");
-    auto My = janus::sym("My");
-    auto Mz = janus::sym("Mz");
-    auto Ixx = janus::sym("Ixx");
-    auto Iyy = janus::sym("Iyy");
-    auto Izz = janus::sym("Izz");
+    auto wx = metis::sym("wx");
+    auto wy = metis::sym("wy");
+    auto wz = metis::sym("wz");
+    auto Mx = metis::sym("Mx");
+    auto My = metis::sym("My");
+    auto Mz = metis::sym("Mz");
+    auto Ixx = metis::sym("Ixx");
+    auto Iyy = metis::sym("Iyy");
+    auto Izz = metis::sym("Izz");
 
     Vec3<MX> omega{wx, wy, wz};
     Vec3<MX> moment{Mx, My, Mz};
@@ -337,7 +337,7 @@ TEST(RigidBodySymbolicTest, RotationalDynamicsFunction) {
 
     auto omega_dot = rotational_dynamics(omega, moment, I);
 
-    janus::Function f("rot_dyn", {wx, wy, wz, Mx, My, Mz, Ixx, Iyy, Izz},
+    metis::Function f("rot_dyn", {wx, wy, wz, Mx, My, Mz, Ixx, Iyy, Izz},
                       {omega_dot(0), omega_dot(1), omega_dot(2)});
 
     // Test case: ω=(1,2,3), M=(0,0,0), I=(2,3,4)
@@ -360,17 +360,17 @@ TEST(RigidBodySymbolicTest, RotationalDynamicsFunction) {
 TEST(RigidBodySymbolicTest, EcefDynamicsFunction) {
     using MX = casadi::MX;
 
-    auto rx = janus::sym("rx");
-    auto ry = janus::sym("ry");
-    auto rz = janus::sym("rz");
-    auto vx = janus::sym("vx");
-    auto vy = janus::sym("vy");
-    auto vz = janus::sym("vz");
-    auto Fx = janus::sym("Fx");
-    auto Fy = janus::sym("Fy");
-    auto Fz = janus::sym("Fz");
-    auto m = janus::sym("m");
-    auto we = janus::sym("we");
+    auto rx = metis::sym("rx");
+    auto ry = metis::sym("ry");
+    auto rz = metis::sym("rz");
+    auto vx = metis::sym("vx");
+    auto vy = metis::sym("vy");
+    auto vz = metis::sym("vz");
+    auto Fx = metis::sym("Fx");
+    auto Fy = metis::sym("Fy");
+    auto Fz = metis::sym("Fz");
+    auto m = metis::sym("m");
+    auto we = metis::sym("we");
 
     Vec3<MX> pos{rx, ry, rz};
     Vec3<MX> vel{vx, vy, vz};
@@ -379,7 +379,7 @@ TEST(RigidBodySymbolicTest, EcefDynamicsFunction) {
 
     auto a = translational_dynamics_ecef(pos, vel, force, m, omega_earth);
 
-    janus::Function f("ecef_dyn", {rx, ry, rz, vx, vy, vz, Fx, Fy, Fz, m, we},
+    metis::Function f("ecef_dyn", {rx, ry, rz, vx, vy, vz, Fx, Fy, Fz, m, we},
                       {a(0), a(1), a(2)});
 
     // Test case at equator

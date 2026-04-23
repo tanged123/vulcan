@@ -2,7 +2,7 @@
 
 ## 1. Project Mission
 
-**Vulcan** is an aerospace engineering utilities library built on the [Janus](https://github.com/tanged123/janus) framework. Named after the Roman god of fire and forge, Vulcan provides model-agnostic simulation utilities that work seamlessly in both numeric and symbolic computational modes.
+**Vulcan** is an aerospace engineering utilities library built on the [Metis](https://github.com/tanged123/metis) framework. Named after the Roman god of fire and forge, Vulcan provides model-agnostic simulation utilities that work seamlessly in both numeric and symbolic computational modes.
 
 ### Core Capabilities
 
@@ -21,9 +21,9 @@
 - **Unit Conversions**: SI, imperial, angular
 - **Physical Constants**: Consolidated library (WGS84, Earth parameters)
 
-### Key Design Principle: Janus Compatibility
+### Key Design Principle: Metis Compatibility
 
-All Vulcan utilities are **templated on a generic `Scalar` type** to maintain compatibility with Janus's dual-backend system:
+All Vulcan utilities are **templated on a generic `Scalar` type** to maintain compatibility with Metis's dual-backend system:
 
 | Mode | Scalar Type | Purpose |
 |------|-------------|---------|
@@ -71,11 +71,11 @@ Vulcan adheres to a strict **State-Free** architecture. It is NOT a simulation e
 
 ## 3. The "Red Line" Rules
 
-These constraints ensure Janus compatibility:
+These constraints ensure Metis compatibility:
 
 1. **Template-First Design**: All models templated on `Scalar`
-2. **Math Dispatch**: Use `janus::` namespace (`janus::sin`, `janus::pow`)
-3. **Branching**: Use `janus::where()`, never `if/else` on Scalars
+2. **Math Dispatch**: Use `metis::` namespace (`metis::sin`, `metis::pow`)
+3. **Branching**: Use `metis::where()`, never `if/else` on Scalars
 4. **Loop Bounds**: Must be structural (compile-time constants)
 
 ---

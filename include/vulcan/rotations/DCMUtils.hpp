@@ -5,11 +5,11 @@
 
 #include <vulcan/core/VulcanTypes.hpp>
 
-#include <janus/math/Arithmetic.hpp>
-#include <janus/math/Linalg.hpp>
-#include <janus/math/Logic.hpp>
-#include <janus/math/Rotations.hpp>
-#include <janus/math/Trig.hpp>
+#include <metis/math/Arithmetic.hpp>
+#include <metis/math/Linalg.hpp>
+#include <metis/math/Logic.hpp>
+#include <metis/math/Rotations.hpp>
+#include <metis/math/Trig.hpp>
 
 namespace vulcan {
 
@@ -138,7 +138,7 @@ Vec3<Scalar> small_angle_from_dcm(const Mat3<Scalar> &R) {
 // DCM Validation
 // =============================================================================
 
-/// Check if matrix is a valid rotation matrix (re-export from Janus)
+/// Check if matrix is a valid rotation matrix (re-export from Metis)
 ///
 /// Verifies:
 /// - Determinant ≈ +1
@@ -150,14 +150,14 @@ Vec3<Scalar> small_angle_from_dcm(const Mat3<Scalar> &R) {
 /// @return True if valid rotation matrix
 template <typename Derived>
 auto is_valid_dcm(const Eigen::MatrixBase<Derived> &R, double tol = 1e-9) {
-    return janus::is_valid_rotation_matrix(R, tol);
+    return metis::is_valid_rotation_matrix(R, tol);
 }
 
 // =============================================================================
 // DCM from Principal Axis
 // =============================================================================
 
-/// Create DCM for rotation about a principal axis (re-export from Janus)
+/// Create DCM for rotation about a principal axis (re-export from Metis)
 ///
 /// @tparam Scalar Scalar type
 /// @param theta Rotation angle [rad]
@@ -165,7 +165,7 @@ auto is_valid_dcm(const Eigen::MatrixBase<Derived> &R, double tol = 1e-9) {
 /// @return 3x3 rotation matrix
 template <typename Scalar>
 Mat3<Scalar> dcm_principal_axis(Scalar theta, int axis) {
-    return janus::rotation_matrix_3d(theta, axis);
+    return metis::rotation_matrix_3d(theta, axis);
 }
 
 } // namespace vulcan

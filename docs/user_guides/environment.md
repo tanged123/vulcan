@@ -131,14 +131,14 @@ auto B_ned = magnetic::field_ned(45.0 * deg2rad, 0.0, 0.0);
 
 ## Symbolic Mode
 
-All environment functions work with Janus symbolic types for automatic differentiation:
+All environment functions work with Metis symbolic types for automatic differentiation:
 
 ```cpp
-auto jd = janus::sym("jd");
+auto jd = metis::sym("jd");
 auto dec = solar::declination(jd);
-auto ddec_djd = janus::jacobian(dec, jd);  // Rate of change
+auto ddec_djd = metis::jacobian(dec, jd);  // Rate of change
 
-janus::Function f("dec_rate", {jd}, {ddec_djd});
+metis::Function f("dec_rate", {jd}, {ddec_djd});
 auto result = f({2451545.0});  // Evaluate at J2000
 ```
 
@@ -147,15 +147,15 @@ auto result = f({2451545.0});  // Evaluate at J2000
 Use shadow function in trajectory optimization:
 
 ```cpp
-auto x = janus::sym("x");
-auto y = janus::sym("y");
-auto z = janus::sym("z");
+auto x = metis::sym("x");
+auto y = metis::sym("y");
+auto z = metis::sym("z");
 
-Vec3<janus::SymbolicScalar> r_sat, r_sun;
+Vec3<metis::SymbolicScalar> r_sat, r_sun;
 r_sat << x, y, z;
-r_sun << janus::SymbolicScalar(1.5e11), 
-         janus::SymbolicScalar(0.0), 
-         janus::SymbolicScalar(0.0);
+r_sun << metis::SymbolicScalar(1.5e11), 
+         metis::SymbolicScalar(0.0), 
+         metis::SymbolicScalar(0.0);
 
 auto nu = eclipse::shadow_cylindrical(r_sat, r_sun);
 

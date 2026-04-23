@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/gravity/PointMass.hpp>
 
@@ -16,7 +16,7 @@ TEST(PointMassGravity, SurfaceGravity) {
     r_surface << constants::earth::R_eq, 0.0, 0.0;
 
     auto g = point_mass::acceleration(r_surface);
-    double g_mag = janus::norm(g);
+    double g_mag = metis::norm(g);
 
     EXPECT_NEAR(g_mag, 9.8, 0.1); // ~9.8 m/s² at surface
 }
@@ -42,8 +42,8 @@ TEST(PointMassGravity, InverseSquareLaw) {
     auto g1 = point_mass::acceleration(r1);
     auto g2 = point_mass::acceleration(r2);
 
-    double g1_mag = janus::norm(g1);
-    double g2_mag = janus::norm(g2);
+    double g1_mag = metis::norm(g1);
+    double g2_mag = metis::norm(g2);
 
     EXPECT_NEAR(g1_mag / g2_mag, 4.0, 1e-10);
 }
@@ -54,7 +54,7 @@ TEST(PointMassGravity, LEOGravity) {
     r << constants::earth::R_eq + 400000.0, 0.0, 0.0;
 
     auto g = point_mass::acceleration(r);
-    EXPECT_NEAR(janus::norm(g), 8.7, 0.1);
+    EXPECT_NEAR(metis::norm(g), 8.7, 0.1);
 }
 
 TEST(PointMassGravity, GEOGravity) {
@@ -63,7 +63,7 @@ TEST(PointMassGravity, GEOGravity) {
     r << constants::earth::R_eq + 35786000.0, 0.0, 0.0;
 
     auto g = point_mass::acceleration(r);
-    EXPECT_NEAR(janus::norm(g), 0.224, 0.01);
+    EXPECT_NEAR(metis::norm(g), 0.224, 0.01);
 }
 
 TEST(PointMassGravity, Potential) {
@@ -89,17 +89,17 @@ TEST(PointMassGravity, AccelerationMagnitude) {
 // ============================================
 
 TEST(PointMassGravity, SymbolicEvaluation) {
-    auto x = janus::sym("x");
-    auto y = janus::sym("y");
-    auto z = janus::sym("z");
+    auto x = metis::sym("x");
+    auto y = metis::sym("y");
+    auto z = metis::sym("z");
 
-    Vec3<janus::SymbolicScalar> r;
+    Vec3<metis::SymbolicScalar> r;
     r << x, y, z;
 
     auto g = point_mass::acceleration(r);
 
     // Create function to evaluate
-    janus::Function f("point_mass_accel", {x, y, z}, {g(0), g(1), g(2)});
+    metis::Function f("point_mass_accel", {x, y, z}, {g(0), g(1), g(2)});
 
     // Evaluate at Earth's equatorial surface
     double R = constants::earth::R_eq;
@@ -112,11 +112,11 @@ TEST(PointMassGravity, SymbolicEvaluation) {
 }
 
 TEST(PointMassGravity, SymbolicMatchesNumeric) {
-    auto x = janus::sym("x");
-    auto y = janus::sym("y");
-    auto z = janus::sym("z");
+    auto x = metis::sym("x");
+    auto y = metis::sym("y");
+    auto z = metis::sym("z");
 
-    Vec3<janus::SymbolicScalar> r_sym;
+    Vec3<metis::SymbolicScalar> r_sym;
     r_sym << x, y, z;
 
     Vec3<double> r_num;
@@ -125,7 +125,7 @@ TEST(PointMassGravity, SymbolicMatchesNumeric) {
     auto g_sym = point_mass::acceleration(r_sym);
     auto g_num = point_mass::acceleration(r_num);
 
-    janus::Function f("pm_accel", {x, y, z}, {g_sym(0), g_sym(1), g_sym(2)});
+    metis::Function f("pm_accel", {x, y, z}, {g_sym(0), g_sym(1), g_sym(2)});
     auto result = f({r_num(0), r_num(1), r_num(2)});
 
     EXPECT_NEAR(result[0](0, 0), g_num(0), 1e-10);
@@ -134,16 +134,16 @@ TEST(PointMassGravity, SymbolicMatchesNumeric) {
 }
 
 TEST(PointMassGravity, SymbolicPotential) {
-    auto x = janus::sym("x");
-    auto y = janus::sym("y");
-    auto z = janus::sym("z");
+    auto x = metis::sym("x");
+    auto y = metis::sym("y");
+    auto z = metis::sym("z");
 
-    Vec3<janus::SymbolicScalar> r;
+    Vec3<metis::SymbolicScalar> r;
     r << x, y, z;
 
     auto U = point_mass::potential(r);
 
-    janus::Function f("pm_potential", {x, y, z}, {U});
+    metis::Function f("pm_potential", {x, y, z}, {U});
 
     Vec3<double> r_num;
     r_num << 7000000.0, 1000000.0, 500000.0;

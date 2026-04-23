@@ -1,6 +1,6 @@
 # Vulcan Comprehensive Demo Guide
 
-This guide details the comprehensive engineering examples included in `examples/comprehensive/`. These demos showcase how to combine Vulcan's modules (Dynamics, Aerodynamics, Orbital, Propulsion) with Janus's dual-mode numeric/symbolic architecture to solve complex aerospace problems.
+This guide details the comprehensive engineering examples included in `examples/comprehensive/`. These demos showcase how to combine Vulcan's modules (Dynamics, Aerodynamics, Orbital, Propulsion) with Metis's dual-mode numeric/symbolic architecture to solve complex aerospace problems.
 
 ## Overview of Demos
 

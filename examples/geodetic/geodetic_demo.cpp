@@ -144,7 +144,7 @@ int main() {
     // =========================================================================
     std::cout << "--- Symbolic Mode Demo ---\n";
 
-    // Create symbolic variables using Janus types
+    // Create symbolic variables using Metis types
     SymbolicScalar lat_sym = sym("lat");
     SymbolicScalar lon_sym = sym("lon");
     SymbolicScalar alt_sym = sym("alt");
@@ -154,8 +154,8 @@ int main() {
     // Compute horizon distance symbolically
     auto horizon_sym = horizon_distance(alt_sym);
 
-    // Build Janus Function for horizon distance
-    janus::Function horizon_fn("horizon_distance", {alt_sym}, {horizon_sym});
+    // Build Metis Function for horizon distance
+    metis::Function horizon_fn("horizon_distance", {alt_sym}, {horizon_sym});
 
     // Evaluate at 10 km
     auto result = horizon_fn({10000.0});
@@ -168,7 +168,7 @@ int main() {
     LLA<SymbolicScalar> pos2_sym(lon2_sym, lat2_sym, SymbolicScalar(0.0));
 
     auto bearing_result = initial_bearing(pos_sym, pos2_sym);
-    janus::Function bearing_fn("initial_bearing",
+    metis::Function bearing_fn("initial_bearing",
                                {lon_sym, lat_sym, lon2_sym, lat2_sym},
                                {bearing_result});
 
@@ -183,7 +183,7 @@ int main() {
 
     // Generate graph visualization
     std::cout << "  Generating computation graph...\n";
-    janus::visualize_graph(horizon_sym, "horizon_distance_graph");
+    metis::visualize_graph(horizon_sym, "horizon_distance_graph");
     std::cout << "  Graph saved to 'horizon_distance_graph.dot'\n";
 
     std::cout << "\n=== Demo Complete ===\n";

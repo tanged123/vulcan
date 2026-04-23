@@ -5,10 +5,10 @@
 #include <vulcan/coordinates/EarthModel.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 
-#include <janus/math/Linalg.hpp>
-#include <janus/math/Quaternion.hpp>
-#include <janus/math/Rotations.hpp>
-#include <janus/math/Trig.hpp>
+#include <metis/math/Linalg.hpp>
+#include <metis/math/Quaternion.hpp>
+#include <metis/math/Rotations.hpp>
+#include <metis/math/Trig.hpp>
 
 namespace vulcan {
 
@@ -39,7 +39,7 @@ namespace vulcan {
 ///   Vec3<double> v_eci = eci.from_ecef(v_ecef);
 /// @endcode
 ///
-/// @tparam Scalar Scalar type (double for numeric, janus::SymbolicScalar for
+/// @tparam Scalar Scalar type (double for numeric, metis::SymbolicScalar for
 /// symbolic)
 template <typename Scalar> struct CoordinateFrame {
     Vec3<Scalar> x_axis; ///< Unit X basis vector in ECEF
@@ -74,9 +74,9 @@ template <typename Scalar> struct CoordinateFrame {
     /// @return Vector expressed in this frame
     [[nodiscard]] Vec3<Scalar> from_ecef(const Vec3<Scalar> &v) const {
         Vec3<Scalar> result;
-        result(0) = janus::dot(v, x_axis);
-        result(1) = janus::dot(v, y_axis);
-        result(2) = janus::dot(v, z_axis);
+        result(0) = metis::dot(v, x_axis);
+        result(1) = metis::dot(v, y_axis);
+        result(2) = metis::dot(v, z_axis);
         return result;
     }
 
@@ -148,12 +148,12 @@ template <typename Scalar> struct CoordinateFrame {
     /// ECEF coordinates to this frame's coordinates.
     ///
     /// @return Quaternion representing frame orientation
-    [[nodiscard]] janus::Quaternion<Scalar> quaternion() const {
+    [[nodiscard]] metis::Quaternion<Scalar> quaternion() const {
         // The DCM columns are our basis vectors in ECEF
         // DCM = [x_axis | y_axis | z_axis] transforms local -> ECEF
         // We want ECEF -> local, which is DCM transpose
         // Quaternion from rotation matrix expects ECEF -> local convention
-        return janus::Quaternion<Scalar>::from_rotation_matrix(dcm_inverse());
+        return metis::Quaternion<Scalar>::from_rotation_matrix(dcm_inverse());
     }
 
     /// Create frame from quaternion and origin
@@ -165,7 +165,7 @@ template <typename Scalar> struct CoordinateFrame {
     /// @param o Origin in ECEF [m]
     /// @return CoordinateFrame
     static CoordinateFrame
-    from_quaternion(const janus::Quaternion<Scalar> &q,
+    from_quaternion(const metis::Quaternion<Scalar> &q,
                     const Vec3<Scalar> &o = Vec3<Scalar>::Zero()) {
         // q.to_rotation_matrix() gives R such that v_local = R * v_ecef
         // We need basis vectors in ECEF, so we take R^T columns
@@ -244,8 +244,8 @@ template <typename Scalar> struct CoordinateFrame {
         // ECI is ECEF rotated by -gmst about Z
         // ECI X-axis points to vernal equinox, which is at angle -gmst from
         // Greenwich
-        Scalar c = janus::cos(gmst);
-        Scalar s = janus::sin(gmst);
+        Scalar c = metis::cos(gmst);
+        Scalar s = metis::sin(gmst);
 
         Vec3<Scalar> x_eci, y_eci, z_eci;
         x_eci << c, -s, Scalar(0);
@@ -267,10 +267,10 @@ template <typename Scalar> struct CoordinateFrame {
     /// @param lat Geodetic latitude [rad]
     /// @return NED frame expressed in ECEF
     static CoordinateFrame ned(Scalar lon, Scalar lat) {
-        Scalar sin_lat = janus::sin(lat);
-        Scalar cos_lat = janus::cos(lat);
-        Scalar sin_lon = janus::sin(lon);
-        Scalar cos_lon = janus::cos(lon);
+        Scalar sin_lat = metis::sin(lat);
+        Scalar cos_lat = metis::cos(lat);
+        Scalar sin_lon = metis::sin(lon);
+        Scalar cos_lon = metis::cos(lon);
 
         // North: -sin(lat)*cos(lon), -sin(lat)*sin(lon), cos(lat)
         Vec3<Scalar> north;
@@ -299,10 +299,10 @@ template <typename Scalar> struct CoordinateFrame {
     /// @param lat Geodetic latitude [rad]
     /// @return ENU frame expressed in ECEF
     static CoordinateFrame enu(Scalar lon, Scalar lat) {
-        Scalar sin_lat = janus::sin(lat);
-        Scalar cos_lat = janus::cos(lat);
-        Scalar sin_lon = janus::sin(lon);
-        Scalar cos_lon = janus::cos(lon);
+        Scalar sin_lat = metis::sin(lat);
+        Scalar cos_lat = metis::cos(lat);
+        Scalar sin_lon = metis::sin(lon);
+        Scalar cos_lon = metis::cos(lon);
 
         // East: -sin(lon), cos(lon), 0
         Vec3<Scalar> east;

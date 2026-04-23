@@ -1,6 +1,6 @@
 # Phase 6: Gravity Models Implementation Plan
 
-> **Purpose**: This document provides a comprehensive implementation plan for robust gravity models in Vulcan, following the established Janus-compatible patterns.
+> **Purpose**: This document provides a comprehensive implementation plan for robust gravity models in Vulcan, following the established Metis-compatible patterns.
 
 ---
 
@@ -102,7 +102,7 @@ The simplest model: spherical Earth with uniform density.
 // include/vulcan/gravity/PointMass.hpp
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 
@@ -121,7 +121,7 @@ namespace vulcan::gravity::point_mass {
 template <typename Scalar>
 Vec3<Scalar> acceleration(const Vec3<Scalar>& r_ecef,
                           double mu = constants::earth::mu) {
-    const Scalar r_mag = janus::norm(r_ecef);
+    const Scalar r_mag = metis::norm(r_ecef);
     const Scalar r_cubed = r_mag * r_mag * r_mag;
 
     // g = -μ/r³ · r
@@ -141,7 +141,7 @@ Vec3<Scalar> acceleration(const Vec3<Scalar>& r_ecef,
 template <typename Scalar>
 Scalar potential(const Vec3<Scalar>& r_ecef,
                  double mu = constants::earth::mu) {
-    const Scalar r_mag = janus::norm(r_ecef);
+    const Scalar r_mag = metis::norm(r_ecef);
     return -mu / r_mag;
 }
 
@@ -179,7 +179,7 @@ a_z = -μz/r³ · [1 - 1.5·J2·(R_eq/r)²·(5(z/r)² - 3)]
 // include/vulcan/gravity/J2.hpp
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 
@@ -208,7 +208,7 @@ Vec3<Scalar> acceleration(const Vec3<Scalar>& r_ecef,
     const Scalar z = r_ecef(2);
 
     const Scalar r2 = x*x + y*y + z*z;
-    const Scalar r = janus::sqrt(r2);
+    const Scalar r = metis::sqrt(r2);
     const Scalar r5 = r2 * r2 * r;
 
     // Precompute common terms
@@ -248,7 +248,7 @@ Scalar potential(const Vec3<Scalar>& r_ecef,
     const Scalar z = r_ecef(2);
 
     const Scalar r2 = x*x + y*y + z*z;
-    const Scalar r = janus::sqrt(r2);
+    const Scalar r = metis::sqrt(r2);
 
     // sin(φ) = z/r (geocentric latitude)
     const Scalar sin_phi = z / r;
@@ -274,7 +274,7 @@ Extends J2 with J3 (pear-shape) and J4 (higher-order oblateness) terms.
 // include/vulcan/gravity/J2J4.hpp
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 
@@ -303,7 +303,7 @@ Vec3<Scalar> acceleration(const Vec3<Scalar>& r_ecef,
     const Scalar z = r_ecef(2);
 
     const Scalar r2 = x*x + y*y + z*z;
-    const Scalar r = janus::sqrt(r2);
+    const Scalar r = metis::sqrt(r2);
     const Scalar r3 = r2 * r;
 
     // Normalized z coordinate
@@ -332,7 +332,7 @@ Vec3<Scalar> acceleration(const Vec3<Scalar>& r_ecef,
     // ============================================
     const Scalar J3_xy = 2.5 * J3 * Re_r3 * (7.0 * z_r3 - 3.0 * z_r);
     const Scalar J3_z = 2.5 * J3 * Re_r3 * (7.0 * z_r3 - 4.5 * z_r -
-                        1.5 * z_r / janus::where(z_r2 > 1e-10, z_r2, Scalar(1e-10)));
+                        1.5 * z_r / metis::where(z_r2 > 1e-10, z_r2, Scalar(1e-10)));
     // Note: The J3 z-term has a special form; we use a simplified version
     // that's valid away from the equatorial plane
     const Scalar J3_z_safe = 2.5 * J3 * Re_r3 * z_r * (7.0 * z_r2 - 3.0);
@@ -372,7 +372,7 @@ Scalar potential(const Vec3<Scalar>& r_ecef,
     const Scalar z = r_ecef(2);
 
     const Scalar r2 = x*x + y*y + z*z;
-    const Scalar r = janus::sqrt(r2);
+    const Scalar r = metis::sqrt(r2);
 
     // sin(φ) = z/r
     const Scalar sin_phi = z / r;
@@ -410,7 +410,7 @@ General expansion for high-fidelity applications.
 // include/vulcan/gravity/SphericalHarmonics.hpp
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 #include <vulcan/coordinates/Geodetic.hpp>
@@ -477,7 +477,7 @@ Scalar legendre_Pnm(int n, int m, const Scalar& x) {
     // P_mm = (-1)^m (2m-1)!! (1-x²)^(m/2)
     Scalar pmm = Scalar(1.0);
     if (m > 0) {
-        Scalar somx2 = janus::sqrt((1.0 - x) * (1.0 + x));
+        Scalar somx2 = metis::sqrt((1.0 - x) * (1.0 + x));
         double fact = 1.0;
         for (int i = 1; i <= m; ++i) {
             pmm = -pmm * fact * somx2;
@@ -525,8 +525,8 @@ Vec3<Scalar> acceleration(const Vec3<Scalar>& r_ecef,
     const Scalar lon = sph.lon;
     const Scalar lat_gc = sph.lat_gc;
 
-    const Scalar sin_lat = janus::sin(lat_gc);
-    const Scalar cos_lat = janus::cos(lat_gc);
+    const Scalar sin_lat = metis::sin(lat_gc);
+    const Scalar cos_lat = metis::cos(lat_gc);
 
     const double mu = coeffs.mu;
     const double R_eq = coeffs.R_eq;
@@ -540,7 +540,7 @@ Vec3<Scalar> acceleration(const Vec3<Scalar>& r_ecef,
     // Summation over degrees and orders
     // Loop bounds are structural (n_max is int, not Scalar)
     for (int n = 0; n <= n_max; ++n) {
-        const Scalar Re_r_n = janus::pow(R_eq / r, static_cast<double>(n));
+        const Scalar Re_r_n = metis::pow(R_eq / r, static_cast<double>(n));
 
         for (int m = 0; m <= n; ++m) {
             const double C_nm = coeffs.C[n][m];
@@ -549,8 +549,8 @@ Vec3<Scalar> acceleration(const Vec3<Scalar>& r_ecef,
             // Skip zero coefficients for efficiency
             if (C_nm == 0.0 && S_nm == 0.0) continue;
 
-            const Scalar cos_m_lon = janus::cos(static_cast<double>(m) * lon);
-            const Scalar sin_m_lon = janus::sin(static_cast<double>(m) * lon);
+            const Scalar cos_m_lon = metis::cos(static_cast<double>(m) * lon);
+            const Scalar sin_m_lon = metis::sin(static_cast<double>(m) * lon);
 
             const Scalar P_nm = legendre_Pnm(n, m, sin_lat);
 
@@ -558,7 +558,7 @@ Vec3<Scalar> acceleration(const Vec3<Scalar>& r_ecef,
             // dP_nm/dφ = [n tan(φ) P_nm - (n+m) / cos(φ) P_{n-1,m}]
             // (simplified form for numerical stability)
             const Scalar P_nm1 = (n > 0) ? legendre_Pnm(n - 1, m, sin_lat) : Scalar(0.0);
-            const Scalar dP_dlat = static_cast<double>(n) * janus::tan(lat_gc) * P_nm -
+            const Scalar dP_dlat = static_cast<double>(n) * metis::tan(lat_gc) * P_nm -
                                    static_cast<double>(n + m) / cos_lat * P_nm1;
 
             const Scalar trig_term = C_nm * cos_m_lon + S_nm * sin_m_lon;
@@ -579,8 +579,8 @@ Vec3<Scalar> acceleration(const Vec3<Scalar>& r_ecef,
 
     // Convert spherical gradient to ECEF acceleration
     // g = -∇U
-    const Scalar sin_lon = janus::sin(lon);
-    const Scalar cos_lon = janus::cos(lon);
+    const Scalar sin_lon = metis::sin(lon);
+    const Scalar cos_lon = metis::cos(lon);
 
     // Spherical to Cartesian transformation
     const Scalar g_r = -dU_dr;
@@ -610,7 +610,7 @@ Scalar potential(const Vec3<Scalar>& r_ecef,
     const Scalar lon = sph.lon;
     const Scalar lat_gc = sph.lat_gc;
 
-    const Scalar sin_lat = janus::sin(lat_gc);
+    const Scalar sin_lat = metis::sin(lat_gc);
 
     const double mu = coeffs.mu;
     const double R_eq = coeffs.R_eq;
@@ -619,7 +619,7 @@ Scalar potential(const Vec3<Scalar>& r_ecef,
     Scalar U = -mu / r;  // Point mass term
 
     for (int n = 2; n <= n_max; ++n) {
-        const Scalar Re_r_n = janus::pow(R_eq / r, static_cast<double>(n));
+        const Scalar Re_r_n = metis::pow(R_eq / r, static_cast<double>(n));
 
         for (int m = 0; m <= n; ++m) {
             const double C_nm = coeffs.C[n][m];
@@ -627,8 +627,8 @@ Scalar potential(const Vec3<Scalar>& r_ecef,
 
             if (C_nm == 0.0 && S_nm == 0.0) continue;
 
-            const Scalar cos_m_lon = janus::cos(static_cast<double>(m) * lon);
-            const Scalar sin_m_lon = janus::sin(static_cast<double>(m) * lon);
+            const Scalar cos_m_lon = metis::cos(static_cast<double>(m) * lon);
+            const Scalar sin_m_lon = metis::sin(static_cast<double>(m) * lon);
             const Scalar P_nm = legendre_Pnm(n, m, sin_lat);
 
             U -= mu / r * Re_r_n * (C_nm * cos_m_lon + S_nm * sin_m_lon) * P_nm;
@@ -698,7 +698,7 @@ struct GravityState {
 // tests/gravity/test_j2.cpp
 #include <gtest/gtest.h>
 #include <vulcan/gravity/J2.hpp>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 using namespace vulcan;
 using namespace vulcan::gravity;
@@ -716,7 +716,7 @@ TEST(J2Gravity, EquatorialSurface) {
     auto g_pm = point_mass::acceleration(r_eq);
 
     // J2 should reduce equatorial gravity
-    EXPECT_LT(janus::norm(g_j2), janus::norm(g_pm));
+    EXPECT_LT(metis::norm(g_j2), metis::norm(g_pm));
 }
 
 TEST(J2Gravity, PolarSurface) {
@@ -728,7 +728,7 @@ TEST(J2Gravity, PolarSurface) {
     auto g_pm = point_mass::acceleration(r_pole);
 
     // J2 should increase polar gravity
-    EXPECT_GT(janus::norm(g_j2), janus::norm(g_pm));
+    EXPECT_GT(metis::norm(g_j2), metis::norm(g_pm));
 }
 
 TEST(J2Gravity, ReferenceValue_LEO) {
@@ -738,7 +738,7 @@ TEST(J2Gravity, ReferenceValue_LEO) {
     r << constants::earth::R_eq + 400000.0, 0.0, 0.0;
 
     auto g = j2::acceleration(r);
-    double g_mag = janus::norm(g);
+    double g_mag = metis::norm(g);
 
     // Expected ~8.7 m/s² at 400 km
     EXPECT_NEAR(g_mag, 8.7, 0.1);
@@ -749,20 +749,20 @@ TEST(J2Gravity, ReferenceValue_LEO) {
 // ==============================================
 
 TEST(J2Gravity, SymbolicEvaluation) {
-    auto x = janus::sym("x");
-    auto y = janus::sym("y");
-    auto z = janus::sym("z");
+    auto x = metis::sym("x");
+    auto y = metis::sym("y");
+    auto z = metis::sym("z");
 
-    Vec3<janus::SymbolicScalar> r;
+    Vec3<metis::SymbolicScalar> r;
     r << x, y, z;
 
     auto g = j2::acceleration(r);
 
     // Evaluate at specific point
     double R = constants::earth::R_eq;
-    auto g0 = janus::eval(g(0), {{"x", R}, {"y", 0.0}, {"z", 0.0}});
-    auto g1 = janus::eval(g(1), {{"x", R}, {"y", 0.0}, {"z", 0.0}});
-    auto g2 = janus::eval(g(2), {{"x", R}, {"y", 0.0}, {"z", 0.0}});
+    auto g0 = metis::eval(g(0), {{"x", R}, {"y", 0.0}, {"z", 0.0}});
+    auto g1 = metis::eval(g(1), {{"x", R}, {"y", 0.0}, {"z", 0.0}});
+    auto g2 = metis::eval(g(2), {{"x", R}, {"y", 0.0}, {"z", 0.0}});
 
     // Should point toward Earth center
     EXPECT_LT(g0, 0.0);
@@ -771,20 +771,20 @@ TEST(J2Gravity, SymbolicEvaluation) {
 }
 
 TEST(J2Gravity, SymbolicGradient) {
-    auto x = janus::sym("x");
-    auto y = janus::sym("y");
-    auto z = janus::sym("z");
+    auto x = metis::sym("x");
+    auto y = metis::sym("y");
+    auto z = metis::sym("z");
 
-    Vec3<janus::SymbolicScalar> r;
+    Vec3<metis::SymbolicScalar> r;
     r << x, y, z;
 
     // Potential
     auto U = j2::potential(r);
 
     // Compute gradient symbolically
-    auto dU_dx = janus::jacobian(U, x);
-    auto dU_dy = janus::jacobian(U, y);
-    auto dU_dz = janus::jacobian(U, z);
+    auto dU_dx = metis::jacobian(U, x);
+    auto dU_dy = metis::jacobian(U, y);
+    auto dU_dz = metis::jacobian(U, z);
 
     // Acceleration from gradient: g = -∇U
     // Compare with direct acceleration computation
@@ -795,8 +795,8 @@ TEST(J2Gravity, SymbolicGradient) {
     double test_x = R, test_y = 0.0, test_z = R * 0.1;  // Slight inclination
     std::map<std::string, double> vals = {{"x", test_x}, {"y", test_y}, {"z", test_z}};
 
-    double grad_x = -janus::eval(dU_dx, vals);
-    double accel_x = janus::eval(g(0), vals);
+    double grad_x = -metis::eval(dU_dx, vals);
+    double accel_x = metis::eval(g(0), vals);
 
     EXPECT_NEAR(grad_x, accel_x, 1e-6);
 }
@@ -949,4 +949,4 @@ From `vulcan/core/Constants.hpp`:
 
 ---
 
-This implementation plan should provide all context needed to implement robust, Janus-compatible gravity models for Vulcan.
+This implementation plan should provide all context needed to implement robust, Metis-compatible gravity models for Vulcan.

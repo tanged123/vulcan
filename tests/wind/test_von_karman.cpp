@@ -2,7 +2,7 @@
 // Tests PSD functions, filter coefficients, filter stepping, and comparison
 // with Dryden
 #include <gtest/gtest.h>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/wind/DrydenTurbulence.hpp>
 #include <vulcan/wind/VonKarmanTurbulence.hpp>
 
@@ -272,12 +272,12 @@ TEST(VonKarmanVsDryden, BothProduceValidOutput) {
 // ============================================================================
 
 TEST(VonKarmanPSD, SymbolicEvaluation) {
-    auto omega = janus::sym("omega");
+    auto omega = metis::sym("omega");
     auto psd = vulcan::von_karman::psd_longitudinal(omega, 2.0, 100.0);
 
     EXPECT_FALSE(psd.is_constant());
 
-    janus::Function f("psd_vk", {omega}, {psd});
+    metis::Function f("psd_vk", {omega}, {psd});
 
     // At Ω=0
     auto result = f({0.0});
@@ -286,17 +286,17 @@ TEST(VonKarmanPSD, SymbolicEvaluation) {
 }
 
 TEST(VonKarmanFilter, SymbolicStep) {
-    auto nu = janus::sym("noise_u");
-    auto nv = janus::sym("noise_v");
-    auto nw = janus::sym("noise_w");
+    auto nu = metis::sym("noise_u");
+    auto nv = metis::sym("noise_v");
+    auto nw = metis::sym("noise_w");
 
-    auto state = vulcan::von_karman::init_state<janus::SymbolicScalar>();
+    auto state = vulcan::von_karman::init_state<metis::SymbolicScalar>();
     for (auto &s : state.x_u)
-        s = janus::sym("x");
+        s = metis::sym("x");
     for (auto &s : state.x_v)
-        s = janus::sym("x");
+        s = metis::sym("x");
     for (auto &s : state.x_w)
-        s = janus::sym("x");
+        s = metis::sym("x");
 
     auto coeffs = vulcan::von_karman::mil_spec_coeffs(
         200.0, vulcan::wind::TurbulenceSeverity::Light, 50.0, 0.01);
@@ -309,12 +309,12 @@ TEST(VonKarmanFilter, SymbolicStep) {
 }
 
 TEST(VonKarmanPSD, SymbolicGradient) {
-    auto omega = janus::sym("omega");
+    auto omega = metis::sym("omega");
     auto psd = vulcan::von_karman::psd_longitudinal(omega, 2.0, 100.0);
 
-    auto dpsd = janus::jacobian(psd, omega);
+    auto dpsd = metis::jacobian(psd, omega);
 
-    janus::Function f("dpsd_vk", {omega}, {dpsd});
+    metis::Function f("dpsd_vk", {omega}, {dpsd});
 
     // Gradient should be negative at positive frequencies
     auto result = f({0.01});

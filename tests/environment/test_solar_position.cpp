@@ -3,7 +3,7 @@
 
 #include <cmath>
 #include <gtest/gtest.h>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/environment/SolarPosition.hpp>
 #include <vulcan/time/JulianDate.hpp>
@@ -114,14 +114,14 @@ TEST(SolarPosition, UnitVectorMagnitude) {
 // =============================================================================
 
 TEST(SolarPosition, SymbolicEvaluation) {
-    auto jd = janus::sym("jd");
+    auto jd = metis::sym("jd");
 
     // Should be able to create symbolic expressions
     auto pos = solar::position_eci(jd);
     auto dist = solar::distance(jd);
 
     // Create function for evaluation
-    janus::Function f("solar_pos", {jd}, {pos(0), pos(1), pos(2), dist});
+    metis::Function f("solar_pos", {jd}, {pos(0), pos(1), pos(2), dist});
 
     // Evaluate at J2000
     double jd_val = vulcan::time::calendar_to_jd(2000, 1, 1, 12, 0, 0.0);
@@ -140,15 +140,15 @@ TEST(SolarPosition, SymbolicEvaluation) {
 }
 
 TEST(SolarPosition, SymbolicGradient) {
-    auto jd = janus::sym("jd");
+    auto jd = metis::sym("jd");
 
     auto dec = solar::declination(jd);
 
     // Compute derivative of declination w.r.t. Julian date
-    auto ddec_djd = janus::jacobian(dec, jd);
+    auto ddec_djd = metis::jacobian(dec, jd);
 
     // Create function for evaluation
-    janus::Function f("dec_gradient", {jd}, {ddec_djd});
+    metis::Function f("dec_gradient", {jd}, {ddec_djd});
 
     // Evaluate at J2000
     double jd_val = vulcan::time::calendar_to_jd(2000, 1, 1, 12, 0, 0.0);

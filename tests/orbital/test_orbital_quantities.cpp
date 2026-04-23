@@ -82,21 +82,21 @@ TEST(OrbitalQuantities, MeanMotion) {
 
 // Test symbolic compatibility
 TEST(OrbitalQuantities, SymbolicPeriod) {
-    auto a = janus::sym("a");
+    auto a = metis::sym("a");
     auto T = period(a);
 
-    janus::Function f("period", {a}, {T});
+    metis::Function f("period", {a}, {T});
     auto result = f({7000.0e3});
 
     EXPECT_GT(result[0](0, 0), 0.0);
 }
 
 TEST(OrbitalQuantities, SymbolicVelocity) {
-    auto r = janus::sym("r");
-    auto a = janus::sym("a");
+    auto r = metis::sym("r");
+    auto a = metis::sym("a");
     auto v = velocity(r, a);
 
-    janus::Function f("velocity", {r, a}, {v});
+    metis::Function f("velocity", {r, a}, {v});
     auto result = f({6678.0e3, 7000.0e3});
 
     EXPECT_GT(result[0](0, 0), 0.0);

@@ -373,10 +373,10 @@ cd build && ctest -R mass_properties -V
 TEST(MassPropertiesSymbolic, Aggregation) {
     using MX = casadi::MX;
     
-    auto m1 = janus::sym("m1");
-    auto m2 = janus::sym("m2");
-    auto x1 = janus::sym("x1");
-    auto x2 = janus::sym("x2");
+    auto m1 = metis::sym("m1");
+    auto m2 = metis::sym("m2");
+    auto x1 = metis::sym("x1");
+    auto x2 = metis::sym("x2");
     
     auto mp1 = vulcan::dynamics::MassProperties<MX>::point_mass(
         m1, Vec3<MX>{x1, MX(0), MX(0)});
@@ -386,7 +386,7 @@ TEST(MassPropertiesSymbolic, Aggregation) {
     auto combined = mp1 + mp2;
     
     // Build a function and evaluate
-    janus::Function f("aggregate", {m1, m2, x1, x2}, 
+    metis::Function f("aggregate", {m1, m2, x1, x2}, 
                       {combined.mass, combined.cg(0)});
     
     auto result = f({1.0, 1.0, 0.0, 2.0});

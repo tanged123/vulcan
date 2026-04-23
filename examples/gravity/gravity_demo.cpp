@@ -3,7 +3,7 @@
 // visualization
 #include <vulcan/gravity/Gravity.hpp>
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 #include <iomanip>
 #include <iostream>
@@ -18,7 +18,7 @@ void print_vec3(const std::string &name, const Vec3<Scalar> &v,
                 const std::string &units = "m/s²") {
     std::cout << name << ": [" << std::fixed << std::setprecision(6) << v(0)
               << ", " << v(1) << ", " << v(2) << "] " << units << "\n";
-    std::cout << "  Magnitude: " << janus::norm(v) << " " << units << "\n";
+    std::cout << "  Magnitude: " << metis::norm(v) << " " << units << "\n";
 }
 
 int main() {
@@ -39,11 +39,11 @@ int main() {
         // Verify inverse-square law
         double g_surface =
             point_mass::acceleration_magnitude(constants::earth::R_eq);
-        double g_iss = point_mass::acceleration_magnitude(janus::norm(r_iss));
+        double g_iss = point_mass::acceleration_magnitude(metis::norm(r_iss));
         std::cout << "Surface gravity: " << g_surface << " m/s²\n";
         std::cout << "ISS gravity: " << g_iss << " m/s²\n";
         std::cout << "Ratio (r_iss/R_eq)²: "
-                  << std::pow(janus::norm(r_iss) / constants::earth::R_eq, 2)
+                  << std::pow(metis::norm(r_iss) / constants::earth::R_eq, 2)
                   << "\n";
         std::cout << "Ratio g_surface/g_iss: " << g_surface / g_iss << "\n\n";
     }
@@ -67,7 +67,7 @@ int main() {
         print_vec3("Pole 500km (J2)", g_pole);
 
         std::cout << "\nJ2 effect: Polar gravity is "
-                  << (janus::norm(g_pole) / janus::norm(g_eq) - 1.0) * 100.0
+                  << (metis::norm(g_pole) / metis::norm(g_eq) - 1.0) * 100.0
                   << "% stronger than equatorial\n\n";
     }
 
@@ -91,9 +91,9 @@ int main() {
         // Show perturbation magnitudes
         Vec3<double> delta_j2 = g_j2 - g_pm;
         Vec3<double> delta_j2j4 = g_j2j4 - g_j2;
-        std::cout << "\nJ2 perturbation: " << janus::norm(delta_j2) * 1000.0
+        std::cout << "\nJ2 perturbation: " << metis::norm(delta_j2) * 1000.0
                   << " mm/s²\n";
-        std::cout << "J3+J4 perturbation: " << janus::norm(delta_j2j4) * 1000.0
+        std::cout << "J3+J4 perturbation: " << metis::norm(delta_j2j4) * 1000.0
                   << " mm/s²\n\n";
     }
 
@@ -113,7 +113,7 @@ int main() {
         print_vec3("J2-J4 (for comparison)", g_j2j4);
 
         Vec3<double> diff = g_sh - g_j2j4;
-        std::cout << "Difference: " << janus::norm(diff) * 1e6 << " μm/s²\n\n";
+        std::cout << "Difference: " << metis::norm(diff) * 1e6 << " μm/s²\n\n";
     }
 
     // =========================================================================
@@ -141,11 +141,11 @@ int main() {
     // =========================================================================
     std::cout << "--- 6. Symbolic Computation ---\n";
     {
-        using Scalar = janus::SymbolicScalar;
+        using Scalar = metis::SymbolicScalar;
 
-        Scalar x = janus::sym("x");
-        Scalar y = janus::sym("y");
-        Scalar z = janus::sym("z");
+        Scalar x = metis::sym("x");
+        Scalar y = metis::sym("y");
+        Scalar z = metis::sym("z");
 
         Vec3<Scalar> r;
         r << x, y, z;
@@ -159,7 +159,7 @@ int main() {
         std::cout << "g_z has " << casadi::MX::n_nodes(g(2)) << " nodes\n";
 
         // Create CasADi function for numerical evaluation
-        janus::Function f("j2_gravity", {x, y, z}, {g(0), g(1), g(2)});
+        metis::Function f("j2_gravity", {x, y, z}, {g(0), g(1), g(2)});
 
         // Evaluate at specific position
         double test_x = 7000000.0, test_y = 500000.0, test_z = 1000000.0;
@@ -181,27 +181,27 @@ int main() {
     // =========================================================================
     std::cout << "--- 7. Graph Visualization ---\n";
     {
-        using Scalar = janus::SymbolicScalar;
+        using Scalar = metis::SymbolicScalar;
 
-        Scalar x = janus::sym("x");
-        Scalar y = janus::sym("y");
-        Scalar z = janus::sym("z");
+        Scalar x = metis::sym("x");
+        Scalar y = metis::sym("y");
+        Scalar z = metis::sym("z");
 
         Vec3<Scalar> r;
         r << x, y, z;
 
         // Point mass - simple expression
         auto g_pm = point_mass::acceleration(r);
-        janus::export_graph_html(g_pm(0), "graph_point_mass",
+        metis::export_graph_html(g_pm(0), "graph_point_mass",
                                  "PointMassGravity_X");
 
         // J2 - more complex
         auto g_j2 = j2::acceleration(r);
-        janus::export_graph_html(g_j2(0), "graph_j2_gravity", "J2Gravity_X");
+        metis::export_graph_html(g_j2(0), "graph_j2_gravity", "J2Gravity_X");
 
         // Gravitational potential
         auto U = j2::potential(r);
-        janus::export_graph_html(U, "graph_j2_potential", "J2Potential");
+        metis::export_graph_html(U, "graph_j2_potential", "J2Potential");
 
         std::cout << "Exported computational graphs:\n";
         std::cout << "   -> graph_point_mass.html (Point Mass g_x)\n";
@@ -214,11 +214,11 @@ int main() {
     // =========================================================================
     std::cout << "--- 8. Gravity Gradient (Jacobian) ---\n";
     {
-        using Scalar = janus::SymbolicScalar;
+        using Scalar = metis::SymbolicScalar;
 
-        Scalar x = janus::sym("x");
-        Scalar y = janus::sym("y");
-        Scalar z = janus::sym("z");
+        Scalar x = metis::sym("x");
+        Scalar y = metis::sym("y");
+        Scalar z = metis::sym("z");
 
         Vec3<Scalar> r;
         r << x, y, z;
@@ -226,12 +226,12 @@ int main() {
         auto g = j2::acceleration(r);
 
         // Compute Jacobian of gravity w.r.t. position
-        auto J = janus::jacobian({g(0), g(1), g(2)}, {x, y, z});
+        auto J = metis::jacobian({g(0), g(1), g(2)}, {x, y, z});
 
         std::cout << "Computed 3x3 gravity gradient tensor (Jacobian).\n";
 
         // Create function for evaluation
-        janus::Function f_jacobian("gravity_gradient", {x, y, z},
+        metis::Function f_jacobian("gravity_gradient", {x, y, z},
                                    {J(0, 0), J(0, 1), J(0, 2), J(1, 0), J(1, 1),
                                     J(1, 2), J(2, 0), J(2, 1), J(2, 2)});
 
@@ -248,7 +248,7 @@ int main() {
                   << result[8](0, 0) << "]\n";
 
         // Export Jacobian graph
-        janus::export_graph_html(J(0, 0), "graph_gravity_gradient",
+        metis::export_graph_html(J(0, 0), "graph_gravity_gradient",
                                  "GravityGradient_xx");
         std::cout << "\nExported: graph_gravity_gradient.html\n";
     }

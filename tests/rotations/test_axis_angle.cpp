@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <vulcan/rotations/Rotations.hpp>
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 #include <cmath>
 #include <numbers>
@@ -194,9 +194,9 @@ TEST(AxisAngle, PiRotation) {
 // =============================================================================
 
 TEST(AxisAngle, SymbolicRodrigues) {
-    using Scalar = janus::SymbolicScalar;
+    using Scalar = metis::SymbolicScalar;
 
-    Scalar angle = janus::sym("angle");
+    Scalar angle = metis::sym("angle");
 
     vulcan::Vec3<Scalar> axis;
     axis << Scalar(0), Scalar(0), Scalar(1); // Fixed Z-axis
@@ -207,7 +207,7 @@ TEST(AxisAngle, SymbolicRodrigues) {
     EXPECT_FALSE(R(0, 0).is_constant());
 
     // Create function
-    janus::Function f("rodrigues_z", {angle},
+    metis::Function f("rodrigues_z", {angle},
                       {R(0, 0), R(0, 1), R(1, 0), R(1, 1)});
 
     double test_angle = std::numbers::pi / 4.0;

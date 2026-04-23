@@ -141,7 +141,7 @@ TEST(GaussianNoise, StatisticalVariance) {
 
 TEST(GaussianNoise, SymbolicCompatibility) {
     // Test that the function compiles with CasADi types
-    auto noise_sym = janus::sym("noise");
+    auto noise_sym = metis::sym("noise");
     double sigma = 0.5;
 
     auto output = vulcan::gaussian::apply(noise_sym, sigma);
@@ -150,7 +150,7 @@ TEST(GaussianNoise, SymbolicCompatibility) {
     EXPECT_FALSE(output.is_constant());
 
     // Create function and evaluate at specific value
-    janus::Function f("gaussian_apply", {noise_sym}, {output});
+    metis::Function f("gaussian_apply", {noise_sym}, {output});
     auto result = f({2.0});
     EXPECT_DOUBLE_EQ(result[0](0, 0), 1.0);
 }

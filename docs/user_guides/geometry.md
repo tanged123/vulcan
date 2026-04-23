@@ -1,6 +1,6 @@
 # Geometry Primitives Module
 
-The `vulcan::geometry` module provides spatial computation utilities for guidance, visibility, and sensor field-of-view calculations. It is designed to work seamlessly with both numeric (`double`) and symbolic (`janus::SymbolicScalar`) types for automatic differentiation in trajectory optimization.
+The `vulcan::geometry` module provides spatial computation utilities for guidance, visibility, and sensor field-of-view calculations. It is designed to work seamlessly with both numeric (`double`) and symbolic (`metis::SymbolicScalar`) types for automatic differentiation in trajectory optimization.
 
 ## Overview
 
@@ -133,10 +133,10 @@ Vec3<double> ground_ecef = ground_track_ecef(r_ecef);
 
 ## Symbolic Optimization
 
-All functions are Janus-compatible for trajectory optimization:
+All functions are Metis-compatible for trajectory optimization:
 
 ```cpp
-using MX = janus::SymbolicScalar;
+using MX = metis::SymbolicScalar;
 
 // Symbolic positions
 MX ox = sym("ox"), oy = sym("oy"), oz = sym("oz");
@@ -150,7 +150,7 @@ target << tx, ty, tz;
 MX range = slant_range(observer, target);
 
 // Build differentiable function
-janus::Function f("range", {ox, oy, oz, tx, ty, tz}, {range});
+metis::Function f("range", {ox, oy, oz, tx, ty, tz}, {range});
 
 // Evaluate with gradients
 auto result = f({0, 0, 0, 3, 4, 0});      // = 5.0
@@ -164,7 +164,7 @@ MX sensor_az = sym("az");  // Sensor azimuth to optimize
 
 // Compute if target is in FOV
 Vec3<MX> axis;
-axis << janus::cos(sensor_az), janus::sin(sensor_az), MX(0);
+axis << metis::cos(sensor_az), metis::sin(sensor_az), MX(0);
 
 MX visible = point_in_cone(target_position, sensor_pos, axis, fov_half);
 

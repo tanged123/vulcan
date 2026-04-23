@@ -1,7 +1,7 @@
 // Tests for Wind Shear Models
 // Tests linear, power law, and logarithmic wind profiles
 #include <gtest/gtest.h>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/wind/WindShear.hpp>
 
 #include <cmath>
@@ -187,10 +187,10 @@ TEST(WindShear, FrictionVelocityFromRef) {
 // ============================================================================
 
 TEST(WindShear, SymbolicLinear) {
-    auto alt = janus::sym("altitude");
+    auto alt = metis::sym("altitude");
     auto wind = vulcan::wind_shear::linear(alt, 10.0, 0.0, 0.01);
 
-    janus::Function f("linear_wind", {alt}, {wind});
+    metis::Function f("linear_wind", {alt}, {wind});
 
     auto result = f({100.0});
     // 10 + 0.01 * 100 = 11
@@ -198,10 +198,10 @@ TEST(WindShear, SymbolicLinear) {
 }
 
 TEST(WindShear, SymbolicPowerLaw) {
-    auto alt = janus::sym("altitude");
+    auto alt = metis::sym("altitude");
     auto wind = vulcan::wind_shear::power_law(alt, 10.0, 10.0);
 
-    janus::Function f("power_wind", {alt}, {wind});
+    metis::Function f("power_wind", {alt}, {wind});
 
     // At alt=10, should be 10.0
     auto result = f({10.0});
@@ -214,10 +214,10 @@ TEST(WindShear, SymbolicPowerLaw) {
 }
 
 TEST(WindShear, SymbolicLogarithmic) {
-    auto alt = janus::sym("altitude");
+    auto alt = metis::sym("altitude");
     auto wind = vulcan::wind_shear::logarithmic(alt, 0.5, 0.03);
 
-    janus::Function f("log_wind", {alt}, {wind});
+    metis::Function f("log_wind", {alt}, {wind});
 
     auto result = f({10.0});
     double expected = (0.5 / 0.41) * std::log(10.0 / 0.03);
@@ -225,13 +225,13 @@ TEST(WindShear, SymbolicLogarithmic) {
 }
 
 TEST(WindShear, SymbolicGradient) {
-    auto alt = janus::sym("altitude");
+    auto alt = metis::sym("altitude");
     auto wind = vulcan::wind_shear::power_law(alt, 10.0, 10.0, 1.0 / 7.0);
 
     // dV/dh using Jacobian
-    auto dv_dh = janus::jacobian(wind, alt);
+    auto dv_dh = metis::jacobian(wind, alt);
 
-    janus::Function f("dv_dh", {alt}, {dv_dh});
+    metis::Function f("dv_dh", {alt}, {dv_dh});
 
     // Gradient should be positive (wind increases with altitude)
     auto result = f({50.0});
@@ -239,7 +239,7 @@ TEST(WindShear, SymbolicGradient) {
 }
 
 TEST(WindShear, SymbolicPowerLawVectorSpeed) {
-    auto alt = janus::sym("altitude");
+    auto alt = metis::sym("altitude");
     vulcan::wind::WindVector<double> base{
         .north = 6.0, .east = 8.0, .down = 0.0};
 
@@ -247,7 +247,7 @@ TEST(WindShear, SymbolicPowerLawVectorSpeed) {
         vulcan::wind_shear::power_law_vector(alt, base, 10.0, 1.0 / 7.0);
     auto spd = wind.speed();
 
-    janus::Function f("wind_speed", {alt}, {spd});
+    metis::Function f("wind_speed", {alt}, {spd});
 
     // At 10m, speed should be 10.0
     auto result = f({10.0});

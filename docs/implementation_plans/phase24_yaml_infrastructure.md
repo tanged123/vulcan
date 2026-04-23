@@ -33,7 +33,7 @@ Thin wrapper providing type-safe access with path-aware error messages:
 ```cpp
 #pragma once
 
-#include <janus/core/JanusTypes.hpp>
+#include <metis/core/MetisTypes.hpp>
 #include <yaml-cpp/yaml.h>
 
 #include <optional>
@@ -64,7 +64,7 @@ private:
  * Provides:
  * - Type-safe extraction with good error messages
  * - Path tracking for debugging
- * - Support for Vulcan/Janus math types
+ * - Support for Vulcan/Metis math types
  */
 class YamlNode {
 public:
@@ -173,10 +173,10 @@ template <> int64_t YamlNode::As<int64_t>() const;
 template <> bool YamlNode::As<bool>() const;
 template <> std::string YamlNode::As<std::string>() const;
 
-// --- Janus types (double specialization) ---
-template <> janus::Vec3<double> YamlNode::As<janus::Vec3<double>>() const;
-template <> janus::Mat3<double> YamlNode::As<janus::Mat3<double>>() const;
-template <> janus::Quaternion<double> YamlNode::As<janus::Quaternion<double>>() const;
+// --- Metis types (double specialization) ---
+template <> metis::Vec3<double> YamlNode::As<metis::Vec3<double>>() const;
+template <> metis::Mat3<double> YamlNode::As<metis::Mat3<double>>() const;
+template <> metis::Quaternion<double> YamlNode::As<metis::Quaternion<double>>() const;
 
 // --- Containers ---
 template <> std::vector<double> YamlNode::As<std::vector<double>>() const;
@@ -193,23 +193,23 @@ template <> std::vector<std::string> YamlNode::As<std::vector<std::string>>() co
 
 **File:** `include/vulcan/io/YamlConvert.hpp`
 
-yaml-cpp conversion traits for Janus/Vulcan types:
+yaml-cpp conversion traits for Metis/Vulcan types:
 
 ```cpp
 #pragma once
 
-#include <janus/core/JanusTypes.hpp>
+#include <metis/core/MetisTypes.hpp>
 #include <yaml-cpp/yaml.h>
 
 namespace YAML {
 
 // =============================================================================
-// janus::Vec3<T> - stored as [x, y, z]
+// metis::Vec3<T> - stored as [x, y, z]
 // =============================================================================
 
 template <typename T>
-struct convert<janus::Vec3<T>> {
-    static Node encode(const janus::Vec3<T>& v) {
+struct convert<metis::Vec3<T>> {
+    static Node encode(const metis::Vec3<T>& v) {
         Node node;
         node.push_back(v.x());
         node.push_back(v.y());
@@ -217,11 +217,11 @@ struct convert<janus::Vec3<T>> {
         return node;
     }
 
-    static bool decode(const Node& node, janus::Vec3<T>& v) {
+    static bool decode(const Node& node, metis::Vec3<T>& v) {
         if (!node.IsSequence() || node.size() != 3) {
             return false;
         }
-        v = janus::Vec3<T>{
+        v = metis::Vec3<T>{
             node[0].as<T>(),
             node[1].as<T>(),
             node[2].as<T>()
@@ -231,12 +231,12 @@ struct convert<janus::Vec3<T>> {
 };
 
 // =============================================================================
-// janus::Quaternion<T> - stored as [w, x, y, z] (scalar-first)
+// metis::Quaternion<T> - stored as [w, x, y, z] (scalar-first)
 // =============================================================================
 
 template <typename T>
-struct convert<janus::Quaternion<T>> {
-    static Node encode(const janus::Quaternion<T>& q) {
+struct convert<metis::Quaternion<T>> {
+    static Node encode(const metis::Quaternion<T>& q) {
         Node node;
         node.push_back(q.w());
         node.push_back(q.x());
@@ -245,11 +245,11 @@ struct convert<janus::Quaternion<T>> {
         return node;
     }
 
-    static bool decode(const Node& node, janus::Quaternion<T>& q) {
+    static bool decode(const Node& node, metis::Quaternion<T>& q) {
         if (!node.IsSequence() || node.size() != 4) {
             return false;
         }
-        q = janus::Quaternion<T>{
+        q = metis::Quaternion<T>{
             node[0].as<T>(),  // w
             node[1].as<T>(),  // x
             node[2].as<T>(),  // y
@@ -260,12 +260,12 @@ struct convert<janus::Quaternion<T>> {
 };
 
 // =============================================================================
-// janus::Mat3<T> - stored as [[row0], [row1], [row2]] or flat [9 elements]
+// metis::Mat3<T> - stored as [[row0], [row1], [row2]] or flat [9 elements]
 // =============================================================================
 
 template <typename T>
-struct convert<janus::Mat3<T>> {
-    static Node encode(const janus::Mat3<T>& m) {
+struct convert<metis::Mat3<T>> {
+    static Node encode(const metis::Mat3<T>& m) {
         Node node;
         for (int i = 0; i < 3; ++i) {
             Node row;
@@ -277,7 +277,7 @@ struct convert<janus::Mat3<T>> {
         return node;
     }
 
-    static bool decode(const Node& node, janus::Mat3<T>& m) {
+    static bool decode(const Node& node, metis::Mat3<T>& m) {
         if (!node.IsSequence()) {
             return false;
         }
@@ -587,10 +587,10 @@ Add YAML includes to main umbrella header:
 - [ ] Implement `YamlError` exception with path context
 - [ ] Unit tests for basic type extraction (double, int, bool, string)
 
-### 24.2 Janus Type Support
+### 24.2 Metis Type Support
 
 - [ ] Implement `YamlConvert.hpp` traits for Vec3, Mat3, Quaternion
-- [ ] Unit tests for Janus type round-trips
+- [ ] Unit tests for Metis type round-trips
 - [ ] Handle both nested and flat matrix formats
 
 ### 24.3 File Utilities
@@ -635,9 +635,9 @@ auto mass = config["vehicle"].Require<double>("mass");
 auto dt = config.Get<double>("dt", 0.01);
 auto enabled = config.Get<bool>("debug", false);
 
-// Janus types
-auto position = config.Require<janus::Vec3<double>>("initial_position");
-auto attitude = config.Require<janus::Quaternion<double>>("initial_attitude");
+// Metis types
+auto position = config.Require<metis::Vec3<double>>("initial_position");
+auto attitude = config.Require<metis::Quaternion<double>>("initial_attitude");
 ```
 
 ### Iterating Sequences
@@ -691,7 +691,7 @@ file << out.c_str();
 ```
 include/vulcan/io/
 ├── YamlNode.hpp        # Main wrapper class
-├── YamlConvert.hpp     # yaml-cpp conversion traits for Janus types
+├── YamlConvert.hpp     # yaml-cpp conversion traits for Metis types
 ├── YamlFile.hpp        # File utilities (include, merge)
 ├── YamlEnv.hpp         # Environment variable expansion
 └── YamlError.hpp       # Exception types (or inline in YamlNode.hpp)
@@ -703,7 +703,7 @@ src/io/
 
 tests/io/
 ├── test_yaml_node.cpp      # Unit tests for basic extraction
-├── test_yaml_convert.cpp   # Round-trip tests for Janus types
+├── test_yaml_convert.cpp   # Round-trip tests for Metis types
 ├── test_yaml_file.cpp      # File operation tests
 └── test_yaml_env.cpp       # Envvar expansion tests
 
@@ -738,7 +738,7 @@ examples/io/
 ### Manual Verification
 
 1. Create `examples/io/yaml_config_demo.cpp` that:
-   - Loads a config file with Janus types
+   - Loads a config file with Metis types
    - Modifies values
    - Writes back to YAML
    - Reads and verifies
@@ -750,7 +750,7 @@ examples/io/
 ## Exit Criteria
 
 - [ ] `YamlNode` wrapper with typed accessors
-- [ ] Janus type conversions (Vec3, Mat3, Quaternion)
+- [ ] Metis type conversions (Vec3, Mat3, Quaternion)
 - [ ] Path-aware error messages
 - [ ] Include directive support
 - [ ] Environment variable expansion (`${VAR}` and `${VAR:default}`)

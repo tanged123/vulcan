@@ -3,8 +3,8 @@
  * @file VulcanError.hpp
  * @brief Exception hierarchy for Vulcan aerospace library
  *
- * Derives from janus::JanusError for unified error handling across
- * the Janus/Vulcan/Icarus/Hermes toolchain.
+ * Derives from metis::MetisError for unified error handling across
+ * the Metis/Vulcan/Icarus/Hermes toolchain.
  */
 
 #include <stdexcept>

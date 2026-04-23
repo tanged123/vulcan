@@ -6,7 +6,7 @@
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/geodetic/GeodesicUtils.hpp>
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 using namespace vulcan;
 using namespace vulcan::geodetic;

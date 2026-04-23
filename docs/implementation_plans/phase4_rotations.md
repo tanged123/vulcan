@@ -1,6 +1,6 @@
 # Phase 4: Rotations — Comprehensive Rotation Library
 
-A unified, robust rotation library for Vulcan extending Janus quaternion support with all 12 Euler angle sequences, DCM utilities, axis-angle conversions, and rotation composition. All code templated on `Scalar` for Janus symbolic/numeric compatibility.
+A unified, robust rotation library for Vulcan extending Metis quaternion support with all 12 Euler angle sequences, DCM utilities, axis-angle conversions, and rotation composition. All code templated on `Scalar` for Metis symbolic/numeric compatibility.
 
 ---
 
@@ -22,26 +22,26 @@ A unified, robust rotation library for Vulcan extending Janus quaternion support
 > Vulcan follows **active rotation** convention:
 > - DCM columns are the rotated frame's basis vectors expressed in the reference frame
 > - `v_ref = DCM * v_body` transforms body-fixed vectors to reference frame
-> - This matches Janus `Quaternion::to_rotation_matrix()` output
+> - This matches Metis `Quaternion::to_rotation_matrix()` output
 
 > [!WARNING]
 > **Gimbal Lock Handling**
 > 
-> All Euler angle extractions handle gimbal lock via `janus::where` for symbolic compatibility:
+> All Euler angle extractions handle gimbal lock via `metis::where` for symbolic compatibility:
 > - Near singularity: set one DOF to zero and compute the other from remaining DCM elements
 > - Different sequences have singularities at different pitch angles (±90° for Tait-Bryan, 0°/180° for proper Euler)
 
 > [!NOTE]
 > **Design Philosophy: Extend, Don't Duplicate**
 > 
-> Priority is to extend Janus APIs and re-export useful functions rather than duplicate. 
-> New Vulcan utilities should add value beyond what Janus provides (e.g., all 12 sequences instead of just ZYX).
+> Priority is to extend Metis APIs and re-export useful functions rather than duplicate. 
+> New Vulcan utilities should add value beyond what Metis provides (e.g., all 12 sequences instead of just ZYX).
 
 ---
 
 ## Existing Capabilities Audit
 
-### Janus Provides (No Changes Needed)
+### Metis Provides (No Changes Needed)
 
 | Component | API | Notes |
 |-----------|-----|-------|
@@ -56,7 +56,7 @@ A unified, robust rotation library for Vulcan extending Janus quaternion support
 | `Rotations.hpp` | `rotation_matrix_from_euler_angles(r,p,y)` | ZYX sequence DCM |
 | `Rotations.hpp` | `rotation_matrix_3d(theta, axis)` | Principal axis (0=X, 1=Y, 2=Z) |
 | `Rotations.hpp` | `is_valid_rotation_matrix(R, tol)` | Orthonormality check |
-| `janus::slerp` | `slerp(q0, q1, t)` | Full fidelity with shortest path |
+| `metis::slerp` | `slerp(q0, q1, t)` | Full fidelity with shortest path |
 
 ### Vulcan Provides (Already Implemented)
 
@@ -82,7 +82,7 @@ A unified, robust rotation library for Vulcan extending Janus quaternion support
 
 #### [NEW] [Rotations.hpp](file:///home/tanged/sources/vulcan/include/vulcan/rotations/Rotations.hpp)
 
-Central rotation utilities header extending Janus capabilities.
+Central rotation utilities header extending Metis capabilities.
 
 ```cpp
 namespace vulcan {
@@ -105,7 +105,7 @@ enum class EulerSequence {
 /// @param e3 Third rotation angle [rad]
 /// @param seq Euler angle sequence
 template<typename Scalar>
-janus::Quaternion<Scalar> quaternion_from_euler(Scalar e1, Scalar e2, Scalar e3,
+metis::Quaternion<Scalar> quaternion_from_euler(Scalar e1, Scalar e2, Scalar e3,
                                                  EulerSequence seq);
 
 /// Create DCM from Euler angles with specified sequence
@@ -116,7 +116,7 @@ Mat3<Scalar> dcm_from_euler(Scalar e1, Scalar e2, Scalar e3,
 /// Extract Euler angles from quaternion for specified sequence
 /// @return [e1, e2, e3] angles [rad]
 template<typename Scalar>
-Vec3<Scalar> euler_from_quaternion(const janus::Quaternion<Scalar>& q,
+Vec3<Scalar> euler_from_quaternion(const metis::Quaternion<Scalar>& q,
                                     EulerSequence seq);
 
 /// Extract Euler angles from DCM for specified sequence
@@ -158,9 +158,9 @@ Vec3<Scalar> unskew(const Mat3<Scalar>& S);
 // Axis-Angle Utilities
 // =============================================================================
 
-/// Convert axis-angle to quaternion (wrapper for janus API)
+/// Convert axis-angle to quaternion (wrapper for metis API)
 template<typename Scalar>
-janus::Quaternion<Scalar> quaternion_from_axis_angle(const Vec3<Scalar>& axis,
+metis::Quaternion<Scalar> quaternion_from_axis_angle(const Vec3<Scalar>& axis,
                                                       Scalar angle);
 
 /// Convert axis-angle to DCM (Rodrigues' formula)
@@ -171,7 +171,7 @@ Mat3<Scalar> dcm_from_axis_angle(const Vec3<Scalar>& axis, Scalar angle);
 /// @return Pair of (axis, angle) where axis is unit vector
 template<typename Scalar>
 std::pair<Vec3<Scalar>, Scalar> axis_angle_from_quaternion(
-    const janus::Quaternion<Scalar>& q);
+    const metis::Quaternion<Scalar>& q);
 
 /// Extract axis and angle from DCM
 template<typename Scalar>
@@ -183,7 +183,7 @@ std::pair<Vec3<Scalar>, Scalar> axis_angle_from_dcm(const Mat3<Scalar>& R);
 
 /// Convert rotation vector (axis × angle) to quaternion
 template<typename Scalar>
-janus::Quaternion<Scalar> quaternion_from_rotation_vector(
+metis::Quaternion<Scalar> quaternion_from_rotation_vector(
     const Vec3<Scalar>& rot_vec);
 
 /// Convert rotation vector to DCM
@@ -193,7 +193,7 @@ Mat3<Scalar> dcm_from_rotation_vector(const Vec3<Scalar>& rot_vec);
 /// Extract rotation vector from quaternion
 template<typename Scalar>
 Vec3<Scalar> rotation_vector_from_quaternion(
-    const janus::Quaternion<Scalar>& q);
+    const metis::Quaternion<Scalar>& q);
 
 /// Extract rotation vector from DCM
 template<typename Scalar>
@@ -205,20 +205,20 @@ Vec3<Scalar> rotation_vector_from_dcm(const Mat3<Scalar>& R);
 
 /// Compose quaternion rotations: result = q2 * q1 (apply q1 first)
 template<typename Scalar>
-janus::Quaternion<Scalar> compose_rotations(
-    const janus::Quaternion<Scalar>& q1,
-    const janus::Quaternion<Scalar>& q2);
+metis::Quaternion<Scalar> compose_rotations(
+    const metis::Quaternion<Scalar>& q1,
+    const metis::Quaternion<Scalar>& q2);
 
 /// Relative rotation quaternion from frame A to frame B
 template<typename Scalar>
-janus::Quaternion<Scalar> relative_rotation(
-    const janus::Quaternion<Scalar>& q_from,
-    const janus::Quaternion<Scalar>& q_to);
+metis::Quaternion<Scalar> relative_rotation(
+    const metis::Quaternion<Scalar>& q_from,
+    const metis::Quaternion<Scalar>& q_to);
 
 /// Rotation "difference" as rotation vector: log(q_to * q_from^-1)
 template<typename Scalar>
-Vec3<Scalar> rotation_error(const janus::Quaternion<Scalar>& q_actual,
-                            const janus::Quaternion<Scalar>& q_desired);
+Vec3<Scalar> rotation_error(const metis::Quaternion<Scalar>& q_actual,
+                            const metis::Quaternion<Scalar>& q_desired);
 
 // =============================================================================
 // Angular Velocity Kinematics
@@ -226,13 +226,13 @@ Vec3<Scalar> rotation_error(const janus::Quaternion<Scalar>& q_actual,
 
 /// Compute angular velocity from quaternion rate (body frame)
 template<typename Scalar>
-Vec3<Scalar> omega_from_quaternion_rate(const janus::Quaternion<Scalar>& q,
-                                         const janus::Quaternion<Scalar>& q_dot);
+Vec3<Scalar> omega_from_quaternion_rate(const metis::Quaternion<Scalar>& q,
+                                         const metis::Quaternion<Scalar>& q_dot);
 
 /// Compute quaternion rate from angular velocity (body frame omega)
 template<typename Scalar>
-janus::Quaternion<Scalar> quaternion_rate_from_omega(
-    const janus::Quaternion<Scalar>& q,
+metis::Quaternion<Scalar> quaternion_rate_from_omega(
+    const metis::Quaternion<Scalar>& q,
     const Vec3<Scalar>& omega_body);
 
 /// Compute angular velocity from DCM rate: ω = unskew(R^T * R_dot)
@@ -244,23 +244,23 @@ Vec3<Scalar> omega_from_dcm_rate(const Mat3<Scalar>& R,
 // Interpolation
 // =============================================================================
 
-/// Re-export janus::slerp for convenience
-using janus::slerp;
+/// Re-export metis::slerp for convenience
+using metis::slerp;
 
 /// Squad (Spherical Quadratic Interpolation) for smooth quaternion curves
 template<typename Scalar>
-janus::Quaternion<Scalar> squad(const janus::Quaternion<Scalar>& q0,
-                                 const janus::Quaternion<Scalar>& q1,
-                                 const janus::Quaternion<Scalar>& s0,
-                                 const janus::Quaternion<Scalar>& s1,
+metis::Quaternion<Scalar> squad(const metis::Quaternion<Scalar>& q0,
+                                 const metis::Quaternion<Scalar>& q1,
+                                 const metis::Quaternion<Scalar>& s0,
+                                 const metis::Quaternion<Scalar>& s1,
                                  Scalar t);
 
 /// Compute Squad control point for smooth interpolation
 template<typename Scalar>
-janus::Quaternion<Scalar> squad_control_point(
-    const janus::Quaternion<Scalar>& q_prev,
-    const janus::Quaternion<Scalar>& q_curr,
-    const janus::Quaternion<Scalar>& q_next);
+metis::Quaternion<Scalar> squad_control_point(
+    const metis::Quaternion<Scalar>& q_prev,
+    const metis::Quaternion<Scalar>& q_curr,
+    const metis::Quaternion<Scalar>& q_next);
 
 } // namespace vulcan
 ```
@@ -306,9 +306,9 @@ Mat3<Scalar> dcm_from_euler(Scalar e1, Scalar e2, Scalar e3, EulerSequence seq) 
     
     // R = R_axis[2](e3) * R_axis[1](e2) * R_axis[0](e1)
     // Using intrinsic rotations: compose right-to-left
-    Mat3<Scalar> R1 = janus::rotation_matrix_3d(e1, axes[0]);
-    Mat3<Scalar> R2 = janus::rotation_matrix_3d(e2, axes[1]);
-    Mat3<Scalar> R3 = janus::rotation_matrix_3d(e3, axes[2]);
+    Mat3<Scalar> R1 = metis::rotation_matrix_3d(e1, axes[0]);
+    Mat3<Scalar> R2 = metis::rotation_matrix_3d(e2, axes[1]);
+    Mat3<Scalar> R3 = metis::rotation_matrix_3d(e3, axes[2]);
     
     return R3 * R2 * R1;
 }
@@ -333,26 +333,26 @@ Vec3<Scalar> euler_from_dcm_zyx(const Mat3<Scalar>& R) {
     // R[2,1] = cos(pitch)*sin(roll), R[2,2] = cos(pitch)*cos(roll)
     
     Scalar sin_pitch = -R(2, 0);
-    Scalar pitch = janus::asin(sin_pitch);
+    Scalar pitch = metis::asin(sin_pitch);
     
     Scalar eps = Scalar(1e-6);
-    Scalar cos_pitch = janus::sqrt(Scalar(1) - sin_pitch * sin_pitch);
+    Scalar cos_pitch = metis::sqrt(Scalar(1) - sin_pitch * sin_pitch);
     Scalar is_gimbal = cos_pitch < eps;
     
     // Normal case
-    Scalar yaw_n = janus::atan2(R(1, 0), R(0, 0));
-    Scalar roll_n = janus::atan2(R(2, 1), R(2, 2));
+    Scalar yaw_n = metis::atan2(R(1, 0), R(0, 0));
+    Scalar roll_n = metis::atan2(R(2, 1), R(2, 2));
     
     // Gimbal lock: roll = 0, yaw from other elements
     Scalar roll_g = Scalar(0);
     // At pitch = +90°: R[0,1] = -sin(yaw-roll), R[1,1] = cos(yaw-roll)
     // With roll=0: yaw = atan2(-R[0,1], R[1,1])
-    Scalar yaw_g = janus::atan2(-R(0, 1), R(1, 1));
+    Scalar yaw_g = metis::atan2(-R(0, 1), R(1, 1));
     
     Vec3<Scalar> euler;
-    euler(0) = janus::where(is_gimbal, yaw_g, yaw_n);    // yaw
+    euler(0) = metis::where(is_gimbal, yaw_g, yaw_n);    // yaw
     euler(1) = pitch;                                     // pitch
-    euler(2) = janus::where(is_gimbal, roll_g, roll_n);  // roll
+    euler(2) = metis::where(is_gimbal, roll_g, roll_n);  // roll
     
     return euler;
 }
@@ -430,10 +430,10 @@ Actually, better approach: keep `QuaternionUtils.hpp` as-is for backward compati
 ### Reference Validation
 
 ```cpp
-// ZYX (aerospace standard) - matches existing Janus
+// ZYX (aerospace standard) - matches existing Metis
 // Verify against rotation_matrix_from_euler_angles
 EXPECT_NEAR(dcm_from_euler(roll, pitch, yaw, EulerSequence::ZYX),
-            janus::rotation_matrix_from_euler_angles(roll, pitch, yaw), 1e-12);
+            metis::rotation_matrix_from_euler_angles(roll, pitch, yaw), 1e-12);
 
 // XYZ (robotics) - common alternative
 // R = Rx(e1) * Ry(e2) * Rz(e3)
@@ -446,20 +446,20 @@ EXPECT_NEAR(dcm_from_euler(roll, pitch, yaw, EulerSequence::ZYX),
 
 ```cpp
 TEST(SymbolicRotations, EulerSequenceDCM) {
-    using Scalar = janus::SymbolicScalar;
+    using Scalar = metis::SymbolicScalar;
     
-    Scalar e1 = janus::make_symbol("e1");
-    Scalar e2 = janus::make_symbol("e2");  
-    Scalar e3 = janus::make_symbol("e3");
+    Scalar e1 = metis::make_symbol("e1");
+    Scalar e2 = metis::make_symbol("e2");  
+    Scalar e3 = metis::make_symbol("e3");
     
     auto R = vulcan::dcm_from_euler(e1, e2, e3, vulcan::EulerSequence::ZYX);
     
     // Verify it can build symbolic graph
-    janus::Function f({e1, e2, e3}, janus::flatten(R));
+    metis::Function f({e1, e2, e3}, metis::flatten(R));
     
     // Evaluate numerically and compare
     auto result = f(0.1, 0.2, 0.3);
-    auto expected = janus::rotation_matrix_from_euler_angles(0.1, 0.2, 0.3);
+    auto expected = metis::rotation_matrix_from_euler_angles(0.1, 0.2, 0.3);
     // Compare...
 }
 ```
@@ -570,7 +570,7 @@ After the new rotations API is implemented, the following existing files can ben
 - Rotations are mathematically separate from coordinate frames
 - Keeps coordinate files focused on geodesy and frames
 - Easier to find rotation-specific utilities
-- Mirrors Janus structure (`janus/math/Rotations.hpp`, `janus/math/Quaternion.hpp`)
+- Mirrors Metis structure (`metis/math/Rotations.hpp`, `metis/math/Quaternion.hpp`)
 
 ### Decision 2: Enum vs Template for Euler Sequences
 

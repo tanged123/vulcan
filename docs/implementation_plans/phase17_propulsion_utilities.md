@@ -177,6 +177,6 @@ cd build && ctest -R propulsion -V
 
 2. **Constants as defaults** — `g0 = 9.80665` as default parameter, overridable for other planets
 
-3. **Scalar-first API** — All functions templated on `Scalar`, using `janus::` math for symbolic compatibility
+3. **Scalar-first API** — All functions templated on `Scalar`, using `metis::` math for symbolic compatibility
 
 4. **No table interpolation here** — Complex thrust tables use `TableInterpolator` from core; propulsion module provides the physics

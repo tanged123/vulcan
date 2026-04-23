@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/gravity/J2.hpp>
 #include <vulcan/gravity/J2J4.hpp>
@@ -20,7 +20,7 @@ TEST(J2J4Gravity, BasicFunctionality) {
 
     // Should produce valid acceleration
     EXPECT_LT(g(0), 0.0); // Points toward center
-    EXPECT_TRUE(std::isfinite(janus::norm(g)));
+    EXPECT_TRUE(std::isfinite(metis::norm(g)));
 }
 
 TEST(J2J4Gravity, CloseToJ2AtLowAltitude) {
@@ -32,8 +32,8 @@ TEST(J2J4Gravity, CloseToJ2AtLowAltitude) {
     auto g_j2 = j2::acceleration(r);
 
     // Should be within 0.1% of J2-only
-    double diff = janus::norm(g_j2j4 - g_j2);
-    double mag = janus::norm(g_j2);
+    double diff = metis::norm(g_j2j4 - g_j2);
+    double mag = metis::norm(g_j2);
 
     EXPECT_LT(diff / mag, 0.001);
 }
@@ -50,8 +50,8 @@ TEST(J2J4Gravity, J3AsymmetryNorthSouth) {
     auto g_south = j2j4::acceleration(r_south);
 
     // Magnitudes should be slightly different due to J3
-    double mag_north = janus::norm(g_north);
-    double mag_south = janus::norm(g_south);
+    double mag_north = metis::norm(g_north);
+    double mag_south = metis::norm(g_south);
 
     // The difference may be very small; mainly testing code runs
     EXPECT_TRUE(std::isfinite(mag_north));
@@ -121,17 +121,17 @@ TEST(J2J4Gravity, PotentialConsistency) {
 // ============================================
 
 TEST(J2J4Gravity, SymbolicEvaluation) {
-    auto x = janus::sym("x");
-    auto y = janus::sym("y");
-    auto z = janus::sym("z");
+    auto x = metis::sym("x");
+    auto y = metis::sym("y");
+    auto z = metis::sym("z");
 
-    Vec3<janus::SymbolicScalar> r;
+    Vec3<metis::SymbolicScalar> r;
     r << x, y, z;
 
     auto g = j2j4::acceleration(r);
 
     // Create function for evaluation
-    janus::Function f("j2j4_accel", {x, y, z}, {g(0), g(1), g(2)});
+    metis::Function f("j2j4_accel", {x, y, z}, {g(0), g(1), g(2)});
 
     // Evaluate at specific point
     auto result = f({7000000.0, 0.0, 1000000.0});
@@ -142,11 +142,11 @@ TEST(J2J4Gravity, SymbolicEvaluation) {
 }
 
 TEST(J2J4Gravity, SymbolicMatchesNumeric) {
-    auto x = janus::sym("x");
-    auto y = janus::sym("y");
-    auto z = janus::sym("z");
+    auto x = metis::sym("x");
+    auto y = metis::sym("y");
+    auto z = metis::sym("z");
 
-    Vec3<janus::SymbolicScalar> r_sym;
+    Vec3<metis::SymbolicScalar> r_sym;
     r_sym << x, y, z;
 
     Vec3<double> r_num;
@@ -155,7 +155,7 @@ TEST(J2J4Gravity, SymbolicMatchesNumeric) {
     auto g_sym = j2j4::acceleration(r_sym);
     auto g_num = j2j4::acceleration(r_num);
 
-    janus::Function f("j2j4_test", {x, y, z}, {g_sym(0), g_sym(1), g_sym(2)});
+    metis::Function f("j2j4_test", {x, y, z}, {g_sym(0), g_sym(1), g_sym(2)});
     auto result = f({r_num(0), r_num(1), r_num(2)});
 
     EXPECT_NEAR(result[0](0, 0), g_num(0), 1e-8);
@@ -164,16 +164,16 @@ TEST(J2J4Gravity, SymbolicMatchesNumeric) {
 }
 
 TEST(J2J4Gravity, SymbolicPotential) {
-    auto x = janus::sym("x");
-    auto y = janus::sym("y");
-    auto z = janus::sym("z");
+    auto x = metis::sym("x");
+    auto y = metis::sym("y");
+    auto z = metis::sym("z");
 
-    Vec3<janus::SymbolicScalar> r;
+    Vec3<metis::SymbolicScalar> r;
     r << x, y, z;
 
     auto U = j2j4::potential(r);
 
-    janus::Function f("j2j4_potential", {x, y, z}, {U});
+    metis::Function f("j2j4_potential", {x, y, z}, {U});
 
     Vec3<double> r_num;
     r_num << 7000000.0, 500000.0, 2000000.0;

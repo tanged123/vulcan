@@ -105,7 +105,7 @@ template <typename Scalar>
 RigidBodyState<Scalar> rail_to_6dof_state(
     const RailLaunchState<Scalar>& rail_state,
     const RailParams<Scalar>& params,
-    const janus::Quaternion<Scalar>& body_attitude);
+    const metis::Quaternion<Scalar>& body_attitude);
 
 }
 ```

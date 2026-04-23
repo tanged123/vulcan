@@ -1,12 +1,12 @@
 # Phase 2: Atmospheric Models Implementation Plan
 
-This phase focuses on implementing robust, vetted atmospheric models for Vulcan using table-based interpolation backed by Janus's dual symbolic/numeric architecture.
+This phase focuses on implementing robust, vetted atmospheric models for Vulcan using table-based interpolation backed by Metis's dual symbolic/numeric architecture.
 
 ## Background
 
 The current `StandardAtmosphere.hpp` uses an analytical 2-layer model (troposphere + stratosphere) that:
 - Only covers altitudes up to ~20km accurately
-- Uses simplified piecewise formulas with `janus::where` for branching
+- Uses simplified piecewise formulas with `metis::where` for branching
 - Lacks validation against vetted reference data
 
 We have access to comprehensive US Standard Atmosphere 1976 reference data in [`atmos_temp.txt`](file:///home/tanged/sources/vulcan/reference/atmos_temp.txt) covering 0-1000 km with columns:
@@ -45,12 +45,12 @@ We have access to comprehensive US Standard Atmosphere 1976 reference data in [`
 
 ### Component 1: Table Interpolation Wrapper
 
-A Vulcan-specific wrapper around the Janus `Interpolator` class for atmospheric property lookup. The Janus `Interpolator` is a unified N-dimensional interpolator where 1D is simply the N=1 case.
+A Vulcan-specific wrapper around the Metis `Interpolator` class for atmospheric property lookup. The Metis `Interpolator` is a unified N-dimensional interpolator where 1D is simply the N=1 case.
 
 #### [NEW] [TableInterpolator.hpp](file:///home/tanged/sources/vulcan/include/vulcan/core/TableInterpolator.hpp)
 
 ```cpp
-// Thin wrapper around janus::Interpolator with:
+// Thin wrapper around metis::Interpolator with:
 // - Template on Scalar for symbolic compatibility
 // - Unified interface for 1D through N-D interpolation
 // - Input validation and bound clamping
@@ -61,35 +61,35 @@ namespace vulcan {
 /// 1D table interpolation (most common for atmospheric lookups)
 template<typename Scalar>
 class Table1D {
-    janus::Interpolator interp_;
+    metis::Interpolator interp_;
 public:
-    Table1D(const janus::NumericVector& x, const janus::NumericVector& y,
-            janus::InterpolationMethod method = janus::InterpolationMethod::Linear);
+    Table1D(const metis::NumericVector& x, const metis::NumericVector& y,
+            metis::InterpolationMethod method = metis::InterpolationMethod::Linear);
     
     // Single point query
     Scalar operator()(const Scalar& x) const;
     
     // Batch query
     template<typename Derived>
-    janus::JanusVector<Scalar> operator()(const Eigen::MatrixBase<Derived>& x) const;
+    metis::MetisVector<Scalar> operator()(const Eigen::MatrixBase<Derived>& x) const;
 };
 
 /// N-D table interpolation (for multi-variate lookups)
 template<typename Scalar, int NDims = Eigen::Dynamic>
 class TableND {
-    janus::Interpolator interp_;
+    metis::Interpolator interp_;
     int m_dims;
 public:
-    TableND(const std::vector<janus::NumericVector>& grid_points,
-            const janus::NumericVector& values,  // Fortran order (column-major)
-            janus::InterpolationMethod method = janus::InterpolationMethod::Linear);
+    TableND(const std::vector<metis::NumericVector>& grid_points,
+            const metis::NumericVector& values,  // Fortran order (column-major)
+            metis::InterpolationMethod method = metis::InterpolationMethod::Linear);
     
     // Single N-D point query
-    Scalar operator()(const janus::JanusVector<Scalar>& x) const;
+    Scalar operator()(const metis::MetisVector<Scalar>& x) const;
     
     // Batch query (matrix of points)
     template<typename Derived>
-    janus::JanusVector<Scalar> operator()(const Eigen::MatrixBase<Derived>& x) const;
+    metis::MetisVector<Scalar> operator()(const Eigen::MatrixBase<Derived>& x) const;
     
     int dims() const { return m_dims; }
 };
@@ -97,9 +97,9 @@ public:
 } // namespace vulcan
 ```
 
-**Janus API reference** (from [Interpolate.hpp](file:///home/tanged/sources/vulcan/reference/janus/include/janus/math/Interpolate.hpp)):
-- `janus::Interpolator(x, y, method)` — 1D convenience constructor
-- `janus::Interpolator(points_vec, values, method)` — N-D constructor
+**Metis API reference** (from [Interpolate.hpp](file:///home/tanged/sources/vulcan/reference/metis/include/metis/math/Interpolate.hpp)):
+- `metis::Interpolator(x, y, method)` — 1D convenience constructor
+- `metis::Interpolator(points_vec, values, method)` — N-D constructor
 - `interp(scalar)` — 1D scalar query
 - `interp(vector)` — N-D point query
 - `interp(matrix)` — Batch query (auto-detects shape)

@@ -116,7 +116,7 @@ UNESCO International Equation of State for seawater density, Mackenzie equation 
 // include/vulcan/hydrodynamics/Seawater.hpp
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/Constants.hpp>
 
 namespace vulcan::hydro::seawater {
@@ -204,7 +204,7 @@ Hydrostatic forces and restoring moments.
 // include/vulcan/hydrodynamics/Buoyancy.hpp
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 #include <vulcan/hydrodynamics/Seawater.hpp>
 
@@ -250,8 +250,8 @@ Eigen::Matrix<Scalar, 6, 1> restoring_forces(
     const Vec3<Scalar>& r_g, const Vec3<Scalar>& r_b,
     const Scalar& phi, const Scalar& theta) {
     
-    using janus::sin;
-    using janus::cos;
+    using metis::sin;
+    using metis::cos;
     
     const Scalar s_phi = sin(phi);
     const Scalar c_phi = cos(phi);
@@ -304,7 +304,7 @@ Analytical added mass for standard shapes.
 // include/vulcan/hydrodynamics/AddedMass.hpp
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <Eigen/Dense>
 
@@ -338,15 +338,15 @@ Scalar sphere(const Scalar& radius, const Scalar& rho) {
 template <typename Scalar>
 Vec3<Scalar> ellipsoid(const Scalar& a, const Scalar& b, const Scalar& rho) {
     // Eccentricity
-    const Scalar e = janus::sqrt(1.0 - (b*b)/(a*a));
+    const Scalar e = metis::sqrt(1.0 - (b*b)/(a*a));
     
     // Lamb's α₀ for surge (motion along major axis)
     const Scalar alpha_0 = (2.0 * (1.0 - e*e) / (e*e*e)) * 
-                           (0.5 * janus::log((1.0 + e)/(1.0 - e)) - e);
+                           (0.5 * metis::log((1.0 + e)/(1.0 - e)) - e);
     
     // Lamb's β₀ for sway/heave (motion perpendicular to major axis)
     const Scalar beta_0 = (1.0 / (e*e)) - 
-                          ((1.0 - e*e) / (2.0*e*e*e)) * janus::log((1.0 + e)/(1.0 - e));
+                          ((1.0 - e*e) / (2.0*e*e*e)) * metis::log((1.0 + e)/(1.0 - e));
     
     // k-factors
     const Scalar k1 = alpha_0 / (2.0 - alpha_0);  // Surge
@@ -403,7 +403,7 @@ Linear and quadratic hydrodynamic damping.
 // include/vulcan/hydrodynamics/Damping.hpp
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <Eigen/Dense>
 
 namespace vulcan::hydro::damping {
@@ -441,7 +441,7 @@ Eigen::Matrix<Scalar, 6, 1> quadratic(
     // Element-wise |v| · v
     Eigen::Matrix<Scalar, 6, 1> v_abs_v;
     for (int i = 0; i < 6; ++i) {
-        v_abs_v(i) = janus::abs(velocity(i)) * velocity(i);
+        v_abs_v(i) = metis::abs(velocity(i)) * velocity(i);
     }
     
     return -D_Q * v_abs_v;
@@ -497,7 +497,7 @@ Ocean current velocity models.
 // include/vulcan/hydrodynamics/Current.hpp
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 
 namespace vulcan::hydro::current {
@@ -512,8 +512,8 @@ namespace vulcan::hydro::current {
 template <typename Scalar>
 Vec3<Scalar> constant(const Scalar& speed, const Scalar& heading) {
     Vec3<Scalar> V_c;
-    V_c(0) = speed * janus::cos(heading);  // North
-    V_c(1) = speed * janus::sin(heading);  // East
+    V_c(0) = speed * metis::cos(heading);  // North
+    V_c(1) = speed * metis::sin(heading);  // East
     V_c(2) = Scalar(0.0);                  // Down
     return V_c;
 }
@@ -532,7 +532,7 @@ Vec3<Scalar> constant(const Scalar& speed, const Scalar& heading) {
 template <typename Scalar>
 Vec3<Scalar> depth_profile(const Scalar& V_surface, const Scalar& heading,
                            const Scalar& depth, const Scalar& z_ref) {
-    const Scalar V = V_surface * janus::exp(-depth / z_ref);
+    const Scalar V = V_surface * metis::exp(-depth / z_ref);
     return constant(V, heading);
 }
 
@@ -566,7 +566,7 @@ World Meteorological Organization sea state codes and wave statistics.
 // include/vulcan/hydrodynamics/SeaState.hpp
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 #include <array>
 
@@ -678,7 +678,7 @@ Wave spectra and wave-induced forces.
 // include/vulcan/hydrodynamics/Waves.hpp
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 
@@ -712,11 +712,11 @@ Scalar pierson_moskowitz(const Scalar& omega, const Scalar& Hs,
     
     // PM parameters for Hs-Tp formulation
     const Scalar A = (5.0 / 16.0) * Hs * Hs * 
-                     janus::pow(omega_p, Scalar(4.0));
+                     metis::pow(omega_p, Scalar(4.0));
     const Scalar B = 5.0 / 4.0;
     
-    return (A / janus::pow(omega, Scalar(5.0))) * 
-           janus::exp(-B * janus::pow(omega_ratio, Scalar(4.0)));
+    return (A / metis::pow(omega, Scalar(5.0))) * 
+           metis::exp(-B * metis::pow(omega_ratio, Scalar(4.0)));
 }
 
 /**
@@ -741,17 +741,17 @@ Scalar jonswap(const Scalar& omega, const Scalar& Hs, const Scalar& Tp,
     
     // Sigma parameter (spectral width)
     const Scalar is_lower = omega <= omega_p;
-    const Scalar sigma = janus::where(is_lower, Scalar(0.07), Scalar(0.09));
+    const Scalar sigma = metis::where(is_lower, Scalar(0.07), Scalar(0.09));
     
     // Peak enhancement exponent
     const Scalar delta_omega = omega - omega_p;
-    const Scalar alpha = janus::exp(
+    const Scalar alpha = metis::exp(
         -(delta_omega * delta_omega) / 
         (2.0 * sigma * sigma * omega_p * omega_p)
     );
     
     // JONSWAP = PM × γ^α
-    return pierson_moskowitz(omega, Hs, Tp) * janus::pow(gamma, alpha);
+    return pierson_moskowitz(omega, Hs, Tp) * metis::pow(gamma, alpha);
 }
 
 /**
@@ -773,7 +773,7 @@ template <typename Scalar>
 Scalar wave_elevation(const Scalar& a, const Scalar& k, const Scalar& omega,
                       const Scalar& x, const Scalar& t, 
                       const Scalar& phi = Scalar(0.0)) {
-    return a * janus::cos(k * x - omega * t + phi);
+    return a * metis::cos(k * x - omega * t + phi);
 }
 
 /**
@@ -808,7 +808,7 @@ template <typename Scalar>
 Scalar horizontal_velocity(const Scalar& a, const Scalar& omega, 
                            const Scalar& k, const Scalar& z,
                            const Scalar& x, const Scalar& t) {
-    return a * omega * janus::exp(k * z) * janus::cos(k * x - omega * t);
+    return a * omega * metis::exp(k * z) * metis::cos(k * x - omega * t);
 }
 
 /**
@@ -820,7 +820,7 @@ template <typename Scalar>
 Scalar vertical_velocity(const Scalar& a, const Scalar& omega,
                          const Scalar& k, const Scalar& z,
                          const Scalar& x, const Scalar& t) {
-    return a * omega * janus::exp(k * z) * janus::sin(k * x - omega * t);
+    return a * omega * metis::exp(k * z) * metis::sin(k * x - omega * t);
 }
 
 /**
@@ -846,8 +846,8 @@ Scalar heave_excitation_force(const Scalar& rho, const Scalar& volume,
                               const Scalar& k, const Scalar& z_center,
                               const Scalar& t) {
     const Scalar g = constants::g;
-    return rho * g * volume * a * k * janus::exp(k * z_center) * 
-           janus::cos(omega * t);
+    return rho * g * volume * a * k * metis::exp(k * z_center) * 
+           metis::cos(omega * t);
 }
 
 /**

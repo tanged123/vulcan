@@ -3,7 +3,7 @@
 #pragma once
 
 #include <cmath>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 namespace vulcan::markov {
 

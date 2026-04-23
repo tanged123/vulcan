@@ -1,6 +1,6 @@
 # Phase 5: Wind Models Implementation Plan
 
-This phase implements atmospheric wind models for flight simulation and trajectory optimization in Vulcan. The models are designed for dual numeric/symbolic compatibility with Janus.
+This phase implements atmospheric wind models for flight simulation and trajectory optimization in Vulcan. The models are designed for dual numeric/symbolic compatibility with Metis.
 
 ## Background
 
@@ -70,7 +70,7 @@ Common types and utilities for all wind models.
 ```cpp
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 namespace vulcan::wind {
 
@@ -94,18 +94,18 @@ struct WindVector {
     
     /// Magnitude in horizontal plane
     Scalar horizontal_speed() const {
-        return janus::sqrt(north * north + east * east);
+        return metis::sqrt(north * north + east * east);
     }
     
     /// Total magnitude
     Scalar speed() const {
-        return janus::sqrt(north * north + east * east + down * down);
+        return metis::sqrt(north * north + east * east + down * down);
     }
     
     /// Direction wind is coming FROM (meteorological convention)
     /// Returns angle in radians from North, clockwise positive
     Scalar direction_from() const {
-        return janus::atan2(east, north);
+        return metis::atan2(east, north);
     }
 };
 
@@ -692,11 +692,11 @@ For turbulence models, verify:
 
 Each model must pass symbolic graph generation:
 ```cpp
-auto alt = janus::sym("altitude");
+auto alt = metis::sym("altitude");
 auto wind = wind_shear::power_law(alt, 10.0, 10.0);
-janus::Function f("wind_profile", {alt}, {wind});
+metis::Function f("wind_profile", {alt}, {wind});
 // Verify gradient computation
-auto dwind_dh = janus::jacobian(wind, alt);
+auto dwind_dh = metis::jacobian(wind, alt);
 ```
 
 ### Manual Verification

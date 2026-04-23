@@ -6,7 +6,7 @@
 #include <vulcan/rotations/AxisAngle.hpp>
 #include <vulcan/rotations/DCMUtils.hpp>
 
-#include <janus/math/Quaternion.hpp>
+#include <metis/math/Quaternion.hpp>
 
 namespace vulcan {
 
@@ -27,8 +27,8 @@ namespace vulcan {
 /// @return Angular velocity vector in body frame [rad/s]
 template <typename Scalar>
 Vec3<Scalar>
-omega_from_quaternion_rate(const janus::Quaternion<Scalar> &q,
-                           const janus::Quaternion<Scalar> &q_dot) {
+omega_from_quaternion_rate(const metis::Quaternion<Scalar> &q,
+                           const metis::Quaternion<Scalar> &q_dot) {
     // omega_body = 2 * q* * q_dot
     auto omega_quat = q.conjugate() * q_dot;
     Scalar two = Scalar(2);
@@ -52,15 +52,15 @@ omega_from_quaternion_rate(const janus::Quaternion<Scalar> &q,
 /// @param omega_body Angular velocity in body frame [rad/s]
 /// @return Time derivative of quaternion
 template <typename Scalar>
-janus::Quaternion<Scalar>
-quaternion_rate_from_omega(const janus::Quaternion<Scalar> &q,
+metis::Quaternion<Scalar>
+quaternion_rate_from_omega(const metis::Quaternion<Scalar> &q,
                            const Vec3<Scalar> &omega_body) {
     // q_dot = 0.5 * q * (0, omega)
-    janus::Quaternion<Scalar> omega_quat(Scalar(0), omega_body(0),
+    metis::Quaternion<Scalar> omega_quat(Scalar(0), omega_body(0),
                                          omega_body(1), omega_body(2));
     Scalar half = Scalar(0.5);
     auto q_dot = q * omega_quat;
-    return janus::Quaternion<Scalar>(half * q_dot.w, half * q_dot.x,
+    return metis::Quaternion<Scalar>(half * q_dot.w, half * q_dot.x,
                                      half * q_dot.y, half * q_dot.z);
 }
 
@@ -117,9 +117,9 @@ Mat3<Scalar> dcm_rate_from_omega(const Mat3<Scalar> &R,
 /// @param q2 Second rotation (applied second)
 /// @return Composed rotation quaternion
 template <typename Scalar>
-janus::Quaternion<Scalar>
-compose_rotations(const janus::Quaternion<Scalar> &q1,
-                  const janus::Quaternion<Scalar> &q2) {
+metis::Quaternion<Scalar>
+compose_rotations(const metis::Quaternion<Scalar> &q1,
+                  const metis::Quaternion<Scalar> &q2) {
     return q2 * q1;
 }
 
@@ -134,9 +134,9 @@ compose_rotations(const janus::Quaternion<Scalar> &q1,
 /// @param q_to Target orientation quaternion
 /// @return Relative rotation from q_from to q_to
 template <typename Scalar>
-janus::Quaternion<Scalar>
-relative_rotation(const janus::Quaternion<Scalar> &q_from,
-                  const janus::Quaternion<Scalar> &q_to) {
+metis::Quaternion<Scalar>
+relative_rotation(const metis::Quaternion<Scalar> &q_from,
+                  const metis::Quaternion<Scalar> &q_to) {
     return q_to * q_from.conjugate();
 }
 
@@ -152,8 +152,8 @@ relative_rotation(const janus::Quaternion<Scalar> &q_from,
 /// @param q_desired Desired orientation
 /// @return Rotation vector representing error [rad]
 template <typename Scalar>
-Vec3<Scalar> rotation_error(const janus::Quaternion<Scalar> &q_actual,
-                            const janus::Quaternion<Scalar> &q_desired) {
+Vec3<Scalar> rotation_error(const metis::Quaternion<Scalar> &q_actual,
+                            const metis::Quaternion<Scalar> &q_desired) {
     // q_error = q_desired * q_actual^(-1)
     auto q_error = q_desired * q_actual.conjugate();
     return rotation_vector_from_quaternion(q_error);

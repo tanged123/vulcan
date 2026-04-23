@@ -5,7 +5,7 @@
  * This example shows:
  * - Loading YAML config files
  * - Extracting typed values (scalars, vectors)
- * - Using Janus types (Vec3, Quaternion, Mat3)
+ * - Using Metis types (Vec3, Quaternion, Mat3)
  * - Environment variable expansion
  * - Config file chaining with !include
  */
@@ -49,16 +49,16 @@ int main() {
               << config.Require<bool>("enabled") << "\n\n";
 
     // =========================================================================
-    // 2. Janus Type Extraction
+    // 2. Metis Type Extraction
     // =========================================================================
 
-    std::cout << "2. Janus Type Extraction\n";
+    std::cout << "2. Metis Type Extraction\n";
     std::cout << std::string(40, '-') << "\n";
 
     auto spacecraft = config["spacecraft"];
     double mass = spacecraft.Require<double>("mass_kg");
-    auto position = spacecraft.Require<janus::Vec3<double>>("position");
-    auto velocity = spacecraft.Require<janus::Vec3<double>>("velocity");
+    auto position = spacecraft.Require<metis::Vec3<double>>("position");
+    auto velocity = spacecraft.Require<metis::Vec3<double>>("velocity");
 
     std::cout << "Mass:     " << mass << " kg\n";
     std::cout << "Position: [" << position.x() << ", " << position.y() << ", "
@@ -124,8 +124,8 @@ int main() {
     )");
 
     auto quat =
-        rotation_config.Require<janus::Quaternion<double>>("orientation");
-    auto inertia = rotation_config.Require<janus::Mat3<double>>("inertia");
+        rotation_config.Require<metis::Quaternion<double>>("orientation");
+    auto inertia = rotation_config.Require<metis::Mat3<double>>("inertia");
 
     std::cout << "Quaternion: [w=" << quat.w << ", x=" << quat.x
               << ", y=" << quat.y << ", z=" << quat.z << "]\n";

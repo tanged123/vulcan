@@ -4,8 +4,8 @@
 
 #include <vulcan/core/VulcanTypes.hpp>
 
-#include <janus/math/Quaternion.hpp>
-#include <janus/math/Rotations.hpp>
+#include <metis/math/Quaternion.hpp>
+#include <metis/math/Rotations.hpp>
 
 #include <array>
 
@@ -146,10 +146,10 @@ Mat3<Scalar> dcm_from_euler(Scalar e1, Scalar e2, Scalar e3,
 
     // R = R_axis[0](e1) * R_axis[1](e2) * R_axis[2](e3)
     // For intrinsic rotations, compose left-to-right
-    // janus::rotation_matrix_3d gives R such that v' = R * v
-    Mat3<Scalar> R1 = janus::rotation_matrix_3d(e1, axes[0]);
-    Mat3<Scalar> R2 = janus::rotation_matrix_3d(e2, axes[1]);
-    Mat3<Scalar> R3 = janus::rotation_matrix_3d(e3, axes[2]);
+    // metis::rotation_matrix_3d gives R such that v' = R * v
+    Mat3<Scalar> R1 = metis::rotation_matrix_3d(e1, axes[0]);
+    Mat3<Scalar> R2 = metis::rotation_matrix_3d(e2, axes[1]);
+    Mat3<Scalar> R3 = metis::rotation_matrix_3d(e3, axes[2]);
 
     return R1 * R2 * R3;
 }
@@ -167,17 +167,17 @@ Mat3<Scalar> dcm_from_euler(Scalar e1, Scalar e2, Scalar e3,
 /// @param seq Euler sequence
 /// @return Unit quaternion representing the rotation
 template <typename Scalar>
-janus::Quaternion<Scalar> quaternion_from_euler(Scalar e1, Scalar e2, Scalar e3,
+metis::Quaternion<Scalar> quaternion_from_euler(Scalar e1, Scalar e2, Scalar e3,
                                                 EulerSequence seq) {
-    // For ZYX, we can use the optimized Janus implementation
+    // For ZYX, we can use the optimized Metis implementation
     if (seq == EulerSequence::ZYX) {
-        // Janus from_euler takes (roll, pitch, yaw) for ZYX intrinsic
-        return janus::Quaternion<Scalar>::from_euler(e3, e2, e1);
+        // Metis from_euler takes (roll, pitch, yaw) for ZYX intrinsic
+        return metis::Quaternion<Scalar>::from_euler(e3, e2, e1);
     }
 
     // For other sequences, build via DCM and convert
     Mat3<Scalar> R = dcm_from_euler(e1, e2, e3, seq);
-    return janus::Quaternion<Scalar>::from_rotation_matrix(R);
+    return metis::Quaternion<Scalar>::from_rotation_matrix(R);
 }
 
 // =============================================================================
@@ -196,24 +196,24 @@ namespace detail {
 template <typename Scalar>
 Vec3<Scalar> euler_from_dcm_zyx(const Mat3<Scalar> &R) {
     Scalar sin_e2 = -R(2, 0);
-    Scalar e2 = janus::asin(sin_e2);
+    Scalar e2 = metis::asin(sin_e2);
 
     Scalar eps = Scalar(1e-6);
-    Scalar cos_e2 = janus::cos(e2);
-    Scalar is_gimbal = janus::abs(cos_e2) < eps;
+    Scalar cos_e2 = metis::cos(e2);
+    Scalar is_gimbal = metis::abs(cos_e2) < eps;
 
     // Normal case
-    Scalar e1_normal = janus::atan2(R(1, 0), R(0, 0));
-    Scalar e3_normal = janus::atan2(R(2, 1), R(2, 2));
+    Scalar e1_normal = metis::atan2(R(1, 0), R(0, 0));
+    Scalar e3_normal = metis::atan2(R(2, 1), R(2, 2));
 
     // Gimbal lock: set e3 = 0, compute e1 from other elements
     Scalar e3_gimbal = Scalar(0);
-    Scalar e1_gimbal = janus::atan2(-R(0, 1), R(1, 1));
+    Scalar e1_gimbal = metis::atan2(-R(0, 1), R(1, 1));
 
     Vec3<Scalar> euler;
-    euler(0) = janus::where(is_gimbal, e1_gimbal, e1_normal);
+    euler(0) = metis::where(is_gimbal, e1_gimbal, e1_normal);
     euler(1) = e2;
-    euler(2) = janus::where(is_gimbal, e3_gimbal, e3_normal);
+    euler(2) = metis::where(is_gimbal, e3_gimbal, e3_normal);
 
     return euler;
 }
@@ -228,24 +228,24 @@ Vec3<Scalar> euler_from_dcm_zyx(const Mat3<Scalar> &R) {
 template <typename Scalar>
 Vec3<Scalar> euler_from_dcm_xyz(const Mat3<Scalar> &R) {
     Scalar sin_e2 = R(0, 2);
-    Scalar e2 = janus::asin(sin_e2);
+    Scalar e2 = metis::asin(sin_e2);
 
     Scalar eps = Scalar(1e-6);
-    Scalar cos_e2 = janus::cos(e2);
-    Scalar is_gimbal = janus::abs(cos_e2) < eps;
+    Scalar cos_e2 = metis::cos(e2);
+    Scalar is_gimbal = metis::abs(cos_e2) < eps;
 
     // Normal case
-    Scalar e1_normal = janus::atan2(-R(1, 2), R(2, 2));
-    Scalar e3_normal = janus::atan2(-R(0, 1), R(0, 0));
+    Scalar e1_normal = metis::atan2(-R(1, 2), R(2, 2));
+    Scalar e3_normal = metis::atan2(-R(0, 1), R(0, 0));
 
     // Gimbal lock: set e3 = 0
     Scalar e3_gimbal = Scalar(0);
-    Scalar e1_gimbal = janus::atan2(R(2, 1), R(1, 1));
+    Scalar e1_gimbal = metis::atan2(R(2, 1), R(1, 1));
 
     Vec3<Scalar> euler;
-    euler(0) = janus::where(is_gimbal, e1_gimbal, e1_normal);
+    euler(0) = metis::where(is_gimbal, e1_gimbal, e1_normal);
     euler(1) = e2;
-    euler(2) = janus::where(is_gimbal, e3_gimbal, e3_normal);
+    euler(2) = metis::where(is_gimbal, e3_gimbal, e3_normal);
 
     return euler;
 }
@@ -254,22 +254,22 @@ Vec3<Scalar> euler_from_dcm_xyz(const Mat3<Scalar> &R) {
 template <typename Scalar>
 Vec3<Scalar> euler_from_dcm_xzy(const Mat3<Scalar> &R) {
     Scalar sin_e2 = -R(0, 1);
-    Scalar e2 = janus::asin(sin_e2);
+    Scalar e2 = metis::asin(sin_e2);
 
     Scalar eps = Scalar(1e-6);
-    Scalar cos_e2 = janus::cos(e2);
-    Scalar is_gimbal = janus::abs(cos_e2) < eps;
+    Scalar cos_e2 = metis::cos(e2);
+    Scalar is_gimbal = metis::abs(cos_e2) < eps;
 
-    Scalar e1_normal = janus::atan2(R(2, 1), R(1, 1));
-    Scalar e3_normal = janus::atan2(R(0, 2), R(0, 0));
+    Scalar e1_normal = metis::atan2(R(2, 1), R(1, 1));
+    Scalar e3_normal = metis::atan2(R(0, 2), R(0, 0));
 
     Scalar e3_gimbal = Scalar(0);
-    Scalar e1_gimbal = janus::atan2(-R(1, 2), R(2, 2));
+    Scalar e1_gimbal = metis::atan2(-R(1, 2), R(2, 2));
 
     Vec3<Scalar> euler;
-    euler(0) = janus::where(is_gimbal, e1_gimbal, e1_normal);
+    euler(0) = metis::where(is_gimbal, e1_gimbal, e1_normal);
     euler(1) = e2;
-    euler(2) = janus::where(is_gimbal, e3_gimbal, e3_normal);
+    euler(2) = metis::where(is_gimbal, e3_gimbal, e3_normal);
 
     return euler;
 }
@@ -278,22 +278,22 @@ Vec3<Scalar> euler_from_dcm_xzy(const Mat3<Scalar> &R) {
 template <typename Scalar>
 Vec3<Scalar> euler_from_dcm_yxz(const Mat3<Scalar> &R) {
     Scalar sin_e2 = -R(1, 2);
-    Scalar e2 = janus::asin(sin_e2);
+    Scalar e2 = metis::asin(sin_e2);
 
     Scalar eps = Scalar(1e-6);
-    Scalar cos_e2 = janus::cos(e2);
-    Scalar is_gimbal = janus::abs(cos_e2) < eps;
+    Scalar cos_e2 = metis::cos(e2);
+    Scalar is_gimbal = metis::abs(cos_e2) < eps;
 
-    Scalar e1_normal = janus::atan2(R(0, 2), R(2, 2));
-    Scalar e3_normal = janus::atan2(R(1, 0), R(1, 1));
+    Scalar e1_normal = metis::atan2(R(0, 2), R(2, 2));
+    Scalar e3_normal = metis::atan2(R(1, 0), R(1, 1));
 
     Scalar e3_gimbal = Scalar(0);
-    Scalar e1_gimbal = janus::atan2(-R(2, 0), R(0, 0));
+    Scalar e1_gimbal = metis::atan2(-R(2, 0), R(0, 0));
 
     Vec3<Scalar> euler;
-    euler(0) = janus::where(is_gimbal, e1_gimbal, e1_normal);
+    euler(0) = metis::where(is_gimbal, e1_gimbal, e1_normal);
     euler(1) = e2;
-    euler(2) = janus::where(is_gimbal, e3_gimbal, e3_normal);
+    euler(2) = metis::where(is_gimbal, e3_gimbal, e3_normal);
 
     return euler;
 }
@@ -302,22 +302,22 @@ Vec3<Scalar> euler_from_dcm_yxz(const Mat3<Scalar> &R) {
 template <typename Scalar>
 Vec3<Scalar> euler_from_dcm_yzx(const Mat3<Scalar> &R) {
     Scalar sin_e2 = R(1, 0);
-    Scalar e2 = janus::asin(sin_e2);
+    Scalar e2 = metis::asin(sin_e2);
 
     Scalar eps = Scalar(1e-6);
-    Scalar cos_e2 = janus::cos(e2);
-    Scalar is_gimbal = janus::abs(cos_e2) < eps;
+    Scalar cos_e2 = metis::cos(e2);
+    Scalar is_gimbal = metis::abs(cos_e2) < eps;
 
-    Scalar e1_normal = janus::atan2(-R(2, 0), R(0, 0));
-    Scalar e3_normal = janus::atan2(-R(1, 2), R(1, 1));
+    Scalar e1_normal = metis::atan2(-R(2, 0), R(0, 0));
+    Scalar e3_normal = metis::atan2(-R(1, 2), R(1, 1));
 
     Scalar e3_gimbal = Scalar(0);
-    Scalar e1_gimbal = janus::atan2(R(0, 2), R(2, 2));
+    Scalar e1_gimbal = metis::atan2(R(0, 2), R(2, 2));
 
     Vec3<Scalar> euler;
-    euler(0) = janus::where(is_gimbal, e1_gimbal, e1_normal);
+    euler(0) = metis::where(is_gimbal, e1_gimbal, e1_normal);
     euler(1) = e2;
-    euler(2) = janus::where(is_gimbal, e3_gimbal, e3_normal);
+    euler(2) = metis::where(is_gimbal, e3_gimbal, e3_normal);
 
     return euler;
 }
@@ -326,22 +326,22 @@ Vec3<Scalar> euler_from_dcm_yzx(const Mat3<Scalar> &R) {
 template <typename Scalar>
 Vec3<Scalar> euler_from_dcm_zxy(const Mat3<Scalar> &R) {
     Scalar sin_e2 = R(2, 1);
-    Scalar e2 = janus::asin(sin_e2);
+    Scalar e2 = metis::asin(sin_e2);
 
     Scalar eps = Scalar(1e-6);
-    Scalar cos_e2 = janus::cos(e2);
-    Scalar is_gimbal = janus::abs(cos_e2) < eps;
+    Scalar cos_e2 = metis::cos(e2);
+    Scalar is_gimbal = metis::abs(cos_e2) < eps;
 
-    Scalar e1_normal = janus::atan2(-R(0, 1), R(1, 1));
-    Scalar e3_normal = janus::atan2(-R(2, 0), R(2, 2));
+    Scalar e1_normal = metis::atan2(-R(0, 1), R(1, 1));
+    Scalar e3_normal = metis::atan2(-R(2, 0), R(2, 2));
 
     Scalar e3_gimbal = Scalar(0);
-    Scalar e1_gimbal = janus::atan2(R(1, 0), R(0, 0));
+    Scalar e1_gimbal = metis::atan2(R(1, 0), R(0, 0));
 
     Vec3<Scalar> euler;
-    euler(0) = janus::where(is_gimbal, e1_gimbal, e1_normal);
+    euler(0) = metis::where(is_gimbal, e1_gimbal, e1_normal);
     euler(1) = e2;
-    euler(2) = janus::where(is_gimbal, e3_gimbal, e3_normal);
+    euler(2) = metis::where(is_gimbal, e3_gimbal, e3_normal);
 
     return euler;
 }
@@ -357,26 +357,26 @@ Vec3<Scalar> euler_from_dcm_zxy(const Mat3<Scalar> &R) {
 template <typename Scalar>
 Vec3<Scalar> euler_from_dcm_zxz(const Mat3<Scalar> &R) {
     Scalar cos_e2 = R(2, 2);
-    Scalar e2 = janus::acos(cos_e2);
+    Scalar e2 = metis::acos(cos_e2);
 
     Scalar eps = Scalar(1e-6);
-    Scalar sin_e2 = janus::sin(e2);
-    Scalar is_gimbal = janus::abs(sin_e2) < eps;
+    Scalar sin_e2 = metis::sin(e2);
+    Scalar is_gimbal = metis::abs(sin_e2) < eps;
 
     // Normal case
-    Scalar e1_normal = janus::atan2(R(0, 2), -R(1, 2));
-    Scalar e3_normal = janus::atan2(R(2, 0), R(2, 1));
+    Scalar e1_normal = metis::atan2(R(0, 2), -R(1, 2));
+    Scalar e3_normal = metis::atan2(R(2, 0), R(2, 1));
 
     // Gimbal lock: set e3 = 0
     Scalar e3_gimbal = Scalar(0);
     // At e2 = 0: e1 + e3 = atan2(-R[0,1], R[0,0])
     // At e2 = π: e1 - e3 = atan2(R[0,1], R[0,0])
-    Scalar e1_gimbal = janus::atan2(-R(0, 1), R(0, 0));
+    Scalar e1_gimbal = metis::atan2(-R(0, 1), R(0, 0));
 
     Vec3<Scalar> euler;
-    euler(0) = janus::where(is_gimbal, e1_gimbal, e1_normal);
+    euler(0) = metis::where(is_gimbal, e1_gimbal, e1_normal);
     euler(1) = e2;
-    euler(2) = janus::where(is_gimbal, e3_gimbal, e3_normal);
+    euler(2) = metis::where(is_gimbal, e3_gimbal, e3_normal);
 
     return euler;
 }
@@ -385,22 +385,22 @@ Vec3<Scalar> euler_from_dcm_zxz(const Mat3<Scalar> &R) {
 template <typename Scalar>
 Vec3<Scalar> euler_from_dcm_zyz(const Mat3<Scalar> &R) {
     Scalar cos_e2 = R(2, 2);
-    Scalar e2 = janus::acos(cos_e2);
+    Scalar e2 = metis::acos(cos_e2);
 
     Scalar eps = Scalar(1e-6);
-    Scalar sin_e2 = janus::sin(e2);
-    Scalar is_gimbal = janus::abs(sin_e2) < eps;
+    Scalar sin_e2 = metis::sin(e2);
+    Scalar is_gimbal = metis::abs(sin_e2) < eps;
 
-    Scalar e1_normal = janus::atan2(R(1, 2), R(0, 2));
-    Scalar e3_normal = janus::atan2(R(2, 1), -R(2, 0));
+    Scalar e1_normal = metis::atan2(R(1, 2), R(0, 2));
+    Scalar e3_normal = metis::atan2(R(2, 1), -R(2, 0));
 
     Scalar e3_gimbal = Scalar(0);
-    Scalar e1_gimbal = janus::atan2(R(1, 0), R(0, 0));
+    Scalar e1_gimbal = metis::atan2(R(1, 0), R(0, 0));
 
     Vec3<Scalar> euler;
-    euler(0) = janus::where(is_gimbal, e1_gimbal, e1_normal);
+    euler(0) = metis::where(is_gimbal, e1_gimbal, e1_normal);
     euler(1) = e2;
-    euler(2) = janus::where(is_gimbal, e3_gimbal, e3_normal);
+    euler(2) = metis::where(is_gimbal, e3_gimbal, e3_normal);
 
     return euler;
 }
@@ -409,22 +409,22 @@ Vec3<Scalar> euler_from_dcm_zyz(const Mat3<Scalar> &R) {
 template <typename Scalar>
 Vec3<Scalar> euler_from_dcm_xyx(const Mat3<Scalar> &R) {
     Scalar cos_e2 = R(0, 0);
-    Scalar e2 = janus::acos(cos_e2);
+    Scalar e2 = metis::acos(cos_e2);
 
     Scalar eps = Scalar(1e-6);
-    Scalar sin_e2 = janus::sin(e2);
-    Scalar is_gimbal = janus::abs(sin_e2) < eps;
+    Scalar sin_e2 = metis::sin(e2);
+    Scalar is_gimbal = metis::abs(sin_e2) < eps;
 
-    Scalar e1_normal = janus::atan2(R(1, 0), -R(2, 0));
-    Scalar e3_normal = janus::atan2(R(0, 1), R(0, 2));
+    Scalar e1_normal = metis::atan2(R(1, 0), -R(2, 0));
+    Scalar e3_normal = metis::atan2(R(0, 1), R(0, 2));
 
     Scalar e3_gimbal = Scalar(0);
-    Scalar e1_gimbal = janus::atan2(-R(1, 2), R(1, 1));
+    Scalar e1_gimbal = metis::atan2(-R(1, 2), R(1, 1));
 
     Vec3<Scalar> euler;
-    euler(0) = janus::where(is_gimbal, e1_gimbal, e1_normal);
+    euler(0) = metis::where(is_gimbal, e1_gimbal, e1_normal);
     euler(1) = e2;
-    euler(2) = janus::where(is_gimbal, e3_gimbal, e3_normal);
+    euler(2) = metis::where(is_gimbal, e3_gimbal, e3_normal);
 
     return euler;
 }
@@ -433,22 +433,22 @@ Vec3<Scalar> euler_from_dcm_xyx(const Mat3<Scalar> &R) {
 template <typename Scalar>
 Vec3<Scalar> euler_from_dcm_xzx(const Mat3<Scalar> &R) {
     Scalar cos_e2 = R(0, 0);
-    Scalar e2 = janus::acos(cos_e2);
+    Scalar e2 = metis::acos(cos_e2);
 
     Scalar eps = Scalar(1e-6);
-    Scalar sin_e2 = janus::sin(e2);
-    Scalar is_gimbal = janus::abs(sin_e2) < eps;
+    Scalar sin_e2 = metis::sin(e2);
+    Scalar is_gimbal = metis::abs(sin_e2) < eps;
 
-    Scalar e1_normal = janus::atan2(R(2, 0), R(1, 0));
-    Scalar e3_normal = janus::atan2(R(0, 2), -R(0, 1));
+    Scalar e1_normal = metis::atan2(R(2, 0), R(1, 0));
+    Scalar e3_normal = metis::atan2(R(0, 2), -R(0, 1));
 
     Scalar e3_gimbal = Scalar(0);
-    Scalar e1_gimbal = janus::atan2(R(2, 1), R(2, 2));
+    Scalar e1_gimbal = metis::atan2(R(2, 1), R(2, 2));
 
     Vec3<Scalar> euler;
-    euler(0) = janus::where(is_gimbal, e1_gimbal, e1_normal);
+    euler(0) = metis::where(is_gimbal, e1_gimbal, e1_normal);
     euler(1) = e2;
-    euler(2) = janus::where(is_gimbal, e3_gimbal, e3_normal);
+    euler(2) = metis::where(is_gimbal, e3_gimbal, e3_normal);
 
     return euler;
 }
@@ -457,22 +457,22 @@ Vec3<Scalar> euler_from_dcm_xzx(const Mat3<Scalar> &R) {
 template <typename Scalar>
 Vec3<Scalar> euler_from_dcm_yxy(const Mat3<Scalar> &R) {
     Scalar cos_e2 = R(1, 1);
-    Scalar e2 = janus::acos(cos_e2);
+    Scalar e2 = metis::acos(cos_e2);
 
     Scalar eps = Scalar(1e-6);
-    Scalar sin_e2 = janus::sin(e2);
-    Scalar is_gimbal = janus::abs(sin_e2) < eps;
+    Scalar sin_e2 = metis::sin(e2);
+    Scalar is_gimbal = metis::abs(sin_e2) < eps;
 
-    Scalar e1_normal = janus::atan2(R(0, 1), R(2, 1));
-    Scalar e3_normal = janus::atan2(R(1, 0), -R(1, 2));
+    Scalar e1_normal = metis::atan2(R(0, 1), R(2, 1));
+    Scalar e3_normal = metis::atan2(R(1, 0), -R(1, 2));
 
     Scalar e3_gimbal = Scalar(0);
-    Scalar e1_gimbal = janus::atan2(R(0, 2), R(0, 0));
+    Scalar e1_gimbal = metis::atan2(R(0, 2), R(0, 0));
 
     Vec3<Scalar> euler;
-    euler(0) = janus::where(is_gimbal, e1_gimbal, e1_normal);
+    euler(0) = metis::where(is_gimbal, e1_gimbal, e1_normal);
     euler(1) = e2;
-    euler(2) = janus::where(is_gimbal, e3_gimbal, e3_normal);
+    euler(2) = metis::where(is_gimbal, e3_gimbal, e3_normal);
 
     return euler;
 }
@@ -481,22 +481,22 @@ Vec3<Scalar> euler_from_dcm_yxy(const Mat3<Scalar> &R) {
 template <typename Scalar>
 Vec3<Scalar> euler_from_dcm_yzy(const Mat3<Scalar> &R) {
     Scalar cos_e2 = R(1, 1);
-    Scalar e2 = janus::acos(cos_e2);
+    Scalar e2 = metis::acos(cos_e2);
 
     Scalar eps = Scalar(1e-6);
-    Scalar sin_e2 = janus::sin(e2);
-    Scalar is_gimbal = janus::abs(sin_e2) < eps;
+    Scalar sin_e2 = metis::sin(e2);
+    Scalar is_gimbal = metis::abs(sin_e2) < eps;
 
-    Scalar e1_normal = janus::atan2(R(2, 1), -R(0, 1));
-    Scalar e3_normal = janus::atan2(R(1, 2), R(1, 0));
+    Scalar e1_normal = metis::atan2(R(2, 1), -R(0, 1));
+    Scalar e3_normal = metis::atan2(R(1, 2), R(1, 0));
 
     Scalar e3_gimbal = Scalar(0);
-    Scalar e1_gimbal = janus::atan2(-R(2, 0), R(2, 2));
+    Scalar e1_gimbal = metis::atan2(-R(2, 0), R(2, 2));
 
     Vec3<Scalar> euler;
-    euler(0) = janus::where(is_gimbal, e1_gimbal, e1_normal);
+    euler(0) = metis::where(is_gimbal, e1_gimbal, e1_normal);
     euler(1) = e2;
-    euler(2) = janus::where(is_gimbal, e3_gimbal, e3_normal);
+    euler(2) = metis::where(is_gimbal, e3_gimbal, e3_normal);
 
     return euler;
 }
@@ -509,7 +509,7 @@ Vec3<Scalar> euler_from_dcm_yzy(const Mat3<Scalar> &R) {
 
 /// Extract Euler angles from DCM for specified sequence
 ///
-/// Handles gimbal lock for all sequences via janus::where for symbolic
+/// Handles gimbal lock for all sequences via metis::where for symbolic
 /// compatibility. At singularities, the third angle is set to zero.
 ///
 /// @tparam Scalar Scalar type (double or SymbolicScalar)
@@ -555,9 +555,9 @@ Vec3<Scalar> euler_from_dcm(const Mat3<Scalar> &R, EulerSequence seq) {
 /// @param seq Euler sequence
 /// @return [e1, e2, e3] angles [rad]
 template <typename Scalar>
-Vec3<Scalar> euler_from_quaternion(const janus::Quaternion<Scalar> &q,
+Vec3<Scalar> euler_from_quaternion(const metis::Quaternion<Scalar> &q,
                                    EulerSequence seq) {
-    // For ZYX, we can use the optimized Janus implementation
+    // For ZYX, we can use the optimized Metis implementation
     if (seq == EulerSequence::ZYX) {
         auto euler_rpy = q.to_euler(); // Returns [roll, pitch, yaw]
         Vec3<Scalar> euler;

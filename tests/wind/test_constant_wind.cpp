@@ -2,7 +2,7 @@
 // Tests WindVector construction, speed/direction calculations, and symbolic
 // evaluation
 #include <gtest/gtest.h>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/wind/ConstantWind.hpp>
 #include <vulcan/wind/WindTypes.hpp>
 
@@ -177,14 +177,14 @@ TEST(TurbulenceParams, MilSpecSevere) {
 // ============================================================================
 
 TEST(ConstantWind, SymbolicFromNED) {
-    auto north = janus::sym("north");
-    auto east = janus::sym("east");
-    auto down = janus::sym("down");
+    auto north = metis::sym("north");
+    auto east = metis::sym("east");
+    auto down = metis::sym("down");
 
     auto wind = vulcan::constant_wind::from_ned(north, east, down);
 
     // Create function to evaluate
-    janus::Function f("wind_ned", {north, east, down},
+    metis::Function f("wind_ned", {north, east, down},
                       {wind.north, wind.east, wind.down});
 
     auto result = f({10.0, 5.0, 2.0});
@@ -194,12 +194,12 @@ TEST(ConstantWind, SymbolicFromNED) {
 }
 
 TEST(ConstantWind, SymbolicFromSpeedDirection) {
-    auto speed = janus::sym("speed");
-    auto dir = janus::sym("direction");
+    auto speed = metis::sym("speed");
+    auto dir = metis::sym("direction");
 
     auto wind = vulcan::constant_wind::from_speed_direction(speed, dir);
 
-    janus::Function f("wind_sd", {speed, dir},
+    metis::Function f("wind_sd", {speed, dir},
                       {wind.north, wind.east, wind.speed()});
 
     // Northerly wind: speed=10, dir=0
@@ -210,15 +210,15 @@ TEST(ConstantWind, SymbolicFromSpeedDirection) {
 }
 
 TEST(WindVector, SymbolicSpeed) {
-    auto n = janus::sym("n");
-    auto e = janus::sym("e");
-    auto d = janus::sym("d");
+    auto n = metis::sym("n");
+    auto e = metis::sym("e");
+    auto d = metis::sym("d");
 
-    vulcan::wind::WindVector<janus::SymbolicScalar> wind{
+    vulcan::wind::WindVector<metis::SymbolicScalar> wind{
         .north = n, .east = e, .down = d};
 
     auto spd = wind.speed();
-    janus::Function f("wind_speed", {n, e, d}, {spd});
+    metis::Function f("wind_speed", {n, e, d}, {spd});
 
     // 3-4-0 triangle
     auto result = f({3.0, 4.0, 0.0});
@@ -226,14 +226,14 @@ TEST(WindVector, SymbolicSpeed) {
 }
 
 TEST(ConstantWind, SymbolicGradient) {
-    auto speed = janus::sym("speed");
-    auto dir = janus::sym("direction");
+    auto speed = metis::sym("speed");
+    auto dir = metis::sym("direction");
 
     auto wind = vulcan::constant_wind::from_speed_direction(speed, dir);
 
     // d(north)/d(speed) at dir=0 should be -1
-    auto dn_ds = janus::jacobian(wind.north, speed);
-    janus::Function f("dn_ds", {speed, dir}, {dn_ds});
+    auto dn_ds = metis::jacobian(wind.north, speed);
+    metis::Function f("dn_ds", {speed, dir}, {dn_ds});
 
     auto result = f({10.0, 0.0});
     EXPECT_NEAR(result[0](0, 0), -1.0, 1e-10);

@@ -1,6 +1,6 @@
 # Rigid Body Dynamics
 
-The `vulcan::dynamics` module provides stateless 6DOF equations of motion utilities for trajectory optimization and simulation. These functions are designed to work with both numeric (`double`) and symbolic (`casadi::MX`) types, enabling direct integration with Janus optimization.
+The `vulcan::dynamics` module provides stateless 6DOF equations of motion utilities for trajectory optimization and simulation. These functions are designed to work with both numeric (`double`) and symbolic (`casadi::MX`) types, enabling direct integration with Metis optimization.
 
 ## Key Features
 
@@ -26,7 +26,7 @@ auto mass_props = MassProperties<double>::diagonal(
 RigidBodyState<double> state{
     .position = {0, 0, 1000},        // [m]
     .velocity_body = {50, 0, 0},     // [m/s]
-    .attitude = janus::Quaternion<double>(),  // identity
+    .attitude = metis::Quaternion<double>(),  // identity
     .omega_body = {0, 0, 1}          // [rad/s]
 };
 
@@ -116,15 +116,15 @@ Implements: `a_⊕ = F/m - 2(ω_⊕ × v_⊕) - ω_⊕ × (ω_⊕ × r)`
 
 ## Symbolic Usage (Trajectory Optimization)
  
-All functions work with `casadi::MX` for Janus optimization, allowing you to solve optimal control problems directly using the dynamics equations.
+All functions work with `casadi::MX` for Metis optimization, allowing you to solve optimal control problems directly using the dynamics equations.
 
 ### Example: Max Sustained Turn Rate
 
-The following example demonstrates how to use `janus::Opti` to find the optimal control inputs (Lift, Bank, Thrust) for a guided vehicle to maximize its turn rate while maintaining altitude and speed.
+The following example demonstrates how to use `metis::Opti` to find the optimal control inputs (Lift, Bank, Thrust) for a guided vehicle to maximize its turn rate while maintaining altitude and speed.
 
 ```cpp
 using MX = casadi::MX;
-janus::Opti opti;
+metis::Opti opti;
 
 // 1. Define Variables
 auto lift   = opti.variable(10000.0); // Lift [N]
@@ -140,7 +140,7 @@ auto weight   = mass * 9.81;
 // 3. Define Constraints
 // Maintain Altitude: Vertical lift component must equal weight
 // L * cos(phi) = W
-opti.subject_to(lift * janus::cos(bank) == weight);
+opti.subject_to(lift * metis::cos(bank) == weight);
 
 // Maintain Speed: Thrust must equal Drag
 // T = D (assuming small angle of attack for drag calc)

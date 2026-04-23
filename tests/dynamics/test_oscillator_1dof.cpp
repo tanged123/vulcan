@@ -184,16 +184,16 @@ TEST(OscillatorEnergyTest, TotalEnergy) {
 // =============================================================================
 
 TEST(OscillatorSymbolicTest, Acceleration) {
-    auto x = janus::sym("x");
-    auto x_dot = janus::sym("x_dot");
-    auto omega_n = janus::sym("omega_n");
-    auto zeta = janus::sym("zeta");
-    auto force = janus::sym("F");
-    auto mass = janus::sym("m");
+    auto x = metis::sym("x");
+    auto x_dot = metis::sym("x_dot");
+    auto omega_n = metis::sym("omega_n");
+    auto zeta = metis::sym("zeta");
+    auto force = metis::sym("F");
+    auto mass = metis::sym("m");
 
     auto x_ddot = oscillator_acceleration(x, x_dot, omega_n, zeta, force, mass);
 
-    janus::Function f("oscillator_accel",
+    metis::Function f("oscillator_accel",
                       {x, x_dot, omega_n, zeta, force, mass}, {x_ddot});
 
     // Test: x=1, x_dot=0.5, ω=2, ζ=0.1, F=10, m=2
@@ -205,16 +205,16 @@ TEST(OscillatorSymbolicTest, Acceleration) {
 }
 
 TEST(OscillatorSymbolicTest, SpringDamper) {
-    auto x = janus::sym("x");
-    auto x_dot = janus::sym("x_dot");
-    auto k = janus::sym("k");
-    auto c = janus::sym("c");
-    auto F = janus::sym("F");
-    auto m = janus::sym("m");
+    auto x = metis::sym("x");
+    auto x_dot = metis::sym("x_dot");
+    auto k = metis::sym("k");
+    auto c = metis::sym("c");
+    auto F = metis::sym("F");
+    auto m = metis::sym("m");
 
     auto x_ddot = spring_damper_acceleration(x, x_dot, k, c, F, m);
 
-    janus::Function f("spring_damper", {x, x_dot, k, c, F, m}, {x_ddot});
+    metis::Function f("spring_damper", {x, x_dot, k, c, F, m}, {x_ddot});
 
     auto result = f({0.5, 0.2, 100.0, 10.0, 20.0, 5.0});
 
@@ -224,14 +224,14 @@ TEST(OscillatorSymbolicTest, SpringDamper) {
 }
 
 TEST(OscillatorSymbolicTest, Energy) {
-    auto x = janus::sym("x");
-    auto x_dot = janus::sym("x_dot");
-    auto omega_n = janus::sym("omega_n");
-    auto mass = janus::sym("m");
+    auto x = metis::sym("x");
+    auto x_dot = metis::sym("x_dot");
+    auto omega_n = metis::sym("omega_n");
+    auto mass = metis::sym("m");
 
     auto E = oscillator_energy(x, x_dot, omega_n, mass);
 
-    janus::Function f("oscillator_energy", {x, x_dot, omega_n, mass}, {E});
+    metis::Function f("oscillator_energy", {x, x_dot, omega_n, mass}, {E});
 
     auto result = f({0.5, 1.0, 2.0, 2.0});
 

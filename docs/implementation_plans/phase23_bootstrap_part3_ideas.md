@@ -168,12 +168,12 @@ Files: `raymer_cargo_transport_weights.py`, `torenbeek_weights.py`, etc.
 
 ---
 
-## Janus Compatibility Notes
+## Metis Compatibility Notes
 
 All models should:
 1. Template on `Scalar` for AD support
-2. Use `janus::` math functions
-3. Use `janus::where()` for scalar-dependent branching
+2. Use `metis::` math functions
+3. Use `metis::where()` for scalar-dependent branching
 
 Aerosandbox already uses symbolic-friendly patterns (softmax blending, smooth approximations).
 

@@ -4,7 +4,7 @@
 
 ## 1. Core Concept Recap
 
-Icarus is a DAG of Component models connected by **Signals** that route Janus Scalars (dual numeric/symbolic types). Each signal has:
+Icarus is a DAG of Component models connected by **Signals** that route Metis Scalars (dual numeric/symbolic types). Each signal has:
 - A direction: **Input** or **Output**
 - A lifecycle: **Static** (constant post-init) or **Dynamic** (updated each step)
 - A data type (currently assumed to be `double`)

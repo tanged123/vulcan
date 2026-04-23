@@ -5,13 +5,13 @@
  * Provides ergonomic access to YAML configuration with:
  * - Type-safe extraction for common types
  * - Path tracking for debugging
- * - Support for Janus math types (Vec3, Mat3, Quaternion)
+ * - Support for Metis math types (Vec3, Mat3, Quaternion)
  */
 
 #pragma once
 
-#include <janus/core/JanusTypes.hpp>
-#include <janus/math/Quaternion.hpp>
+#include <metis/core/MetisTypes.hpp>
+#include <metis/math/Quaternion.hpp>
 #include <yaml-cpp/yaml.h>
 
 #include <cstdint>
@@ -42,7 +42,7 @@ class YamlError : public std::runtime_error {
  * Provides:
  * - Type-safe extraction with good error messages
  * - Path tracking for debugging
- * - Support for Janus math types
+ * - Support for Metis math types
  */
 class YamlNode {
   public:
@@ -252,40 +252,40 @@ template <> inline std::string YamlNode::As<std::string>() const {
     return detail::yaml_as<std::string>(node_, path_);
 }
 
-// --- Janus types (double specialization) ---
+// --- Metis types (double specialization) ---
 
 /// @brief Convert node to Vec3<double> from [x, y, z]
 template <>
-inline janus::Vec3<double> YamlNode::As<janus::Vec3<double>>() const {
+inline metis::Vec3<double> YamlNode::As<metis::Vec3<double>>() const {
     if (!IsSequence() || Size() != 3) {
         throw YamlError(path_, "expected sequence of 3 elements for Vec3");
     }
-    return janus::Vec3<double>{(*this)[0].As<double>(), (*this)[1].As<double>(),
+    return metis::Vec3<double>{(*this)[0].As<double>(), (*this)[1].As<double>(),
                                (*this)[2].As<double>()};
 }
 
 /// @brief Convert node to Quaternion<double> from [w, x, y, z]
 template <>
-inline janus::Quaternion<double>
-YamlNode::As<janus::Quaternion<double>>() const {
+inline metis::Quaternion<double>
+YamlNode::As<metis::Quaternion<double>>() const {
     if (!IsSequence() || Size() != 4) {
         throw YamlError(
             path_, "expected sequence of 4 elements for Quaternion [w,x,y,z]");
     }
     // Scalar-first convention: [w, x, y, z]
-    return janus::Quaternion<double>{
+    return metis::Quaternion<double>{
         (*this)[0].As<double>(), (*this)[1].As<double>(),
         (*this)[2].As<double>(), (*this)[3].As<double>()};
 }
 
 /// @brief Convert node to Mat3<double> from nested or flat array
 template <>
-inline janus::Mat3<double> YamlNode::As<janus::Mat3<double>>() const {
+inline metis::Mat3<double> YamlNode::As<metis::Mat3<double>>() const {
     if (!IsSequence()) {
         throw YamlError(path_, "expected sequence for Mat3");
     }
 
-    janus::Mat3<double> m;
+    metis::Mat3<double> m;
 
     // Nested format: [[r00, r01, r02], [r10, r11, r12], [r20, r21, r22]]
     if (Size() == 3 && (*this)[0].IsSequence()) {

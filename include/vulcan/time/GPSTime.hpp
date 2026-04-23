@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cmath>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/time/JulianDate.hpp>
 #include <vulcan/time/TimeConstants.hpp>
 #include <vulcan/time/TimeScales.hpp>

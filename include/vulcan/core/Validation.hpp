@@ -1,7 +1,7 @@
 #pragma once
 
-#include <janus/math/Arithmetic.hpp>
-#include <janus/math/Logic.hpp>
+#include <metis/math/Arithmetic.hpp>
+#include <metis/math/Logic.hpp>
 #include <sstream>
 #include <string>
 #include <type_traits>
@@ -40,7 +40,7 @@ auto is_in_range(const Scalar &x, const Scalar &min, const Scalar &max) {
 template <typename Scalar>
 Scalar clamp(const Scalar &x, const Scalar &min, const Scalar &max) {
     // return min(max(x, min_val), max_val)
-    return janus::min(janus::max(x, min), max);
+    return metis::min(metis::max(x, min), max);
 }
 
 // =============================================================================

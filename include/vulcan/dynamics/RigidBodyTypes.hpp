@@ -5,7 +5,7 @@
 #include <vulcan/core/VulcanTypes.hpp>
 #include <vulcan/mass/MassProperties.hpp>
 
-#include <janus/math/Quaternion.hpp>
+#include <metis/math/Quaternion.hpp>
 
 // =============================================================================
 // State Structures
@@ -24,7 +24,7 @@ using vulcan::mass::transform_mass_properties;
 template <typename Scalar> struct RigidBodyState {
     Vec3<Scalar> position;              ///< Position in reference frame [m]
     Vec3<Scalar> velocity_body;         ///< Velocity in body frame [m/s]
-    janus::Quaternion<Scalar> attitude; ///< Body-to-reference quaternion
+    metis::Quaternion<Scalar> attitude; ///< Body-to-reference quaternion
     Vec3<Scalar> omega_body; ///< Angular velocity in body frame [rad/s]
 };
 
@@ -32,7 +32,7 @@ template <typename Scalar> struct RigidBodyState {
 template <typename Scalar> struct RigidBodyDerivatives {
     Vec3<Scalar> position_dot; ///< Velocity in reference frame [m/s]
     Vec3<Scalar> velocity_dot; ///< Acceleration in body frame [m/s²]
-    janus::Quaternion<Scalar> attitude_dot; ///< Quaternion rate
+    metis::Quaternion<Scalar> attitude_dot; ///< Quaternion rate
     Vec3<Scalar> omega_dot; ///< Angular accel in body frame [rad/s²]
 };
 

@@ -70,12 +70,12 @@ int main() {
     std::cout << "--- Symbolic Mode ---" << std::endl;
 
     // Define symbolic variables
-    janus::SymbolicScalar sym_h = janus::sym("h");
-    janus::SymbolicScalar sym_vx = janus::sym("vx");
-    janus::SymbolicScalar sym_vz = janus::sym("vz");
-    janus::SymbolicScalar sym_L = janus::sym("L");
+    metis::SymbolicScalar sym_h = metis::sym("h");
+    metis::SymbolicScalar sym_vx = metis::sym("vx");
+    metis::SymbolicScalar sym_vz = metis::sym("vz");
+    metis::SymbolicScalar sym_L = metis::sym("L");
 
-    Vec3<janus::SymbolicScalar> sym_v;
+    Vec3<metis::SymbolicScalar> sym_v;
     sym_v << sym_vx, 0.0, sym_vz;
 
     // Compute chain of operations symbolically
@@ -90,13 +90,13 @@ int main() {
 
     // Calculate sensitivity of Mach number impacting drag coefficients
     // d(Mach)/d(Height) - essential for trajectory opt
-    auto dM_dh = janus::jacobian(aero.mach, sym_h);
+    auto dM_dh = metis::jacobian(aero.mach, sym_h);
 
     std::cout << "Computed symbolic derivative d(Mach)/d(h)." << std::endl;
     std::cout << "Evaluating derivative at h=10000m, V=250m/s..." << std::endl;
 
     // Create function to evaluate the derivative
-    janus::Function f_grad("grad_M", {sym_h, sym_vx, sym_vz, sym_L}, {dM_dh});
+    metis::Function f_grad("grad_M", {sym_h, sym_vx, sym_vz, sym_L}, {dM_dh});
 
     // Evaluate
     auto result = f_grad({10000.0, 250.0, 0.0, 5.0});

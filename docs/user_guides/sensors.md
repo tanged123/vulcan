@@ -159,14 +159,14 @@ auto custom_coeffs = vulcan::allan::compute_coeffs(gyro_params, accel_params, dt
 
 ## Symbolic Computation
 
-All noise models work with `janus::SymbolicScalar`:
+All noise models work with `metis::SymbolicScalar`:
 
 ```cpp
-using Scalar = janus::SymbolicScalar;
+using Scalar = metis::SymbolicScalar;
 
-auto w1 = janus::sym("w_arw");
-auto w2 = janus::sym("w_bias");
-auto w3 = janus::sym("w_rrw");
+auto w1 = metis::sym("w_arw");
+auto w2 = metis::sym("w_bias");
+auto w3 = metis::sym("w_rrw");
 
 auto state = vulcan::allan::init_axis_state<Scalar>();
 auto coeffs = vulcan::allan::compute_axis_coeffs(
@@ -175,13 +175,13 @@ auto coeffs = vulcan::allan::compute_axis_coeffs(
 auto output = vulcan::allan::step_axis(state, coeffs, w1, w2, w3);
 
 // Create CasADi function for optimization
-janus::Function f("imu_noise", {w1, w2, w3}, {output});
+metis::Function f("imu_noise", {w1, w2, w3}, {output});
 ```
 
 ### Graph Visualization
 
 ```cpp
-janus::export_graph_html(output, "graph_imu_noise", "IMU_Noise");
+metis::export_graph_html(output, "graph_imu_noise", "IMU_Noise");
 ```
 
 > [!TIP]

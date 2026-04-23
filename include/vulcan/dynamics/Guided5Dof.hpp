@@ -8,7 +8,7 @@
 
 #include <vulcan/core/VulcanTypes.hpp>
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 namespace vulcan::dynamics {
 
@@ -68,10 +68,10 @@ Scalar attitude_response_accel(const Scalar &angle, const Scalar &angle_dot,
 /// @return Thrust unit direction in NED frame
 template <typename Scalar>
 Vec3<Scalar> thrust_direction_btt(const Scalar &gamma, const Scalar &chi) {
-    Scalar cos_gamma = janus::cos(gamma);
-    Scalar sin_gamma = janus::sin(gamma);
-    Scalar cos_chi = janus::cos(chi);
-    Scalar sin_chi = janus::sin(chi);
+    Scalar cos_gamma = metis::cos(gamma);
+    Scalar sin_gamma = metis::sin(gamma);
+    Scalar cos_chi = metis::cos(chi);
+    Scalar sin_chi = metis::sin(chi);
 
     // Thrust aligned with velocity direction
     return Vec3<Scalar>{
@@ -94,12 +94,12 @@ Vec3<Scalar> thrust_direction_btt(const Scalar &gamma, const Scalar &chi) {
 template <typename Scalar>
 Vec3<Scalar> lift_direction_btt(const Scalar &gamma, const Scalar &chi,
                                 const Scalar &phi) {
-    Scalar cos_gamma = janus::cos(gamma);
-    Scalar sin_gamma = janus::sin(gamma);
-    Scalar cos_chi = janus::cos(chi);
-    Scalar sin_chi = janus::sin(chi);
-    Scalar cos_phi = janus::cos(phi);
-    Scalar sin_phi = janus::sin(phi);
+    Scalar cos_gamma = metis::cos(gamma);
+    Scalar sin_gamma = metis::sin(gamma);
+    Scalar cos_chi = metis::cos(chi);
+    Scalar sin_chi = metis::sin(chi);
+    Scalar cos_phi = metis::cos(phi);
+    Scalar sin_phi = metis::sin(phi);
 
     // "Up" direction in velocity frame (perpendicular to velocity, in vertical
     // plane)
@@ -123,10 +123,10 @@ Vec3<Scalar> lift_direction_btt(const Scalar &gamma, const Scalar &chi,
 /// @return Thrust unit direction in NED frame
 template <typename Scalar>
 Vec3<Scalar> thrust_direction_stt(const Scalar &theta, const Scalar &psi) {
-    Scalar cos_theta = janus::cos(theta);
-    Scalar sin_theta = janus::sin(theta);
-    Scalar cos_psi = janus::cos(psi);
-    Scalar sin_psi = janus::sin(psi);
+    Scalar cos_theta = metis::cos(theta);
+    Scalar sin_theta = metis::sin(theta);
+    Scalar cos_psi = metis::cos(psi);
+    Scalar sin_psi = metis::sin(psi);
 
     return Vec3<Scalar>{
         cos_theta * cos_psi, // North
@@ -145,8 +145,8 @@ Vec3<Scalar> thrust_direction_stt(const Scalar &theta, const Scalar &psi) {
 /// @return Side force unit direction in NED frame (body Y direction)
 template <typename Scalar>
 Vec3<Scalar> side_force_direction_stt(const Scalar &theta, const Scalar &psi) {
-    Scalar cos_psi = janus::cos(psi);
-    Scalar sin_psi = janus::sin(psi);
+    Scalar cos_psi = metis::cos(psi);
+    Scalar sin_psi = metis::sin(psi);
 
     // Body Y is perpendicular to body X, in horizontal plane
     return Vec3<Scalar>{-sin_psi, cos_psi, Scalar(0)};
@@ -163,10 +163,10 @@ Vec3<Scalar> side_force_direction_stt(const Scalar &theta, const Scalar &psi) {
 template <typename Scalar>
 Vec3<Scalar> normal_force_direction_stt(const Scalar &theta,
                                         const Scalar &psi) {
-    Scalar cos_theta = janus::cos(theta);
-    Scalar sin_theta = janus::sin(theta);
-    Scalar cos_psi = janus::cos(psi);
-    Scalar sin_psi = janus::sin(psi);
+    Scalar cos_theta = metis::cos(theta);
+    Scalar sin_theta = metis::sin(theta);
+    Scalar cos_psi = metis::cos(psi);
+    Scalar sin_psi = metis::sin(psi);
 
     // Body -Z (up in body frame)
     return Vec3<Scalar>{sin_theta * cos_psi, sin_theta * sin_psi, cos_theta};
@@ -251,8 +251,8 @@ template <typename Scalar>
 Scalar gamma_dot(const Scalar &lift, const Scalar &weight, const Scalar &mass,
                  const Scalar &velocity, const Scalar &gamma,
                  const Scalar &phi) {
-    Scalar cos_phi = janus::cos(phi);
-    Scalar cos_gamma = janus::cos(gamma);
+    Scalar cos_phi = metis::cos(phi);
+    Scalar cos_gamma = metis::cos(gamma);
     return (lift * cos_phi - weight * cos_gamma) /
            (mass * velocity + Scalar(1e-12));
 }
@@ -271,8 +271,8 @@ template <typename Scalar>
 Scalar chi_dot_btt(const Scalar &lift, const Scalar &mass,
                    const Scalar &velocity, const Scalar &gamma,
                    const Scalar &phi) {
-    Scalar sin_phi = janus::sin(phi);
-    Scalar cos_gamma = janus::cos(gamma);
+    Scalar sin_phi = metis::sin(phi);
+    Scalar cos_gamma = metis::cos(gamma);
     return (lift * sin_phi) /
            (mass * velocity * (cos_gamma + Scalar(1e-12)) + Scalar(1e-12));
 }
@@ -301,7 +301,7 @@ Scalar load_factor_from_lift(const Scalar &lift, const Scalar &weight) {
 template <typename Scalar>
 Scalar bank_for_turn_rate(const Scalar &velocity, const Scalar &chi_dot,
                           const Scalar &gravity) {
-    return janus::atan(velocity * chi_dot / gravity);
+    return metis::atan(velocity * chi_dot / gravity);
 }
 
 } // namespace vulcan::dynamics

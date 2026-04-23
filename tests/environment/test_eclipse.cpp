@@ -3,7 +3,7 @@
 
 #include <cmath>
 #include <gtest/gtest.h>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/environment/Eclipse.hpp>
 
@@ -128,22 +128,22 @@ TEST(Eclipse, ConicalDeepShadow) {
 // =============================================================================
 
 TEST(Eclipse, SymbolicEvaluation) {
-    auto x = janus::sym("x");
-    auto y = janus::sym("y");
-    auto z = janus::sym("z");
+    auto x = metis::sym("x");
+    auto y = metis::sym("y");
+    auto z = metis::sym("z");
 
-    Vec3<janus::SymbolicScalar> r_sat;
+    Vec3<metis::SymbolicScalar> r_sat;
     r_sat << x, y, z;
 
     // Use symbolic sun position
-    Vec3<janus::SymbolicScalar> r_sun_sym;
-    r_sun_sym << janus::SymbolicScalar(1.5e11), janus::SymbolicScalar(0.0),
-        janus::SymbolicScalar(0.0);
+    Vec3<metis::SymbolicScalar> r_sun_sym;
+    r_sun_sym << metis::SymbolicScalar(1.5e11), metis::SymbolicScalar(0.0),
+        metis::SymbolicScalar(0.0);
 
     auto nu = eclipse::shadow_cylindrical(r_sat, r_sun_sym);
 
     // Create function for evaluation
-    janus::Function f("shadow_test", {x, y, z}, {nu});
+    metis::Function f("shadow_test", {x, y, z}, {nu});
 
     // Evaluate at sunlit position
     auto result = f({7000e3, 0.0, 0.0});

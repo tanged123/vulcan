@@ -6,11 +6,11 @@
     flake-utils.url = "github:numtide/flake-utils";
     treefmt-nix.url = "github:numtide/treefmt-nix";
 
-    # Janus as a flake input
-    janus = {
-      url = "github:tanged123/janus";
+    # Metis as a flake input
+    metis = {
+      url = "github:tanged123/metis";
       # Or for local development:
-      # url = "path:/home/tanged/sources/janus";
+      # url = "path:/home/tanged/sources/metis";
     };
   };
 
@@ -20,7 +20,7 @@
       nixpkgs,
       flake-utils,
       treefmt-nix,
-      janus,
+      metis,
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
@@ -28,8 +28,8 @@
         pkgs = nixpkgs.legacyPackages.${system};
         stdenv = pkgs.llvmPackages_latest.stdenv;
 
-        # Get janus package from input
-        janusPackage = janus.packages.${system}.default;
+        # Get metis package from input
+        metisPackage = metis.packages.${system}.default;
 
         # Treefmt configuration
         treefmtEval = treefmt-nix.lib.evalModule pkgs {
@@ -57,7 +57,7 @@
             pkgs.hdf5
             pkgs.highfive # C++ HDF5 wrapper
             pkgs.yaml-cpp
-            janusPackage
+            metisPackage
           ];
 
           cmakeFlags = [
@@ -88,12 +88,12 @@
               llvmPackages_latest.llvm
             ]
             ++ [
-              janusPackage
+              metisPackage
               treefmtEval.config.build.wrapper
             ];
 
           shellHook = ''
-            export CMAKE_PREFIX_PATH=${pkgs.eigen}:${pkgs.casadi}:${pkgs.gtest}:${pkgs.hdf5}:${pkgs.highfive}:${pkgs.yaml-cpp}:${janusPackage}
+            export CMAKE_PREFIX_PATH=${pkgs.eigen}:${pkgs.casadi}:${pkgs.gtest}:${pkgs.hdf5}:${pkgs.highfive}:${pkgs.yaml-cpp}:${metisPackage}
           '';
         };
 

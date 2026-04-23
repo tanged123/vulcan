@@ -193,15 +193,15 @@ TEST(EnergyTest, TotalEnergy) {
 // =============================================================================
 
 TEST(PointMassSymbolicTest, Acceleration) {
-    auto Fx = janus::sym("Fx");
-    auto Fy = janus::sym("Fy");
-    auto Fz = janus::sym("Fz");
-    auto m = janus::sym("m");
+    auto Fx = metis::sym("Fx");
+    auto Fy = metis::sym("Fy");
+    auto Fz = metis::sym("Fz");
+    auto m = metis::sym("m");
 
     Vec3<casadi::MX> force{Fx, Fy, Fz};
     auto accel = point_mass_acceleration(force, m);
 
-    janus::Function f("pm_accel", {Fx, Fy, Fz, m},
+    metis::Function f("pm_accel", {Fx, Fy, Fz, m},
                       {accel(0), accel(1), accel(2)});
 
     auto result = f({100.0, 50.0, 25.0, 10.0});
@@ -215,14 +215,14 @@ TEST(PointMassSymbolicTest, Acceleration) {
 }
 
 TEST(PointMassSymbolicTest, FlightPathAngle) {
-    auto vx = janus::sym("vx");
-    auto vy = janus::sym("vy");
-    auto vz = janus::sym("vz");
+    auto vx = metis::sym("vx");
+    auto vy = metis::sym("vy");
+    auto vz = metis::sym("vz");
 
     Vec3<casadi::MX> vel{vx, vy, vz};
     auto gamma = flight_path_angle(vel);
 
-    janus::Function f("fpa", {vx, vy, vz}, {gamma});
+    metis::Function f("fpa", {vx, vy, vz}, {gamma});
 
     auto result = f({100.0, 0.0, -50.0});
 
@@ -233,19 +233,19 @@ TEST(PointMassSymbolicTest, FlightPathAngle) {
 }
 
 TEST(PointMassSymbolicTest, Energy) {
-    auto rx = janus::sym("rx");
-    auto ry = janus::sym("ry");
-    auto rz = janus::sym("rz");
-    auto vx = janus::sym("vx");
-    auto vy = janus::sym("vy");
-    auto vz = janus::sym("vz");
-    auto mu = janus::sym("mu");
+    auto rx = metis::sym("rx");
+    auto ry = metis::sym("ry");
+    auto rz = metis::sym("rz");
+    auto vx = metis::sym("vx");
+    auto vy = metis::sym("vy");
+    auto vz = metis::sym("vz");
+    auto mu = metis::sym("mu");
 
     Vec3<casadi::MX> pos{rx, ry, rz};
     Vec3<casadi::MX> vel{vx, vy, vz};
     auto E = specific_energy(pos, vel, mu);
 
-    janus::Function f("energy", {rx, ry, rz, vx, vy, vz, mu}, {E});
+    metis::Function f("energy", {rx, ry, rz, vx, vy, vz, mu}, {E});
 
     auto result = f({7000.0e3, 0.0, 0.0, 0.0, 7500.0, 0.0, 3.986004418e14});
 

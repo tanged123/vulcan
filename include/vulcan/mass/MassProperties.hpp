@@ -4,7 +4,7 @@
 
 #include <vulcan/core/VulcanTypes.hpp>
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 #include <type_traits>
 #include <vector>
@@ -246,7 +246,7 @@ template <typename Scalar> struct MassProperties {
     /// @return Inertia tensor about that point [kg·m²]
     Mat3<Scalar> inertia_about_point(const Vec3<Scalar> &point) const {
         Vec3<Scalar> r = cg - point;
-        Scalar r_dot_r = janus::dot(r, r);
+        Scalar r_dot_r = metis::dot(r, r);
 
         // J = I + m * (|r|² * I_3 - r ⊗ r)
         Mat3<Scalar> J = inertia;

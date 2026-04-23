@@ -182,8 +182,8 @@ int main() {
     // Compute symbolic slant range
     SymbolicScalar range_sym = slant_range(obs_sym, tgt_sym);
 
-    // Build Janus function
-    janus::Function range_fn("slant_range", {ox, oy, oz, tx, ty, tz},
+    // Build Metis function
+    metis::Function range_fn("slant_range", {ox, oy, oz, tx, ty, tz},
                              {range_sym});
 
     // Evaluate numerically
@@ -192,7 +192,7 @@ int main() {
               << double(result[0](0, 0)) << " m\n";
 
     // Generate graph
-    janus::visualize_graph(range_sym, "slant_range_graph");
+    metis::visualize_graph(range_sym, "slant_range_graph");
     std::cout << "Graph saved to 'slant_range_graph.dot'\n";
 
     std::cout << "\n=== Demo Complete ===\n";

@@ -2,7 +2,7 @@
 // General spherical harmonic expansion for high-fidelity applications
 #pragma once
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/coordinates/Geodetic.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
@@ -75,7 +75,7 @@ template <typename Scalar> Scalar legendre_Pnm(int n, int m, const Scalar &x) {
     // P_mm = (-1)^m (2m-1)!! (1-x²)^(m/2)
     Scalar pmm = Scalar(1.0);
     if (m > 0) {
-        Scalar somx2 = janus::sqrt((1.0 - x) * (1.0 + x));
+        Scalar somx2 = metis::sqrt((1.0 - x) * (1.0 + x));
         double fact = 1.0;
         for (int i = 1; i <= m; ++i) {
             pmm = -pmm * fact * somx2;
@@ -126,8 +126,8 @@ acceleration(const Vec3<Scalar> &r_ecef,
     const Scalar lon = sph.lon;
     const Scalar lat_gc = sph.lat_gc;
 
-    const Scalar sin_lat = janus::sin(lat_gc);
-    const Scalar cos_lat = janus::cos(lat_gc);
+    const Scalar sin_lat = metis::sin(lat_gc);
+    const Scalar cos_lat = metis::cos(lat_gc);
 
     const double mu = coeffs.mu;
     const double R_eq = coeffs.R_eq;
@@ -141,7 +141,7 @@ acceleration(const Vec3<Scalar> &r_ecef,
     // Summation over degrees and orders
     // Loop bounds are structural (n_max is int, not Scalar)
     for (int n = 0; n <= n_max; ++n) {
-        const Scalar Re_r_n = janus::pow(R_eq / r, static_cast<double>(n));
+        const Scalar Re_r_n = metis::pow(R_eq / r, static_cast<double>(n));
 
         for (int m = 0; m <= n; ++m) {
             const double C_nm =
@@ -153,15 +153,15 @@ acceleration(const Vec3<Scalar> &r_ecef,
             if (C_nm == 0.0 && S_nm == 0.0)
                 continue;
 
-            const Scalar cos_m_lon = janus::cos(static_cast<double>(m) * lon);
-            const Scalar sin_m_lon = janus::sin(static_cast<double>(m) * lon);
+            const Scalar cos_m_lon = metis::cos(static_cast<double>(m) * lon);
+            const Scalar sin_m_lon = metis::sin(static_cast<double>(m) * lon);
 
             const Scalar P_nm = legendre_Pnm(n, m, sin_lat);
 
             // Derivative of Legendre polynomial using recurrence
             const Scalar P_nm1 =
                 (n > 0) ? legendre_Pnm(n - 1, m, sin_lat) : Scalar(0.0);
-            const Scalar tan_lat = janus::tan(lat_gc);
+            const Scalar tan_lat = metis::tan(lat_gc);
             const Scalar dP_dlat = static_cast<double>(n) * tan_lat * P_nm -
                                    static_cast<double>(n + m) / cos_lat * P_nm1;
 
@@ -184,8 +184,8 @@ acceleration(const Vec3<Scalar> &r_ecef,
 
     // Convert spherical gradient to ECEF acceleration
     // g = -∇U
-    const Scalar sin_lon = janus::sin(lon);
-    const Scalar cos_lon = janus::cos(lon);
+    const Scalar sin_lon = metis::sin(lon);
+    const Scalar cos_lon = metis::cos(lon);
 
     // Spherical to Cartesian transformation
     const Scalar g_r = -dU_dr;
@@ -221,7 +221,7 @@ Scalar potential(const Vec3<Scalar> &r_ecef,
     const Scalar lon = sph.lon;
     const Scalar lat_gc = sph.lat_gc;
 
-    const Scalar sin_lat = janus::sin(lat_gc);
+    const Scalar sin_lat = metis::sin(lat_gc);
 
     const double mu = coeffs.mu;
     const double R_eq = coeffs.R_eq;
@@ -230,7 +230,7 @@ Scalar potential(const Vec3<Scalar> &r_ecef,
     Scalar U = -mu / r; // Point mass term
 
     for (int n = 2; n <= n_max; ++n) {
-        const Scalar Re_r_n = janus::pow(R_eq / r, static_cast<double>(n));
+        const Scalar Re_r_n = metis::pow(R_eq / r, static_cast<double>(n));
 
         for (int m = 0; m <= n; ++m) {
             const double C_nm =
@@ -241,8 +241,8 @@ Scalar potential(const Vec3<Scalar> &r_ecef,
             if (C_nm == 0.0 && S_nm == 0.0)
                 continue;
 
-            const Scalar cos_m_lon = janus::cos(static_cast<double>(m) * lon);
-            const Scalar sin_m_lon = janus::sin(static_cast<double>(m) * lon);
+            const Scalar cos_m_lon = metis::cos(static_cast<double>(m) * lon);
+            const Scalar sin_m_lon = metis::sin(static_cast<double>(m) * lon);
             const Scalar P_nm = legendre_Pnm(n, m, sin_lat);
 
             U = U -

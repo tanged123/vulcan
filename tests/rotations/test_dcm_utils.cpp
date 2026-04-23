@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <vulcan/rotations/Rotations.hpp>
 
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 
 #include <cmath>
 #include <numbers>
@@ -40,7 +40,7 @@ TEST(DCMUtils, SkewCrossProduct) {
 
     auto S = vulcan::skew(v);
     vulcan::Vec3<double> cross_via_skew = S * u;
-    vulcan::Vec3<double> cross_direct = janus::cross(v, u);
+    vulcan::Vec3<double> cross_direct = metis::cross(v, u);
 
     EXPECT_NEAR(cross_via_skew(0), cross_direct(0), 1e-15);
     EXPECT_NEAR(cross_via_skew(1), cross_direct(1), 1e-15);
@@ -66,11 +66,11 @@ TEST(DCMUtils, UnskewRoundtrip) {
 TEST(DCMUtils, ComposeDCM) {
     // Two 45° rotations about Z should give 90°
     double theta = std::numbers::pi / 4.0;
-    auto R1 = janus::rotation_matrix_3d(theta, 2);
-    auto R2 = janus::rotation_matrix_3d(theta, 2);
+    auto R1 = metis::rotation_matrix_3d(theta, 2);
+    auto R2 = metis::rotation_matrix_3d(theta, 2);
 
     auto R_composed = vulcan::compose_dcm(R1, R2);
-    auto R_90 = janus::rotation_matrix_3d(std::numbers::pi / 2.0, 2);
+    auto R_90 = metis::rotation_matrix_3d(std::numbers::pi / 2.0, 2);
 
     for (int i = 0; i < 3; ++i) {
         for (int j = 0; j < 3; ++j) {
@@ -81,7 +81,7 @@ TEST(DCMUtils, ComposeDCM) {
 
 TEST(DCMUtils, RelativeDCM) {
     // If R_A and R_B are same, relative should be identity
-    auto R = janus::rotation_matrix_3d(0.5, 1);
+    auto R = metis::rotation_matrix_3d(0.5, 1);
     auto R_rel = vulcan::relative_dcm(R, R);
 
     EXPECT_NEAR(R_rel(0, 0), 1.0, 1e-12);
@@ -92,8 +92,8 @@ TEST(DCMUtils, RelativeDCM) {
 
 TEST(DCMUtils, RelativeDCM_Inverse) {
     // R_rel(A, B) * R_rel(B, A) = I
-    auto R_A = janus::rotation_matrix_3d(0.3, 0);
-    auto R_B = janus::rotation_matrix_3d(0.5, 1);
+    auto R_A = metis::rotation_matrix_3d(0.3, 0);
+    auto R_B = metis::rotation_matrix_3d(0.5, 1);
 
     auto R_AB = vulcan::relative_dcm(R_A, R_B);
     auto R_BA = vulcan::relative_dcm(R_B, R_A);
@@ -145,7 +145,7 @@ TEST(DCMUtils, SmallAngleRoundtrip) {
 // =============================================================================
 
 TEST(DCMUtils, IsValidDCM) {
-    auto R = janus::rotation_matrix_3d(0.5, 1);
+    auto R = metis::rotation_matrix_3d(0.5, 1);
     EXPECT_TRUE(vulcan::is_valid_dcm(R));
 
     // Non-orthonormal matrix
@@ -159,11 +159,11 @@ TEST(DCMUtils, IsValidDCM) {
 // =============================================================================
 
 TEST(DCMUtils, SymbolicSkew) {
-    using Scalar = janus::SymbolicScalar;
+    using Scalar = metis::SymbolicScalar;
 
-    Scalar x = janus::sym("x");
-    Scalar y = janus::sym("y");
-    Scalar z = janus::sym("z");
+    Scalar x = metis::sym("x");
+    Scalar y = metis::sym("y");
+    Scalar z = metis::sym("z");
 
     vulcan::Vec3<Scalar> v;
     v << x, y, z;
@@ -174,7 +174,7 @@ TEST(DCMUtils, SymbolicSkew) {
     EXPECT_FALSE(S(0, 1).is_constant());
 
     // Create function
-    janus::Function f("skew", {x, y, z}, {S(0, 1), S(0, 2), S(1, 2)});
+    metis::Function f("skew", {x, y, z}, {S(0, 1), S(0, 2), S(1, 2)});
 
     auto result = f({1.0, 2.0, 3.0});
 

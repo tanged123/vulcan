@@ -1,6 +1,6 @@
 #include <casadi/casadi.hpp>
 #include <gtest/gtest.h>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/propulsion/Rocket.hpp>
 
 using namespace vulcan::propulsion::rocket;

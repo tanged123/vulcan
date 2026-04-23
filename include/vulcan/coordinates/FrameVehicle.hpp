@@ -8,9 +8,9 @@
 #include <vulcan/coordinates/Geodetic.hpp>
 #include <vulcan/rotations/EulerSequences.hpp>
 
-#include <janus/math/Linalg.hpp>
-#include <janus/math/Quaternion.hpp>
-#include <janus/math/Trig.hpp>
+#include <metis/math/Linalg.hpp>
+#include <metis/math/Quaternion.hpp>
+#include <metis/math/Trig.hpp>
 
 namespace vulcan {
 
@@ -27,7 +27,7 @@ namespace vulcan {
 template <typename Scalar>
 CoordinateFrame<Scalar>
 body_from_quaternion(const CoordinateFrame<Scalar> &ned,
-                     const janus::Quaternion<Scalar> &q_body_to_ned) {
+                     const metis::Quaternion<Scalar> &q_body_to_ned) {
     // q_body_to_ned transforms body vectors to NED vectors: v_ned =
     // q.rotate(v_body) The body axes (unit vectors in body coords) rotated to
     // NED give body axes in NED
@@ -58,7 +58,7 @@ body_from_quaternion(const CoordinateFrame<Scalar> &ned,
 /// @param ned Reference NED frame
 /// @return Quaternion rotating from body to NED (v_ned = q.rotate(v_body))
 template <typename Scalar>
-janus::Quaternion<Scalar>
+metis::Quaternion<Scalar>
 quaternion_from_body(const CoordinateFrame<Scalar> &body,
                      const CoordinateFrame<Scalar> &ned) {
     // Get body axes in NED coordinates
@@ -75,7 +75,7 @@ quaternion_from_body(const CoordinateFrame<Scalar> &body,
 
     // Return quaternion that rotates body to NED (same as from_euler
     // convention)
-    return janus::Quaternion<Scalar>::from_rotation_matrix(R);
+    return metis::Quaternion<Scalar>::from_rotation_matrix(R);
 }
 
 // =============================================================================
@@ -98,9 +98,9 @@ quaternion_from_body(const CoordinateFrame<Scalar> &body,
 template <typename Scalar>
 CoordinateFrame<Scalar> body_from_euler(const CoordinateFrame<Scalar> &ned,
                                         Scalar yaw, Scalar pitch, Scalar roll) {
-    // Janus from_euler uses (roll, pitch, yaw) for XYZ intrinsic sequence
+    // Metis from_euler uses (roll, pitch, yaw) for XYZ intrinsic sequence
     // which corresponds to ZYX extrinsic (yaw-pitch-roll aerospace convention)
-    auto q = janus::Quaternion<Scalar>::from_euler(roll, pitch, yaw);
+    auto q = metis::Quaternion<Scalar>::from_euler(roll, pitch, yaw);
     return body_from_quaternion(ned, q);
 }
 
@@ -157,7 +157,7 @@ CoordinateFrame<Scalar> velocity_frame(const Vec3<Scalar> &velocity_ecef,
     Vec3<Scalar> v_ned = ned.from_ecef(velocity_ecef);
 
     // Velocity magnitude
-    Scalar v_mag = janus::norm(velocity_ecef);
+    Scalar v_mag = metis::norm(velocity_ecef);
     Scalar eps = Scalar(1e-10);
 
     // Handle zero velocity case - use NED as default
@@ -168,12 +168,12 @@ CoordinateFrame<Scalar> velocity_frame(const Vec3<Scalar> &velocity_ecef,
     x_vel_ned << v_ned(0) / v_mag, v_ned(1) / v_mag, v_ned(2) / v_mag;
 
     // For near-zero velocity, default to North
-    x_vel_ned(0) = janus::where(is_zero, Scalar(1), x_vel_ned(0));
-    x_vel_ned(1) = janus::where(is_zero, Scalar(0), x_vel_ned(1));
-    x_vel_ned(2) = janus::where(is_zero, Scalar(0), x_vel_ned(2));
+    x_vel_ned(0) = metis::where(is_zero, Scalar(1), x_vel_ned(0));
+    x_vel_ned(1) = metis::where(is_zero, Scalar(0), x_vel_ned(1));
+    x_vel_ned(2) = metis::where(is_zero, Scalar(0), x_vel_ned(2));
 
     // Horizontal velocity magnitude
-    Scalar v_horiz = janus::sqrt(v_ned(0) * v_ned(0) + v_ned(1) * v_ned(1));
+    Scalar v_horiz = metis::sqrt(v_ned(0) * v_ned(0) + v_ned(1) * v_ned(1));
     Scalar is_vertical = v_horiz < eps;
 
     // Y-axis: Horizontal, perpendicular to velocity (to the right)
@@ -181,16 +181,16 @@ CoordinateFrame<Scalar> velocity_frame(const Vec3<Scalar> &velocity_ecef,
     y_vel_ned << v_ned(1) / v_horiz, -v_ned(0) / v_horiz, Scalar(0);
 
     // For vertical flight, Y defaults to East
-    y_vel_ned(0) = janus::where(is_vertical, Scalar(0), y_vel_ned(0));
-    y_vel_ned(1) = janus::where(is_vertical, Scalar(1), y_vel_ned(1));
-    y_vel_ned(2) = janus::where(is_vertical, Scalar(0), y_vel_ned(2));
+    y_vel_ned(0) = metis::where(is_vertical, Scalar(0), y_vel_ned(0));
+    y_vel_ned(1) = metis::where(is_vertical, Scalar(1), y_vel_ned(1));
+    y_vel_ned(2) = metis::where(is_vertical, Scalar(0), y_vel_ned(2));
 
     // For zero velocity, Y defaults to East
-    y_vel_ned(0) = janus::where(is_zero, Scalar(0), y_vel_ned(0));
-    y_vel_ned(1) = janus::where(is_zero, Scalar(1), y_vel_ned(1));
+    y_vel_ned(0) = metis::where(is_zero, Scalar(0), y_vel_ned(0));
+    y_vel_ned(1) = metis::where(is_zero, Scalar(1), y_vel_ned(1));
 
     // Z-axis: Complete right-handed system: z = x cross y
-    Vec3<Scalar> z_vel_ned = janus::cross(x_vel_ned, y_vel_ned);
+    Vec3<Scalar> z_vel_ned = metis::cross(x_vel_ned, y_vel_ned);
 
     // Transform to ECEF
     Vec3<Scalar> x_vel = ned.to_ecef(x_vel_ned);
@@ -218,21 +218,21 @@ Vec2<Scalar> flight_path_angles(const Vec3<Scalar> &velocity_ned) {
     Scalar vd = velocity_ned(2);
 
     // Horizontal speed
-    Scalar v_horiz = janus::sqrt(vn * vn + ve * ve);
+    Scalar v_horiz = metis::sqrt(vn * vn + ve * ve);
 
     // Total speed
-    Scalar v_total = janus::norm(velocity_ned);
+    Scalar v_total = metis::norm(velocity_ned);
     Scalar eps = Scalar(1e-10);
     Scalar is_zero = v_total < eps;
 
     // Flight path angle: gamma = atan2(-vd, v_horiz)
     // For climbing, vd < 0, so gamma > 0
-    Scalar gamma = janus::atan2(-vd, v_horiz);
-    gamma = janus::where(is_zero, Scalar(0), gamma);
+    Scalar gamma = metis::atan2(-vd, v_horiz);
+    gamma = metis::where(is_zero, Scalar(0), gamma);
 
     // Heading: psi = atan2(ve, vn)
-    Scalar psi = janus::atan2(ve, vn);
-    psi = janus::where(is_zero, Scalar(0), psi);
+    Scalar psi = metis::atan2(ve, vn);
+    psi = metis::where(is_zero, Scalar(0), psi);
 
     Vec2<Scalar> angles;
     angles << gamma, psi;

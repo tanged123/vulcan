@@ -5,8 +5,8 @@
 #include <vulcan/coordinates/TransformProvider.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 
-#include <janus/math/Quaternion.hpp>
-#include <janus/math/Trig.hpp>
+#include <metis/math/Quaternion.hpp>
+#include <metis/math/Trig.hpp>
 
 namespace vulcan {
 
@@ -15,9 +15,9 @@ template <typename Scalar>
 class BodyProvider final : public TransformProvider<Scalar> {
   public:
     BodyProvider(Scalar yaw, Scalar pitch, Scalar roll)
-        : q_(janus::Quaternion<Scalar>::from_euler(roll, pitch, yaw)) {}
+        : q_(metis::Quaternion<Scalar>::from_euler(roll, pitch, yaw)) {}
 
-    explicit BodyProvider(const janus::Quaternion<Scalar> &q_body_to_ned)
+    explicit BodyProvider(const metis::Quaternion<Scalar> &q_body_to_ned)
         : q_(q_body_to_ned) {}
 
     [[nodiscard]] Vec3<Scalar>
@@ -30,12 +30,12 @@ class BodyProvider final : public TransformProvider<Scalar> {
         return q_.conjugate().rotate(v_ned);
     }
 
-    [[nodiscard]] const janus::Quaternion<Scalar> &quaternion() const {
+    [[nodiscard]] const metis::Quaternion<Scalar> &quaternion() const {
         return q_;
     }
 
   private:
-    janus::Quaternion<Scalar> q_;
+    metis::Quaternion<Scalar> q_;
 };
 
 /// Wind(child) <-> Body(parent) provider.
@@ -43,10 +43,10 @@ template <typename Scalar>
 class WindProvider final : public TransformProvider<Scalar> {
   public:
     WindProvider(Scalar alpha, Scalar beta) {
-        const Scalar ca = janus::cos(alpha);
-        const Scalar sa = janus::sin(alpha);
-        const Scalar cb = janus::cos(beta);
-        const Scalar sb = janus::sin(beta);
+        const Scalar ca = metis::cos(alpha);
+        const Scalar sa = metis::sin(alpha);
+        const Scalar cb = metis::cos(beta);
+        const Scalar sb = metis::sin(beta);
 
         // v_body = R * v_wind
         R_(0, 0) = ca * cb;
@@ -83,8 +83,8 @@ template <typename Scalar>
 class StabilityProvider final : public TransformProvider<Scalar> {
   public:
     explicit StabilityProvider(Scalar alpha) {
-        const Scalar ca = janus::cos(alpha);
-        const Scalar sa = janus::sin(alpha);
+        const Scalar ca = metis::cos(alpha);
+        const Scalar sa = metis::sin(alpha);
 
         // v_body = R * v_stability
         R_(0, 0) = ca;

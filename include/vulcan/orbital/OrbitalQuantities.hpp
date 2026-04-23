@@ -3,7 +3,7 @@
 #pragma once
 
 #include <cmath>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/core/VulcanTypes.hpp>
 
@@ -19,7 +19,7 @@ namespace vulcan::orbital::quantities {
  */
 template <typename Scalar>
 Scalar period(const Scalar &a, double mu = constants::earth::mu) {
-    return 2.0 * M_PI * janus::sqrt(a * a * a / mu);
+    return 2.0 * M_PI * metis::sqrt(a * a * a / mu);
 }
 
 /**
@@ -34,7 +34,7 @@ Scalar period(const Scalar &a, double mu = constants::earth::mu) {
 template <typename Scalar>
 Scalar velocity(const Scalar &r, const Scalar &a,
                 double mu = constants::earth::mu) {
-    return janus::sqrt(mu * (2.0 / r - 1.0 / a));
+    return metis::sqrt(mu * (2.0 / r - 1.0 / a));
 }
 
 /**
@@ -60,7 +60,7 @@ Scalar energy(const Scalar &a, double mu = constants::earth::mu) {
  */
 template <typename Scalar>
 Scalar escape_velocity(const Scalar &r, double mu = constants::earth::mu) {
-    return janus::sqrt(2.0 * mu / r);
+    return metis::sqrt(2.0 * mu / r);
 }
 
 /**
@@ -73,7 +73,7 @@ Scalar escape_velocity(const Scalar &r, double mu = constants::earth::mu) {
  */
 template <typename Scalar>
 Scalar circular_velocity(const Scalar &r, double mu = constants::earth::mu) {
-    return janus::sqrt(mu / r);
+    return metis::sqrt(mu / r);
 }
 
 /**
@@ -86,7 +86,7 @@ Scalar circular_velocity(const Scalar &r, double mu = constants::earth::mu) {
  */
 template <typename Scalar>
 Scalar mean_motion(const Scalar &a, double mu = constants::earth::mu) {
-    return janus::sqrt(mu / (a * a * a));
+    return metis::sqrt(mu / (a * a * a));
 }
 
 /**
@@ -113,7 +113,7 @@ Scalar semi_latus_rectum(const Scalar &a, const Scalar &e) {
  */
 template <typename Scalar>
 Scalar radius_at_anomaly(const Scalar &a, const Scalar &e, const Scalar &nu) {
-    return a * (1.0 - e * e) / (1.0 + e * janus::cos(nu));
+    return a * (1.0 - e * e) / (1.0 + e * metis::cos(nu));
 }
 
 } // namespace vulcan::orbital::quantities

@@ -1,6 +1,6 @@
 /**
  * @file test_yaml_convert.cpp
- * @brief Unit tests for yaml-cpp conversion traits for Janus types
+ * @brief Unit tests for yaml-cpp conversion traits for Metis types
  */
 
 #include <vulcan/io/YamlConvert.hpp>
@@ -15,7 +15,7 @@ namespace {
 // =============================================================================
 
 TEST(YamlConvertTest, Vec3Encode) {
-    janus::Vec3<double> v{1.0, 2.0, 3.0};
+    metis::Vec3<double> v{1.0, 2.0, 3.0};
 
     YAML::Node node;
     node = v;
@@ -33,7 +33,7 @@ TEST(YamlConvertTest, Vec3Decode) {
     node.push_back(5.0);
     node.push_back(6.0);
 
-    auto v = node.as<janus::Vec3<double>>();
+    auto v = node.as<metis::Vec3<double>>();
 
     EXPECT_DOUBLE_EQ(v.x(), 4.0);
     EXPECT_DOUBLE_EQ(v.y(), 5.0);
@@ -41,13 +41,13 @@ TEST(YamlConvertTest, Vec3Decode) {
 }
 
 TEST(YamlConvertTest, Vec3RoundTrip) {
-    janus::Vec3<double> original{-1.5, 0.0, 3.14159};
+    metis::Vec3<double> original{-1.5, 0.0, 3.14159};
 
     YAML::Emitter out;
     out << original;
 
     YAML::Node node = YAML::Load(out.c_str());
-    auto restored = node.as<janus::Vec3<double>>();
+    auto restored = node.as<metis::Vec3<double>>();
 
     EXPECT_DOUBLE_EQ(restored.x(), original.x());
     EXPECT_DOUBLE_EQ(restored.y(), original.y());
@@ -59,8 +59,8 @@ TEST(YamlConvertTest, Vec3DecodeWrongSize) {
     node.push_back(1.0);
     node.push_back(2.0); // Only 2 elements
 
-    janus::Vec3<double> v;
-    EXPECT_FALSE(YAML::convert<janus::Vec3<double>>::decode(node, v));
+    metis::Vec3<double> v;
+    EXPECT_FALSE(YAML::convert<metis::Vec3<double>>::decode(node, v));
 }
 
 TEST(YamlConvertTest, Vec3DecodeTypeMismatch) {
@@ -69,8 +69,8 @@ TEST(YamlConvertTest, Vec3DecodeTypeMismatch) {
     node.push_back("not a number");
     node.push_back(3.0);
 
-    janus::Vec3<double> v;
-    EXPECT_FALSE(YAML::convert<janus::Vec3<double>>::decode(node, v));
+    metis::Vec3<double> v;
+    EXPECT_FALSE(YAML::convert<metis::Vec3<double>>::decode(node, v));
 }
 
 // =============================================================================
@@ -78,7 +78,7 @@ TEST(YamlConvertTest, Vec3DecodeTypeMismatch) {
 // =============================================================================
 
 TEST(YamlConvertTest, QuaternionEncode) {
-    janus::Quaternion<double> q{1.0, 0.0, 0.0, 0.0}; // Identity
+    metis::Quaternion<double> q{1.0, 0.0, 0.0, 0.0}; // Identity
 
     YAML::Node node;
     node = q;
@@ -98,7 +98,7 @@ TEST(YamlConvertTest, QuaternionDecode) {
     node.push_back(0.0);
     node.push_back(0.0);
 
-    auto q = node.as<janus::Quaternion<double>>();
+    auto q = node.as<metis::Quaternion<double>>();
 
     EXPECT_DOUBLE_EQ(q.w, 0.707);
     EXPECT_DOUBLE_EQ(q.x, 0.707);
@@ -108,14 +108,14 @@ TEST(YamlConvertTest, QuaternionDecode) {
 
 TEST(YamlConvertTest, QuaternionRoundTrip) {
     // 90 degree rotation around Z
-    janus::Quaternion<double> original{0.7071067811865476, 0.0, 0.0,
+    metis::Quaternion<double> original{0.7071067811865476, 0.0, 0.0,
                                        0.7071067811865476};
 
     YAML::Emitter out;
     out << original;
 
     YAML::Node node = YAML::Load(out.c_str());
-    auto restored = node.as<janus::Quaternion<double>>();
+    auto restored = node.as<metis::Quaternion<double>>();
 
     EXPECT_NEAR(restored.w, original.w, 1e-10);
     EXPECT_NEAR(restored.x, original.x, 1e-10);
@@ -130,8 +130,8 @@ TEST(YamlConvertTest, QuaternionDecodeWrongSize) {
     node.push_back(0.0);
     // Only 3 elements
 
-    janus::Quaternion<double> q;
-    EXPECT_FALSE(YAML::convert<janus::Quaternion<double>>::decode(node, q));
+    metis::Quaternion<double> q;
+    EXPECT_FALSE(YAML::convert<metis::Quaternion<double>>::decode(node, q));
 }
 
 TEST(YamlConvertTest, QuaternionDecodeTypeMismatch) {
@@ -141,8 +141,8 @@ TEST(YamlConvertTest, QuaternionDecodeTypeMismatch) {
     node.push_back("fail");
     node.push_back(0.0);
 
-    janus::Quaternion<double> q;
-    EXPECT_FALSE(YAML::convert<janus::Quaternion<double>>::decode(node, q));
+    metis::Quaternion<double> q;
+    EXPECT_FALSE(YAML::convert<metis::Quaternion<double>>::decode(node, q));
 }
 
 // =============================================================================
@@ -150,7 +150,7 @@ TEST(YamlConvertTest, QuaternionDecodeTypeMismatch) {
 // =============================================================================
 
 TEST(YamlConvertTest, Mat3EncodeAsNested) {
-    janus::Mat3<double> m = janus::Mat3<double>::Identity();
+    metis::Mat3<double> m = metis::Mat3<double>::Identity();
 
     YAML::Node node;
     node = m;
@@ -170,7 +170,7 @@ TEST(YamlConvertTest, Mat3EncodeAsNested) {
 TEST(YamlConvertTest, Mat3DecodeNested) {
     YAML::Node node = YAML::Load("[[1, 2, 3], [4, 5, 6], [7, 8, 9]]");
 
-    auto m = node.as<janus::Mat3<double>>();
+    auto m = node.as<metis::Mat3<double>>();
 
     EXPECT_DOUBLE_EQ(m(0, 0), 1.0);
     EXPECT_DOUBLE_EQ(m(0, 2), 3.0);
@@ -181,7 +181,7 @@ TEST(YamlConvertTest, Mat3DecodeNested) {
 TEST(YamlConvertTest, Mat3DecodeFlat) {
     YAML::Node node = YAML::Load("[1, 2, 3, 4, 5, 6, 7, 8, 9]");
 
-    auto m = node.as<janus::Mat3<double>>();
+    auto m = node.as<metis::Mat3<double>>();
 
     // Row-major order
     EXPECT_DOUBLE_EQ(m(0, 0), 1.0);
@@ -192,14 +192,14 @@ TEST(YamlConvertTest, Mat3DecodeFlat) {
 }
 
 TEST(YamlConvertTest, Mat3RoundTrip) {
-    janus::Mat3<double> original;
+    metis::Mat3<double> original;
     original << 1, 2, 3, 4, 5, 6, 7, 8, 9;
 
     YAML::Emitter out;
     out << original;
 
     YAML::Node node = YAML::Load(out.c_str());
-    auto restored = node.as<janus::Mat3<double>>();
+    auto restored = node.as<metis::Mat3<double>>();
 
     for (int i = 0; i < 3; ++i) {
         for (int j = 0; j < 3; ++j) {
@@ -212,30 +212,30 @@ TEST(YamlConvertTest, Mat3DecodeInvalidFormat) {
     // Wrong number of elements
     YAML::Node node = YAML::Load("[1, 2, 3, 4, 5]");
 
-    janus::Mat3<double> m;
-    EXPECT_FALSE(YAML::convert<janus::Mat3<double>>::decode(node, m));
+    metis::Mat3<double> m;
+    EXPECT_FALSE(YAML::convert<metis::Mat3<double>>::decode(node, m));
 }
 
 TEST(YamlConvertTest, Mat3DecodeNestedWrongRowSize) {
     // Second row has wrong size
     YAML::Node node = YAML::Load("[[1, 2, 3], [4, 5], [7, 8, 9]]");
 
-    janus::Mat3<double> m;
-    EXPECT_FALSE(YAML::convert<janus::Mat3<double>>::decode(node, m));
+    metis::Mat3<double> m;
+    EXPECT_FALSE(YAML::convert<metis::Mat3<double>>::decode(node, m));
 }
 
 TEST(YamlConvertTest, Mat3DecodeTypeMismatchNested) {
     YAML::Node node = YAML::Load("[[1, 2, 3], [4, 'oops', 6], [7, 8, 9]]");
 
-    janus::Mat3<double> m;
-    EXPECT_FALSE(YAML::convert<janus::Mat3<double>>::decode(node, m));
+    metis::Mat3<double> m;
+    EXPECT_FALSE(YAML::convert<metis::Mat3<double>>::decode(node, m));
 }
 
 TEST(YamlConvertTest, Mat3DecodeTypeMismatchFlat) {
     YAML::Node node = YAML::Load("[1, 2, 3, 4, 5, 6, 7, 8, 'oops']");
 
-    janus::Mat3<double> m;
-    EXPECT_FALSE(YAML::convert<janus::Mat3<double>>::decode(node, m));
+    metis::Mat3<double> m;
+    EXPECT_FALSE(YAML::convert<metis::Mat3<double>>::decode(node, m));
 }
 
 } // namespace

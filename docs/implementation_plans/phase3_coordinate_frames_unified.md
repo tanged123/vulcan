@@ -1,6 +1,6 @@
 # Phase 3: Coordinate Frames — Unified Implementation Plan
 
-A robust 6-DOF coordinate transformation engine for Vulcan with milliarcsec-level accuracy. All code templated on `Scalar` for Janus symbolic/numeric compatibility. Phased approach enables incremental delivery.
+A robust 6-DOF coordinate transformation engine for Vulcan with milliarcsec-level accuracy. All code templated on `Scalar` for Metis symbolic/numeric compatibility. Phased approach enables incremental delivery.
 
 ---
 
@@ -27,7 +27,7 @@ A robust 6-DOF coordinate transformation engine for Vulcan with milliarcsec-leve
 > [!WARNING]
 > **Pole and Origin Singularities**
 > 
-> Longitude is undefined at poles (xy_dist ≈ 0) and at Earth's center (||r|| ≈ 0). These are handled via `janus::where` for NaN-safe symbolic graphs.
+> Longitude is undefined at poles (xy_dist ≈ 0) and at Earth's center (||r|| ≈ 0). These are handled via `metis::where` for NaN-safe symbolic graphs.
 
 > [!NOTE]
 > **Phased SOFA Integration**
@@ -113,9 +113,9 @@ struct CoordinateFrame {
     /// Project vector FROM ECEF TO this frame
     Vec3<Scalar> from_ecef(const Vec3<Scalar>& v) const {
         return Vec3<Scalar>(
-            janus::dot(v, x_axis),
-            janus::dot(v, y_axis),
-            janus::dot(v, z_axis)
+            metis::dot(v, x_axis),
+            metis::dot(v, y_axis),
+            metis::dot(v, z_axis)
         );
     }
     
@@ -191,21 +191,21 @@ Scalar p = (x*x + y*y) / (a*a);
 Scalar q = (1 - e2) * z*z / (a*a);
 Scalar r = (p + q - e4) / 6;
 Scalar s = e4 * p * q / (4 * r*r*r);
-Scalar t = janus::pow(1 + s + janus::sqrt(s * (2 + s)), 1.0/3.0);
+Scalar t = metis::pow(1 + s + metis::sqrt(s * (2 + s)), 1.0/3.0);
 Scalar u = r * (1 + t + 1/t);
-Scalar v = janus::sqrt(u*u + e4*q);
+Scalar v = metis::sqrt(u*u + e4*q);
 Scalar w = e2 * (u + v - q) / (2*v);
-Scalar k = janus::sqrt(u + v + w*w) - w;
-Scalar D = k * janus::sqrt(x*x + y*y) / (k + e2);
-lat = 2 * janus::atan2(z, D + janus::sqrt(D*D + z*z));
-alt = (k + e2 - 1) / k * janus::sqrt(D*D + z*z);
-lon = janus::atan2(y, x);
+Scalar k = metis::sqrt(u + v + w*w) - w;
+Scalar D = k * metis::sqrt(x*x + y*y) / (k + e2);
+lat = 2 * metis::atan2(z, D + metis::sqrt(D*D + z*z));
+alt = (k + e2 - 1) / k * metis::sqrt(D*D + z*z);
+lon = metis::atan2(y, x);
 ```
 
 **Pole handling:**
 ```cpp
-Scalar is_pole = janus::sqrt(x*x + y*y) < eps;
-lon = janus::where(is_pole, Scalar(0.0), janus::atan2(y, x));
+Scalar is_pole = metis::sqrt(x*x + y*y) < eps;
+lon = metis::where(is_pole, Scalar(0.0), metis::atan2(y, x));
 ```
 
 ---

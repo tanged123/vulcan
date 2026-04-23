@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vulcan/core/Constants.hpp>
 #include <vulcan/gravity/J2J4.hpp>
 #include <vulcan/gravity/PointMass.hpp>
@@ -91,11 +91,11 @@ TEST(SphericalHarmonics, LegendreMGreaterThanN) {
 }
 
 TEST(SphericalHarmonics, LegendreSymbolic) {
-    auto x = janus::sym("x");
+    auto x = metis::sym("x");
 
     auto P20 = spherical_harmonics::legendre_Pnm(2, 0, x);
 
-    janus::Function f("legendre_p20", {x}, {P20});
+    metis::Function f("legendre_p20", {x}, {P20});
 
     for (double val : {-0.5, 0.0, 0.5, 0.8}) {
         auto result = f({val});
@@ -181,7 +181,7 @@ TEST(SphericalHarmonics, AccelerationMagnitudeLEO) {
     r << constants::earth::R_eq + 400000.0, 0.0, 0.0;
 
     auto g = spherical_harmonics::acceleration(r);
-    double g_mag = janus::norm(g);
+    double g_mag = metis::norm(g);
 
     // LEO gravity ~8.7 m/s² (slightly less than 9.8 due to altitude)
     EXPECT_GT(g_mag, 8.0);
@@ -194,7 +194,7 @@ TEST(SphericalHarmonics, AccelerationMagnitudeGEO) {
     r << constants::earth::R_eq + 35786000.0, 0.0, 0.0;
 
     auto g = spherical_harmonics::acceleration(r);
-    double g_mag = janus::norm(g);
+    double g_mag = metis::norm(g);
 
     // GEO gravity ~0.22 m/s²
     EXPECT_GT(g_mag, 0.20);
@@ -273,8 +273,8 @@ TEST(SphericalHarmonics, J2PerturbationStrongerThanJ4) {
     Vec3<double> delta_j2 = g_j2 - g_pm;
     Vec3<double> delta_j4 = g_j4 - g_pm;
 
-    double pert_j2 = janus::norm(delta_j2);
-    double pert_j4 = janus::norm(delta_j4);
+    double pert_j2 = metis::norm(delta_j2);
+    double pert_j4 = metis::norm(delta_j4);
 
     // J2 perturbation should be much larger than J4
     EXPECT_GT(pert_j2, pert_j4 * 100.0);
@@ -289,8 +289,8 @@ TEST(SphericalHarmonics, InverseSquareFalloff) {
     auto g1 = spherical_harmonics::acceleration(r1);
     auto g2 = spherical_harmonics::acceleration(r2);
 
-    double mag1 = janus::norm(g1);
-    double mag2 = janus::norm(g2);
+    double mag1 = metis::norm(g1);
+    double mag2 = metis::norm(g2);
 
     // At 2x distance, gravity should be ~1/4 (inverse square)
     double ratio = mag1 / mag2;
@@ -368,18 +368,18 @@ TEST(SphericalHarmonics, PotentialPointMassOnly) {
 // ============================================
 
 TEST(SphericalHarmonics, SymbolicAcceleration) {
-    auto x = janus::sym("x");
-    auto y = janus::sym("y");
-    auto z = janus::sym("z");
+    auto x = metis::sym("x");
+    auto y = metis::sym("y");
+    auto z = metis::sym("z");
 
-    Vec3<janus::SymbolicScalar> r;
+    Vec3<metis::SymbolicScalar> r;
     r << x, y, z;
 
     spherical_harmonics::GravityCoefficients coeffs(2);
 
     auto g = spherical_harmonics::acceleration(r, coeffs);
 
-    janus::Function f("sh_accel", {x, y, z}, {g(0), g(1), g(2)});
+    metis::Function f("sh_accel", {x, y, z}, {g(0), g(1), g(2)});
     auto result = f({7000000.0, 0.0, 1000000.0});
 
     // Should produce finite values
@@ -396,18 +396,18 @@ TEST(SphericalHarmonics, SymbolicAcceleration) {
 }
 
 TEST(SphericalHarmonics, SymbolicMatchesNumeric) {
-    auto x = janus::sym("x");
-    auto y = janus::sym("y");
-    auto z = janus::sym("z");
+    auto x = metis::sym("x");
+    auto y = metis::sym("y");
+    auto z = metis::sym("z");
 
-    Vec3<janus::SymbolicScalar> r_sym;
+    Vec3<metis::SymbolicScalar> r_sym;
     r_sym << x, y, z;
 
     spherical_harmonics::GravityCoefficients coeffs(2);
 
     auto g_sym = spherical_harmonics::acceleration(r_sym, coeffs);
 
-    janus::Function f("sh_test", {x, y, z}, {g_sym(0), g_sym(1), g_sym(2)});
+    metis::Function f("sh_test", {x, y, z}, {g_sym(0), g_sym(1), g_sym(2)});
 
     // Test at multiple positions
     std::vector<std::array<double, 3>> test_positions = {
@@ -432,18 +432,18 @@ TEST(SphericalHarmonics, SymbolicMatchesNumeric) {
 }
 
 TEST(SphericalHarmonics, SymbolicPotential) {
-    auto x = janus::sym("x");
-    auto y = janus::sym("y");
-    auto z = janus::sym("z");
+    auto x = metis::sym("x");
+    auto y = metis::sym("y");
+    auto z = metis::sym("z");
 
-    Vec3<janus::SymbolicScalar> r;
+    Vec3<metis::SymbolicScalar> r;
     r << x, y, z;
 
     spherical_harmonics::GravityCoefficients coeffs(2);
 
     auto U_sym = spherical_harmonics::potential(r, coeffs);
 
-    janus::Function f("sh_potential", {x, y, z}, {U_sym});
+    metis::Function f("sh_potential", {x, y, z}, {U_sym});
 
     Vec3<double> r_num;
     r_num << 7000000.0, 500000.0, 1000000.0;
@@ -455,11 +455,11 @@ TEST(SphericalHarmonics, SymbolicPotential) {
 }
 
 TEST(SphericalHarmonics, SymbolicJacobian) {
-    auto x = janus::sym("x");
-    auto y = janus::sym("y");
-    auto z = janus::sym("z");
+    auto x = metis::sym("x");
+    auto y = metis::sym("y");
+    auto z = metis::sym("z");
 
-    Vec3<janus::SymbolicScalar> r;
+    Vec3<metis::SymbolicScalar> r;
     r << x, y, z;
 
     spherical_harmonics::GravityCoefficients coeffs(2);
@@ -467,9 +467,9 @@ TEST(SphericalHarmonics, SymbolicJacobian) {
     auto g = spherical_harmonics::acceleration(r, coeffs);
 
     // Compute Jacobian of acceleration w.r.t. position
-    auto J = janus::jacobian({g(0), g(1), g(2)}, {x, y, z});
+    auto J = metis::jacobian({g(0), g(1), g(2)}, {x, y, z});
 
-    janus::Function f("sh_jacobian", {x, y, z},
+    metis::Function f("sh_jacobian", {x, y, z},
                       {J(0, 0), J(0, 1), J(0, 2), J(1, 0), J(1, 1), J(1, 2),
                        J(2, 0), J(2, 1), J(2, 2)});
 

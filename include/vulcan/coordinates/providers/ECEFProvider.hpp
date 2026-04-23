@@ -5,7 +5,7 @@
 #include <vulcan/coordinates/EarthModel.hpp>
 #include <vulcan/coordinates/TransformProvider.hpp>
 
-#include <janus/math/Trig.hpp>
+#include <metis/math/Trig.hpp>
 
 #include <memory>
 
@@ -22,14 +22,14 @@ template <typename Scalar>
 class ECEFProvider final : public TransformProvider<Scalar> {
   public:
     explicit ECEFProvider(Scalar rotation_angle) {
-        c_ = janus::cos(rotation_angle);
-        s_ = janus::sin(rotation_angle);
+        c_ = metis::cos(rotation_angle);
+        s_ = metis::sin(rotation_angle);
     }
 
     ECEFProvider(const EarthRotationModel &model, double t_seconds) {
         const Scalar angle = Scalar(model.ecef_to_eci_angle(t_seconds));
-        c_ = janus::cos(angle);
-        s_ = janus::sin(angle);
+        c_ = metis::cos(angle);
+        s_ = metis::sin(angle);
     }
 
     /// ECEF -> ECI

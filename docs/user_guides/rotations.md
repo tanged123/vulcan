@@ -70,7 +70,7 @@ Vec3<double> euler = euler_from_quaternion(q, EulerSequence::ZYX);
 
 ### Gimbal Lock Handling
 
-All Euler angle extractions handle gimbal lock robustly using `janus::where` for symbolic compatibility:
+All Euler angle extractions handle gimbal lock robustly using `metis::where` for symbolic compatibility:
 
 - **Tait-Bryan**: At ±90° pitch, roll is set to 0
 - **Proper Euler**: At 0° or 180° nutation, spin is set to 0
@@ -234,14 +234,14 @@ auto q_interp = squad(q1, q2, s1, s2, t);
 
 ## Symbolic Computation
 
-All functions are templated and work with `janus::SymbolicScalar` for optimization:
+All functions are templated and work with `metis::SymbolicScalar` for optimization:
 
 ```cpp
-using Scalar = janus::SymbolicScalar;
+using Scalar = metis::SymbolicScalar;
 
-Scalar yaw = janus::sym("yaw");
-Scalar pitch = janus::sym("pitch");
-Scalar roll = janus::sym("roll");
+Scalar yaw = metis::sym("yaw");
+Scalar pitch = metis::sym("pitch");
+Scalar roll = metis::sym("roll");
 
 // Create symbolic DCM
 auto R = dcm_from_euler(yaw, pitch, roll, EulerSequence::ZYX);
@@ -250,7 +250,7 @@ auto R = dcm_from_euler(yaw, pitch, roll, EulerSequence::ZYX);
 std::cout << R(0, 0) << std::endl;  // Prints symbolic expression
 
 // Create CasADi function for optimization
-janus::Function f("attitude_dcm", {yaw, pitch, roll}, 
+metis::Function f("attitude_dcm", {yaw, pitch, roll}, 
                   {R(0,0), R(1,0), R(2,0)});
 ```
 
@@ -274,16 +274,16 @@ Vec3<double> euler = euler_from_body(body, ned);
 Export computational graphs as interactive HTML for debugging and documentation:
 
 ```cpp
-using Scalar = janus::SymbolicScalar;
+using Scalar = metis::SymbolicScalar;
 
-Scalar yaw = janus::sym("yaw");
-Scalar pitch = janus::sym("pitch");
-Scalar roll = janus::sym("roll");
+Scalar yaw = metis::sym("yaw");
+Scalar pitch = metis::sym("pitch");
+Scalar roll = metis::sym("roll");
 
 auto R = dcm_from_euler(yaw, pitch, roll, EulerSequence::ZYX);
 
 // Export as interactive HTML - opens in any browser
-janus::export_graph_html(R(0, 0), "graph_dcm_r00", "DCM_R00_ZYX");
+metis::export_graph_html(R(0, 0), "graph_dcm_r00", "DCM_R00_ZYX");
 // Creates: graph_dcm_r00.html
 ```
 

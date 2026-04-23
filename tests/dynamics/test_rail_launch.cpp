@@ -254,12 +254,12 @@ TEST(RailReactionTest, Basic) {
 // =============================================================================
 
 TEST(RailSymbolicTest, Direction) {
-    auto az = janus::sym("az");
-    auto el = janus::sym("el");
+    auto az = metis::sym("az");
+    auto el = metis::sym("el");
 
     auto dir = rail_direction_ned(az, el);
 
-    janus::Function f("rail_dir", {az, el}, {dir(0), dir(1), dir(2)});
+    metis::Function f("rail_dir", {az, el}, {dir(0), dir(1), dir(2)});
 
     auto result = f({M_PI / 4, M_PI / 6});
 
@@ -270,18 +270,18 @@ TEST(RailSymbolicTest, Direction) {
 }
 
 TEST(RailSymbolicTest, Acceleration) {
-    auto s_dot = janus::sym("s_dot");
-    auto F_along = janus::sym("F_along");
-    auto F_perp = janus::sym("F_perp");
-    auto mass = janus::sym("m");
-    auto gravity = janus::sym("g");
-    auto elevation = janus::sym("el");
-    auto friction = janus::sym("mu");
+    auto s_dot = metis::sym("s_dot");
+    auto F_along = metis::sym("F_along");
+    auto F_perp = metis::sym("F_perp");
+    auto mass = metis::sym("m");
+    auto gravity = metis::sym("g");
+    auto elevation = metis::sym("el");
+    auto friction = metis::sym("mu");
 
     auto accel = rail_acceleration(s_dot, F_along, F_perp, mass, gravity,
                                    elevation, friction);
 
-    janus::Function f(
+    metis::Function f(
         "rail_accel",
         {s_dot, F_along, F_perp, mass, gravity, elevation, friction}, {accel});
 
@@ -293,12 +293,12 @@ TEST(RailSymbolicTest, Acceleration) {
 }
 
 TEST(RailSymbolicTest, Attitude) {
-    auto az = janus::sym("az");
-    auto el = janus::sym("el");
+    auto az = metis::sym("az");
+    auto el = metis::sym("el");
 
     auto q = rail_aligned_attitude(az, el);
 
-    janus::Function f("rail_attitude", {az, el}, {q.w, q.x, q.y, q.z});
+    metis::Function f("rail_attitude", {az, el}, {q.w, q.x, q.y, q.z});
 
     auto result = f({0.0, M_PI / 4});
 

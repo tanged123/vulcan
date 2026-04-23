@@ -4,7 +4,7 @@
  *
  * This example demonstrates Vulcan's symbolic leap second interpolation
  * across a mission spanning multiple months - where leap seconds actually
- * matter for precise timing. The janus::Interpolator provides smooth,
+ * matter for precise timing. The metis::Interpolator provides smooth,
  * differentiable leap second lookup for gradient-based optimization.
  *
  * Scenario: Plan observation windows for a 6-month Earth observation campaign
@@ -14,7 +14,7 @@
 #include <cmath>
 #include <iomanip>
 #include <iostream>
-#include <janus/janus.hpp>
+#include <metis/metis.hpp>
 #include <vector>
 #include <vulcan/vulcan.hpp>
 
@@ -40,20 +40,20 @@ Scalar ground_station_visibility(const Scalar &utc_jd, double station_lat) {
 
     // Compute local hour angle (simplified: assume station at prime meridian)
     Scalar days_since_j2000 = tai_jd - JD_J2000;
-    Scalar local_hour = janus::fmod(days_since_j2000, Scalar(1.0)) * 24.0;
+    Scalar local_hour = metis::fmod(days_since_j2000, Scalar(1.0)) * 24.0;
 
     // Night visibility: peaks at local midnight (hour = 0 or 24)
     // Use smooth cosine model
     Scalar hour_angle = (local_hour - Scalar(12.0)) * M_PI / 12.0;
-    Scalar night_factor = (Scalar(1.0) + janus::cos(hour_angle)) * Scalar(0.5);
+    Scalar night_factor = (Scalar(1.0) + metis::cos(hour_angle)) * Scalar(0.5);
 
     // Seasonal factor: more visible in winter (longer nights)
     // Use day-of-year to estimate season
-    Scalar doy = janus::fmod(days_since_j2000, Scalar(365.25));
+    Scalar doy = metis::fmod(days_since_j2000, Scalar(365.25));
     // Winter solstice around day 355, summer around day 172
     Scalar season_angle = (doy - Scalar(355.0)) * 2.0 * M_PI / 365.25;
     Scalar season_factor =
-        (Scalar(1.0) + janus::cos(season_angle)) * Scalar(0.5);
+        (Scalar(1.0) + metis::cos(season_angle)) * Scalar(0.5);
 
     // High-latitude stations have more extreme seasonal variation
     double lat_effect = std::abs(std::sin(station_lat));
@@ -80,13 +80,13 @@ Scalar satellite_overhead(const Scalar &utc_jd, double orbit_period,
                           double phase_offset) {
     Scalar tai_jd = utc_to_tai_symbolic(utc_jd);
     Scalar orbit_phase = (tai_jd - JD_J2000) / orbit_period + phase_offset;
-    Scalar phase_wrap = janus::fmod(orbit_phase, Scalar(1.0));
+    Scalar phase_wrap = metis::fmod(orbit_phase, Scalar(1.0));
 
     // Satellite is overhead when phase is near 0 or 1
     // Use narrow Gaussian window
-    Scalar dist_from_overhead = janus::abs(phase_wrap - Scalar(0.5));
+    Scalar dist_from_overhead = metis::abs(phase_wrap - Scalar(0.5));
     Scalar overhead_factor =
-        janus::exp(-dist_from_overhead * dist_from_overhead * 100.0);
+        metis::exp(-dist_from_overhead * dist_from_overhead * 100.0);
 
     return overhead_factor;
 }
@@ -140,12 +140,12 @@ int main() {
               << " seconds\n\n";
 
     // Create symbolic UTC JD and show interpolated leap seconds
-    auto utc_jd_sym = janus::sym("utc_jd");
+    auto utc_jd_sym = metis::sym("utc_jd");
     auto delta_at_sym = leap_seconds_symbolic(utc_jd_sym);
 
-    janus::Function f_leap("leap_seconds", {utc_jd_sym}, {delta_at_sym});
+    metis::Function f_leap("leap_seconds", {utc_jd_sym}, {delta_at_sym});
 
-    std::cout << "Symbolic leap second lookup (via janus::Interpolator):\n";
+    std::cout << "Symbolic leap second lookup (via metis::Interpolator):\n";
     std::vector<std::tuple<int, int, int>> test_dates = {
         {2010, 1, 1},  // delta_at = 34
         {2012, 7, 1},  // delta_at = 35
@@ -169,7 +169,7 @@ int main() {
     std::cout << "\n=== Part 2: Symbolic UTC→TAI Conversion ===\n\n";
 
     auto tai_jd_sym = utc_to_tai_symbolic(utc_jd_sym);
-    janus::Function f_utc_tai("utc_to_tai", {utc_jd_sym}, {tai_jd_sym});
+    metis::Function f_utc_tai("utc_to_tai", {utc_jd_sym}, {tai_jd_sym});
 
     std::cout << "UTC to TAI conversion (fully symbolic with interpolated leap "
                  "seconds):\n";
@@ -197,7 +197,7 @@ int main() {
     std::cout << "  Satellite revisit period: " << orbit_period << " days\n";
     std::cout << "  Mission duration: 180 days (6 months)\n\n";
 
-    janus::Opti opti;
+    metis::Opti opti;
 
     // Decision variable: mission start date (as JD offset from 2024-01-01)
     double base_jd = calendar_to_jd(2024, 1, 1, 0, 0, 0.0);
@@ -240,7 +240,8 @@ int main() {
     std::cout << "  End:   " << y2 << "-" << std::setw(2) << std::setfill('0')
               << m2 << "-" << std::setw(2) << d2 << std::setfill(' ') << "\n";
     std::cout << "  Total visibility score: " << optimal_obj << "\n";
-    std::cout << "  Solver iterations: " << solution.num_iterations() << "\n";
+    std::cout << "  Solver iterations: "
+              << solution.num_iterations().value_or(-1) << "\n";
 
     // =========================================================================
     // Part 4: Compare start dates
@@ -250,7 +251,7 @@ int main() {
     std::cout << "Start Month | Visibility Score | Season\n";
     std::cout << "------------|------------------|--------\n";
 
-    janus::Function f_obj("mission_obj", {start_offset},
+    metis::Function f_obj("mission_obj", {start_offset},
                           {mission_objective(base_jd + start_offset, duration,
                                              station_lat, orbit_period)});
 
@@ -286,18 +287,18 @@ int main() {
     std::cout << "\n=== Part 5: Exporting Computational Graph ===\n\n";
 
     // Show the leap second lookup graph
-    janus::export_graph_html(delta_at_sym, "graph_leap_seconds",
+    metis::export_graph_html(delta_at_sym, "graph_leap_seconds",
                              "Leap_Second_Interpolator");
     std::cout << "✓ Exported: graph_leap_seconds.html\n";
 
     // Show the full UTC to TAI conversion
-    janus::export_graph_html(tai_jd_sym, "graph_utc_to_tai",
+    metis::export_graph_html(tai_jd_sym, "graph_utc_to_tai",
                              "UTC_to_TAI_Symbolic");
     std::cout << "✓ Exported: graph_utc_to_tai.html\n";
 
     // Ground station visibility model
     auto gs_vis_sym = ground_station_visibility(utc_jd_sym, station_lat);
-    janus::export_graph_html(gs_vis_sym, "graph_ground_station",
+    metis::export_graph_html(gs_vis_sym, "graph_ground_station",
                              "Ground_Station_Visibility");
     std::cout << "✓ Exported: graph_ground_station.html\n";
 

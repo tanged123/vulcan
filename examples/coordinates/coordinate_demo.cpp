@@ -8,7 +8,7 @@
 /// - Flight path and aerodynamic angles
 /// - Transforms between frames
 
-#include <janus/core/JanusIO.hpp>
+#include <metis/core/MetisIO.hpp>
 #include <vulcan/vulcan.hpp>
 
 #include <cmath>
@@ -234,7 +234,7 @@ int main() {
     // =========================================================================
     std::cout << "--- Symbolic Examples ---\n";
 
-    // Define symbolic variables using Janus
+    // Define symbolic variables using Metis
     // SymbolicScalar is an alias for casadi::MX
     SymbolicScalar sym_lon = sym("lon");
     SymbolicScalar sym_lat = sym("lat");
@@ -246,11 +246,11 @@ int main() {
     // Perform symbolic conversion to ECEF using the same function as numeric
     Vec3<SymbolicScalar> ecef_sym = lla_to_ecef(lla_sym);
 
-    // Create a Janus Function for this transformation
+    // Create a Metis Function for this transformation
     // Arguments: [lon, lat, alt]
     // Returns: [x, y, z]
     // This compiles the computation graph into a callable function
-    janus::Function f_lla_to_ecef("lla_to_ecef", {sym_lon, sym_lat, sym_alt},
+    metis::Function f_lla_to_ecef("lla_to_ecef", {sym_lon, sym_lat, sym_alt},
                                   {ecef_sym(0), ecef_sym(1), ecef_sym(2)});
 
     // Evaluate the function using the Washington DC values
@@ -286,14 +286,14 @@ int main() {
 
     // Visualize the computational graph
     std::cout << "  Generating graph visualization...\n";
-    // We convert the Eigen vector to a Janus symbolic expression (MX) using
+    // We convert the Eigen vector to a Metis symbolic expression (MX) using
     // as_mx This allows visualizing the entire vector output as one graph
-    janus::visualize_graph(janus::as_mx(ecef_sym), "lla_to_ecef_graph");
+    metis::visualize_graph(metis::as_mx(ecef_sym), "lla_to_ecef_graph");
     std::cout << "  Graph saved to 'lla_to_ecef_graph.dot' (and .pdf if "
                  "Graphviz is installed)\n";
 
     // Export as interactive HTML
-    janus::export_graph_html(ecef_sym(0), "graph_lla_to_ecef_x",
+    metis::export_graph_html(ecef_sym(0), "graph_lla_to_ecef_x",
                              "LLA_to_ECEF_X");
     std::cout << "  -> graph_lla_to_ecef_x.html (interactive)\n\n";
 
@@ -322,16 +322,16 @@ int main() {
     // Note: visualize_graph accepts a vector of expressions or a single
     // expression We'll create a single vector expression for clean
     // visualization
-    SymbolicVector sym_lla_vec = janus::sym_vec("lla_out", 3);
+    SymbolicVector sym_lla_vec = metis::sym_vec("lla_out", 3);
     sym_lla_vec(0) = sym_lla_back.lon;
     sym_lla_vec(1) = sym_lla_back.lat;
     sym_lla_vec(2) = sym_lla_back.alt;
 
-    janus::visualize_graph(janus::as_mx(sym_lla_vec), "ecef_to_lla_graph");
+    metis::visualize_graph(metis::as_mx(sym_lla_vec), "ecef_to_lla_graph");
     std::cout << "  Graph saved to 'ecef_to_lla_graph.dot' (and .pdf)\n";
 
     // Export as interactive HTML
-    janus::export_graph_html(sym_lla_back.lat, "graph_ecef_to_lla_lat",
+    metis::export_graph_html(sym_lla_back.lat, "graph_ecef_to_lla_lat",
                              "ECEF_to_LLA_Latitude");
     std::cout << "  -> graph_ecef_to_lla_lat.html (Vermeille algorithm)\n\n";
 
