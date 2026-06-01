@@ -8,7 +8,7 @@
 
     # Metis as a flake input
     metis = {
-      url = "github:tanged123/metis";
+      url = "github:tanged123/metis/2.0.0";
       # Or for local development:
       # url = "path:/home/tanged/sources/metis";
     };
